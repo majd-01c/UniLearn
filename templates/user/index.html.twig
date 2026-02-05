@@ -56,7 +56,7 @@
                                 </td>
                                 <td>
                                     {% if user.profile %}
-                                        <div class="fw-semibold text-dark">{{ user.profile.firstName }} {{ user.profile.lastName }}</div>
+                                        <div class="fw-semibold">{{ user.profile.firstName }} {{ user.profile.lastName }}</div>
                                         {% if user.profile.description %}
                                         <small class="text-muted">{{ user.profile.description|slice(0, 30) }}{% if user.profile.description|length > 30 %}...{% endif %}</small>
                                         {% endif %}

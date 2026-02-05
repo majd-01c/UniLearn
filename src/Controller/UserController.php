@@ -2,24 +2,27 @@
 
 namespace App\Controller;
 
+use App\Entity\Profile;
 use App\Entity\User;
-use App\Form\UserType;
+use App\Form\UserCreateType;
 use App\Repository\UserRepository;
+use App\Service\TempPasswordGenerator;
+use App\Service\UserMailerService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/users')]
+#[IsGranted('ROLE_ADMIN')]
 class UserController extends AbstractController
 {
     #[Route('/', name: 'app_user_index', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function index(UserRepository $userRepository): Response
     {
         return $this->render('user/index.html.twig', [
@@ -28,58 +31,83 @@ class UserController extends AbstractController
     }
 
     #[Route('/new', name: 'app_user_new', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
-        SluggerInterface $slugger
+        TempPasswordGenerator $tempPasswordGenerator,
+        UserMailerService $userMailer,
+        LoggerInterface $logger
     ): Response {
         $user = new User();
-        $form = $this->createForm(UserType::class, $user);
+        $form = $this->createForm(UserCreateType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Hash the password
-            $hashedPassword = $passwordHasher->hashPassword(
-                $user,
-                $form->get('password')->getData()
-            );
+            // Generate temporary password
+            $tempPassword = $tempPasswordGenerator->generate();
+            
+            // Hash and set password
+            $hashedPassword = $passwordHasher->hashPassword($user, $tempPassword);
             $user->setPassword($hashedPassword);
-
-            // Handle skills input (comma-separated string to array)
-            $skillsInput = $form->get('skillsInput')->getData();
-            if ($skillsInput) {
-                $skillsArray = array_map('trim', explode(',', $skillsInput));
-                $user->setSkills($skillsArray);
-            }
-
-            // Handle file upload
-            $profilePicFile = $form->get('profilePic')->getData();
-            if ($profilePicFile) {
-                $originalFilename = pathinfo($profilePicFile->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$profilePicFile->guessExtension();
-
-                try {
-                    $uploadDir = $this->getParameter('kernel.project_dir').'/public/uploads/profiles';
-                    
-                    // Create directory if it doesn't exist
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
-
-                    $profilePicFile->move($uploadDir, $newFilename);
-                    $user->setProfilePic($newFilename);
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Failed to upload profile picture: ' . $e->getMessage());
-                }
-            }
-
+            
+            // Set user must change password on first login
+            $user->setMustChangePassword(true);
+            $user->setTempPasswordGeneratedAt(new \DateTimeImmutable());
+            $user->setCreatedAt(new \DateTimeImmutable());
+            $user->setUpdatedAt(new \DateTimeImmutable());
+            
+            // Create profile with form data
+            $profile = new Profile();
+            $profile->setFirstName($form->get('firstName')->getData());
+            $profile->setLastName($form->get('lastName')->getData());
+            $profile->setPhone($form->get('phone')->getData());
+            $profile->setDescription($form->get('description')->getData());
+            $profile->setUser($user);
+            $user->setProfile($profile);
+            
+            // Persist both user and profile
             $entityManager->persist($user);
+            $entityManager->persist($profile);
             $entityManager->flush();
 
-            $this->addFlash('success', 'User created successfully!');
+            // Send welcome email with temporary password
+            $userEmail = $user->getEmail();
+            $logger->info('Attempting to send welcome email', ['email' => $userEmail]);
+            
+            if (empty($userEmail)) {
+                $logger->error('Email is empty for new user');
+                $this->addFlash('warning', sprintf(
+                    'User created but email is empty! Temp password: %s',
+                    $tempPassword
+                ));
+                return $this->redirectToRoute('app_user_index', [], Response::HTTP_SEE_OTHER);
+            }
+
+            try {
+                $loginUrl = $this->generateUrl('app_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
+                $userMailer->sendWelcomeEmail($user, $tempPassword, $loginUrl);
+                
+                $logger->info('Welcome email sent successfully to: ' . $userEmail);
+                
+                $this->addFlash('success', sprintf(
+                    'User created! Email sent to %s. Temp password: %s',
+                    $userEmail,
+                    $tempPassword
+                ));
+            } catch (\Throwable $e) {
+                $logger->error('Email sending failed', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+                
+                $this->addFlash('warning', sprintf(
+                    'User created but email failed: %s. Temp password: %s',
+                    $e->getMessage(),
+                    $tempPassword
+                ));
+            }
 
             return $this->redirectToRoute('app_user_index', [], Response::HTTP_SEE_OTHER);
         }

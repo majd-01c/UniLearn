@@ -145,6 +145,218 @@ a:hover {
     color: var(--primary-600);
 }
 
+strong, b {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+/* Bootstrap utility overrides for dark theme */
+.text-dark {
+    color: var(--text-primary) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-body {
+    color: var(--text-primary) !important;
+}
+
+.text-black-50 {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.text-white-50 {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.bg-light {
+    background-color: var(--surface-elevated) !important;
+}
+
+.bg-white {
+    background-color: var(--surface-card) !important;
+}
+
+.bg-dark {
+    background-color: var(--gray-200) !important;
+}
+
+.border {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.border-top,
+.border-bottom,
+.border-start,
+.border-end {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+small, .small {
+    color: var(--text-secondary);
+}
+
+/* Breadcrumb override */
+.breadcrumb {
+    background-color: transparent;
+}
+
+.breadcrumb-item {
+    color: var(--text-secondary);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-primary);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--text-muted);
+}
+
+/* List groups */
+.list-group-item {
+    background-color: var(--surface-card);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.list-group-item:hover {
+    background-color: var(--surface-elevated);
+}
+
+.list-group-item.active {
+    background-color: var(--primary-500);
+    border-color: var(--primary-500);
+}
+
+/* Nav tabs & pills */
+.nav-tabs {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-tabs .nav-link {
+    color: var(--text-secondary);
+    border-color: transparent;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary-500);
+    background-color: var(--surface-card);
+    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.1) var(--surface-card);
+}
+
+.nav-pills .nav-link {
+    color: var(--text-secondary);
+}
+
+.nav-pills .nav-link:hover {
+    color: var(--text-primary);
+    background-color: var(--surface-elevated);
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--primary-500);
+}
+
+/* Accordion */
+.accordion-item {
+    background-color: var(--surface-card);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.accordion-button {
+    background-color: var(--surface-card);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: var(--surface-elevated);
+    color: var(--primary-500);
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    border-color: var(--primary-500);
+}
+
+.accordion-body {
+    background-color: var(--surface-card);
+    color: var(--text-secondary);
+}
+
+/* Progress bars */
+.progress {
+    background-color: var(--surface-elevated);
+}
+
+/* Tooltips & Popovers */
+.tooltip-inner {
+    background-color: var(--gray-800);
+    color: var(--text-primary);
+}
+
+.popover {
+    background-color: var(--surface-card);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.popover-header {
+    background-color: var(--surface-elevated);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.popover-body {
+    color: var(--text-secondary);
+}
+
+/* Offcanvas */
+.offcanvas {
+    background-color: var(--surface-card);
+    color: var(--text-primary);
+}
+
+.offcanvas-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.offcanvas-title {
+    color: var(--text-primary);
+}
+
+/* Code & Pre elements */
+code {
+    background-color: var(--surface-elevated);
+    color: var(--primary-500);
+    padding: 0.2em 0.4em;
+    border-radius: var(--radius-sm);
+}
+
+pre {
+    background-color: var(--surface-elevated);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+pre code {
+    background-color: transparent;
+    color: inherit;
+}
+
 /* --------------------------------------------------------------------------
    Typography
    -------------------------------------------------------------------------- */
@@ -190,7 +402,7 @@ h1, h2, h3, h4, h5, h6 {
    Navbar
    -------------------------------------------------------------------------- */
 .navbar {
-    background: rgba(255, 255, 255, 0.98) !important;
+    background: var(--surface-card) !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-md);
@@ -198,7 +410,7 @@ h1, h2, h3, h4, h5, h6 {
     position: sticky;
     top: 0;
     z-index: 1030;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .navbar-brand {
@@ -945,6 +1157,19 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-secondary);
 }
 
+/* Disabled & Read-only States */
+.form-control:disabled,
+.form-select:disabled {
+    background-color: var(--gray-200);
+    opacity: 0.6;
+    color: var(--text-muted);
+}
+
+.form-control[readonly] {
+    background-color: var(--surface-elevated);
+    color: var(--text-secondary);
+}
+
 /* Floating Labels */
 .form-floating > .form-control,
 .form-floating > .form-select {
@@ -984,13 +1209,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .valid-feedback {
-    color: var(--success-600);
+    color: var(--success-500);
     font-size: 0.8125rem;
+    display: block;
 }
 
 .invalid-feedback {
     color: var(--danger-500);
     font-size: 0.8125rem;
+    display: block;
 }
 
 /* --------------------------------------------------------------------------
@@ -1000,14 +1227,16 @@ h1, h2, h3, h4, h5, h6 {
     border-collapse: separate;
     border-spacing: 0;
     margin-bottom: 0;
+    background-color: transparent;
+    color: var(--text-primary);
 }
 
 .table thead {
-    background: linear-gradient(135deg, #252b33 0%, #2f3640 100%);
+    background: transparent;
 }
 
 .table thead th {
-    color: var(--text-primary);
+    color: #000000;
     font-weight: 600;
     font-size: 0.8125rem;
     text-transform: uppercase;
@@ -1027,17 +1256,26 @@ h1, h2, h3, h4, h5, h6 {
 
 .table tbody tr {
     transition: var(--transition-fast);
+    background: transparent;
 }
 
 .table tbody tr:hover {
-    background: var(--surface-elevated);
+    background: transparent;
 }
 
 .table tbody td {
     padding: var(--space-4);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     vertical-align: middle;
-    color: var(--text-secondary);
+    color: #000000;
+}
+
+.table tbody td strong {
+    color: #000000;
+}
+
+.table tbody td small {
+    color: #333333;
 }
 
 .table tbody tr:last-child td {
@@ -1061,6 +1299,7 @@ h1, h2, h3, h4, h5, h6 {
 .table-responsive {
     border-radius: var(--radius-lg);
     overflow: hidden;
+    background-color: transparent;
 }
 
 /* --------------------------------------------------------------------------
@@ -1097,7 +1336,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .badge.bg-secondary {
-    background: var(--gray-400) !important;
+    background: var(--surface-elevated) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Status Badges */

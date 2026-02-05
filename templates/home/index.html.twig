@@ -4,86 +4,163 @@
 
 {% block body %}
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-4">
-                <i class="bi bi-speedometer2"></i> Dashboard
-            </h1>
-            <p class="lead">Welcome to UniLearn - University Learning Management System</p>
+    <div class="content-wrapper">
+        {# Page Header #}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="page-title">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </h1>
+                <p class="page-subtitle">Welcome back! Here's your UniLearn overview.</p>
+            </div>
         </div>
-    </div>
 
-    <div class="row mt-4">
-        {% if is_granted('ROLE_ADMIN') %}
-        <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card border-primary">
-                <div class="card-body text-center">
-                    <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
-                    <h5 class="card-title mt-3">Users</h5>
-                    <p class="card-text">Manage system users</p>
-                    <a href="{{ path('app_user_index') }}" class="btn btn-primary">View Users</a>
+        {# Stats Cards #}
+        <div class="row g-4 stagger-animation">
+            {% if is_granted('ROLE_ADMIN') %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-primary">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h5>Users</h5>
+                        <p>Manage system users and permissions</p>
+                        <a href="{{ path('app_user_index') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-success">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-book-fill"></i>
+                        </div>
+                        <h5>Programme</h5>
+                        <p>Browse and manage academic programmes</p>
+                        <a href="{{ path('app_programme') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-danger">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-door-open-fill"></i>
+                        </div>
+                        <h5>Classe</h5>
+                        <p>Manage classrooms and schedules</p>
+                        <a href="{{ path('app_classe') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-warning">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-calendar-event-fill"></i>
+                        </div>
+                        <h5>Events</h5>
+                        <p>University events and activities</p>
+                        <a href="{{ path('app_event') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-info">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </div>
+                        <h5>Job Offers</h5>
+                        <p>Career opportunities and internships</p>
+                        <a href="{{ path('app_job_offer') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Quick Info Section #}
+        {% if app.user %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="section-title">
+                            <i class="bi bi-person-badge"></i> Account Information
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="info-item">
+                                    <div class="info-item-label">Logged in as</div>
+                                    <div class="info-item-value">{{ app.user.email }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-item">
+                                    <div class="info-item-label">Role</div>
+                                    <div class="info-item-value">
+                                        <span class="badge bg-primary">{{ app.user.role }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-item">
+                                    <div class="info-item-label">Status</div>
+                                    <div class="info-item-value">
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Active
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <i class="bi bi-book-fill text-success" style="font-size: 3rem;"></i>
-                    <h5 class="card-title mt-3">Programme</h5>
-                    <p class="card-text">Manage programmes</p>
-                    <a href="{{ path('app_programme') }}" class="btn btn-success">View</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <i class="bi bi-door-open-fill text-info" style="font-size: 3rem;"></i>
-                    <h5 class="card-title mt-3">Classe</h5>
-                    <p class="card-text">Manage classes</p>
-                    <a href="{{ path('app_classe') }}" class="btn btn-info">View</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <i class="bi bi-calendar-event-fill text-warning" style="font-size: 3rem;"></i>
-                    <h5 class="card-title mt-3">Events</h5>
-                    <p class="card-text">Manage events</p>
-                    <a href="{{ path('app_event') }}" class="btn btn-warning">View</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card border-secondary">
-                <div class="card-body text-center">
-                    <i class="bi bi-briefcase-fill text-secondary" style="font-size: 3rem;"></i>
-                    <h5 class="card-title mt-3">Job Offers</h5>
-                    <p class="card-text">Manage job offers</p>
-                    <a href="{{ path('app_job_offer') }}" class="btn btn-secondary">View</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-info-circle-fill"></i> Quick Info</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Logged in as:</strong> {{ app.user.email }}</p>
-                    <p><strong>Role:</strong> {{ app.user.role }}</p>
-                    {% if app.user.name %}
-                        <p><strong>Name:</strong> {{ app.user.name }}</p>
-                    {% endif %}
+        {# Quick Actions #}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="section-title">
+                            <i class="bi bi-lightning-charge-fill"></i> Quick Actions
+                        </h5>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('app_user_new') }}" class="btn btn-primary">
+                                <i class="bi bi-person-plus"></i> Add New User
+                            </a>
+                            {% endif %}
+                            <a href="{{ path('app_programme') }}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Browse Programmes
+                            </a>
+                            <a href="{{ path('app_event') }}" class="btn btn-warning">
+                                <i class="bi bi-calendar-plus"></i> View Events
+                            </a>
+                            <a href="{{ path('app_job_offer') }}" class="btn btn-info">
+                                <i class="bi bi-briefcase"></i> Job Offers
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -117,4 +117,21 @@ class UserController extends AbstractController
             'form' => $form,
         ]);
     }
+
+    #[Route('/{id}/toggle-status', name: 'app_user_toggle_status', methods: ['POST'])]
+    public function toggleStatus(Request $request, User $user, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('toggle-status-' . $user->getId(), $request->request->get('_token'))) {
+            $user->setIsActive(!$user->isActive());
+            $user->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+
+            $status = $user->isActive() ? 'activated' : 'deactivated';
+            $this->addFlash('success', sprintf('User account %s successfully.', $status));
+        } else {
+            $this->addFlash('error', 'Invalid CSRF token.');
+        }
+
+        return $this->redirectToRoute('app_user_index');
+    }
 }

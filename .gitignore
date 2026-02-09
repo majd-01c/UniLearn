@@ -21,3 +21,4 @@
 /.env
 compose.yaml
 compose.override.yaml
+compose.yaml

@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Events - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="content-wrapper">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                {# Coming Soon Illustration #}
+                <div class="empty-state py-5">
+                    <div class="empty-state-icon bg-gradient-warning" style="width: 140px; height: 140px;">
+                        <i class="bi bi-calendar-event-fill text-white" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="empty-state-title mt-4">Events Coming Soon</h2>
+                    <p class="empty-state-text">
+                        We're working hard to bring you an amazing events management system. 
+                        Stay tuned for university events, workshops, and activities!
+                    </p>
+                    
+                    {# Feature Preview Cards #}
+                    <div class="row g-3 mt-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="icon-box bg-gradient-primary mx-auto mb-3">
+                                        <i class="bi bi-calendar-plus text-white"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Create Events</h6>
+                                    <small class="text-muted">Schedule and manage university events</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="icon-box bg-gradient-success mx-auto mb-3">
+                                        <i class="bi bi-people text-white"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Participation</h6>
+                                    <small class="text-muted">Track attendees and registrations</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="icon-box bg-gradient-info mx-auto mb-3">
+                                        <i class="bi bi-bell text-white"></i>
+                                    </div>
+                                    <h6 class="fw-bold">Notifications</h6>
+                                    <small class="text-muted">Get reminders for upcoming events</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ path('app_home') }}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

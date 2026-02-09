@@ -22,4 +22,5 @@
 
 # Custom scripts
 start.batcompose.yaml
+compose.yaml
 compose.override.yaml

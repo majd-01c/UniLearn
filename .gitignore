@@ -21,4 +21,5 @@
 /.env
 
 # Custom scripts
-start.bat
+start.batcompose.yaml
+compose.override.yaml

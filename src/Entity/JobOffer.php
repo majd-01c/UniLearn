@@ -5,13 +5,18 @@ namespace App\Entity;
 use App\Repository\JobOfferRepository;
 use App\Enum\JobOfferType;
 use App\Enum\JobOfferStatus;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: JobOfferRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Index(columns: ['type'])]
 #[ORM\Index(columns: ['status'])]
 #[ORM\Index(columns: ['location'])]
+#[ORM\Index(columns: ['published_at'])]
+#[ORM\Index(columns: ['expires_at'])]
 class JobOffer
 {
     #[ORM\Id]
@@ -35,21 +40,49 @@ class JobOffer
     private ?string $requirements = null;
 
     #[ORM\Column(type: 'string', enumType: JobOfferStatus::class)]
-    private ?JobOfferStatus $status = JobOfferStatus::ACTIVE;
+    private ?JobOfferStatus $status = JobOfferStatus::PENDING;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $createdAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $publishedAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $expiresAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'jobOffers')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $partner = null;
 
+    /**
+     * @var Collection<int, JobApplication>
+     */
+    #[ORM\OneToMany(targetEntity: JobApplication::class, mappedBy: 'offer', orphanRemoval: true, cascade: ['persist', 'remove'])]
+    private Collection $applications;
+
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->applications = new ArrayCollection();
+    }
+
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTimeImmutable();
+        }
+        if ($this->updatedAt === null) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -124,25 +157,47 @@ class JobOffer
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    public function getPublishedAt(): ?\DateTimeImmutable
+    {
+        return $this->publishedAt;
+    }
+
+    public function setPublishedAt(?\DateTimeImmutable $publishedAt): static
+    {
+        $this->publishedAt = $publishedAt;
+        return $this;
+    }
+
+    public function getExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->expiresAt;
+    }
+
+    public function setExpiresAt(?\DateTimeImmutable $expiresAt): static
+    {
+        $this->expiresAt = $expiresAt;
         return $this;
     }
 
@@ -154,6 +209,35 @@ class JobOffer
     public function setPartner(?User $partner): static
     {
         $this->partner = $partner;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, JobApplication>
+     */
+    public function getApplications(): Collection
+    {
+        return $this->applications;
+    }
+
+    public function addApplication(JobApplication $application): static
+    {
+        if (!$this->applications->contains($application)) {
+            $this->applications->add($application);
+            $application->setOffer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApplication(JobApplication $application): static
+    {
+        if ($this->applications->removeElement($application)) {
+            if ($application->getOffer() === $this) {
+                $application->setOffer(null);
+            }
+        }
+
         return $this;
     }
 }

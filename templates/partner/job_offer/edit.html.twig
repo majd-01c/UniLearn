@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Job Offer - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0"><i class="bi bi-pencil"></i> Edit Job Offer</h2>
+                </div>
+                <div class="card-body">
+                    {# Flash Messages #}
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {# Offer Status Info #}
+                    <div class="mb-3">
+                        <strong>Current Status:</strong>
+                        {% if offer.status.value == 'ACTIVE' %}
+                            <span class="badge bg-success">Active</span>
+                        {% elseif offer.status.value == 'PENDING' %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% elseif offer.status.value == 'CLOSED' %}
+                            <span class="badge bg-secondary">Closed</span>
+                        {% elseif offer.status.value == 'REJECTED' %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </div>
+
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_row(form.title) }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.type) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.location) }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.description) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.requirements) }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.publishedAt) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.expiresAt) }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_partner_job_offer_index') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

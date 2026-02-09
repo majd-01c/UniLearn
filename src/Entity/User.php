@@ -118,6 +118,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $jobOffers;
 
     /**
+     * @var Collection<int, JobApplication>
+     */
+    #[ORM\OneToMany(targetEntity: JobApplication::class, mappedBy: 'student', orphanRemoval: true)]
+    private Collection $jobApplications;
+
+    /**
      * @var Collection<int, GeneralChatMessage>
      */
     #[ORM\OneToMany(targetEntity: GeneralChatMessage::class, mappedBy: 'sender', orphanRemoval: true)]
@@ -139,6 +145,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->gradesAsStudent = new \Doctrine\Common\Collections\ArrayCollection();
         $this->gradesAsTeacher = new \Doctrine\Common\Collections\ArrayCollection();
         $this->jobOffers = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->jobApplications = new \Doctrine\Common\Collections\ArrayCollection();
         $this->generalChatMessages = new \Doctrine\Common\Collections\ArrayCollection();
         $this->programChatMessages = new \Doctrine\Common\Collections\ArrayCollection();
     }
@@ -470,6 +477,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->jobOffers->removeElement($jobOffer)) {
             if ($jobOffer->getPartner() === $this) {
                 $jobOffer->setPartner(null);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, JobApplication>
+     */
+    public function getJobApplications(): Collection
+    {
+        return $this->jobApplications;
+    }
+
+    public function addJobApplication(JobApplication $jobApplication): static
+    {
+        if (!$this->jobApplications->contains($jobApplication)) {
+            $this->jobApplications->add($jobApplication);
+            $jobApplication->setStudent($this);
+        }
+        return $this;
+    }
+
+    public function removeJobApplication(JobApplication $jobApplication): static
+    {
+        if ($this->jobApplications->removeElement($jobApplication)) {
+            if ($jobApplication->getStudent() === $this) {
+                $jobApplication->setStudent(null);
             }
         }
         return $this;

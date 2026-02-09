@@ -1,0 +1,166 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ offer.title }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            {# Flash Messages #}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {# Back Button #}
+            <div class="mb-3">
+                <a href="{{ path('app_job_offer_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Job Offers
+                </a>
+            </div>
+
+            {# Job Offer Details Card #}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-briefcase-fill"></i> {{ offer.title }}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5 class="text-muted mb-2">Job Type</h5>
+                            <p class="lead">
+                                <span class="badge bg-info">
+                                    {{ offer.type.value|replace({'_': ' '})|title }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-muted mb-2">Status</h5>
+                            <p class="lead">
+                                {% if offer.status.value == 'ACTIVE' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% elseif offer.status.value == 'PENDING' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elseif offer.status.value == 'CLOSED' %}
+                                    <span class="badge bg-secondary">Closed</span>
+                                {% elseif offer.status.value == 'REJECTED' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if offer.location %}
+                        <div class="mb-3">
+                            <h5 class="text-muted mb-2">
+                                <i class="bi bi-geo-alt-fill"></i> Location
+                            </h5>
+                            <p>{{ offer.location }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <h5 class="text-muted mb-2">
+                            <i class="bi bi-file-text-fill"></i> Description
+                        </h5>
+                        <p style="white-space: pre-wrap;">{{ offer.description }}</p>
+                    </div>
+
+                    {% if offer.requirements %}
+                        <div class="mb-3">
+                            <h5 class="text-muted mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Requirements
+                            </h5>
+                            <p style="white-space: pre-wrap;">{{ offer.requirements }}</p>
+                        </div>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-plus"></i> 
+                                Created: {{ offer.createdAt|date('Y-m-d H:i') }}
+                            </small>
+                        </div>
+                        {% if offer.publishedAt %}
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar-check"></i> 
+                                    Published: {{ offer.publishedAt|date('Y-m-d H:i') }}
+                                </small>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if offer.expiresAt %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-x"></i> 
+                                Expires: {{ offer.expiresAt|date('Y-m-d H:i') }}
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Application Section - Only for Students #}
+            {% if is_granted('ROLE_STUDENT') %}
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="bi bi-send-fill"></i> Apply for this Position
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% if alreadyApplied %}
+                            {# Already Applied Alert #}
+                            <div class="alert alert-warning" role="alert">
+                                <h5 class="alert-heading">
+                                    <i class="bi bi-exclamation-triangle"></i> Already Applied
+                                </h5>
+                                <p class="mb-0">You have already submitted an application for this job offer.</p>
+                            </div>
+                        {% elseif offer.status.value != 'ACTIVE' %}
+                            {# Offer Not Active #}
+                            <div class="alert alert-info" role="alert">
+                                <h5 class="alert-heading">
+                                    <i class="bi bi-info-circle"></i> Application Not Available
+                                </h5>
+                                <p class="mb-0">This job offer is no longer accepting applications.</p>
+                            </div>
+                        {% else %}
+                            {# Application Form #}
+                            {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+                                <div class="mb-3">
+                                    {{ form_row(form.message) }}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form_row(form.cvFile) }}
+                                    <small class="text-muted">
+                                        Maximum file size: 5MB. Allowed formats: PDF, DOC, DOCX
+                                    </small>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-send"></i> Apply for this Position
+                                    </button>
+                                </div>
+                            {{ form_end(form) }}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

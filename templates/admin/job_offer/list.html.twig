@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Job Offer Management - Admin{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Job Offer Management</h1>
+    </div>
+
+    {# Flash Messages #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# Filters #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        {% for status in jobOfferStatuses %}
+                            <option value="{{ status.value }}" {{ currentStatus == status.value ? 'selected' : '' }}>
+                                {{ status.value|replace({'_': ' '})|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        {% for type in jobOfferTypes %}
+                            <option value="{{ type.value }}" {{ currentType == type.value ? 'selected' : '' }}>
+                                {{ type.value|replace({'_': ' '})|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Location</label>
+                    <input type="text" name="location" class="form-control" placeholder="City or region..." value="{{ currentLocation }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-secondary me-2">Filter</button>
+                    <a href="{{ path('admin_job_offer_list') }}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Job Offers Table #}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Partner</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Published</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for offer in offers %}
+                            <tr>
+                                <td>{{ offer.id }}</td>
+                                <td><strong>{{ offer.title }}</strong></td>
+                                <td>
+                                    {% if offer.partner.profile %}
+                                        {{ offer.partner.profile.fullName }}
+                                    {% else %}
+                                        {{ offer.partner.email }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ offer.type.value|replace({'_': ' '})|title }}</span>
+                                </td>
+                                <td>
+                                    {% if offer.location %}
+                                        <i class="bi bi-geo-alt"></i> {{ offer.location }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if offer.status.value == 'ACTIVE' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elseif offer.status.value == 'PENDING' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elseif offer.status.value == 'CLOSED' %}
+                                        <span class="badge bg-secondary">Closed</span>
+                                    {% elseif offer.status.value == 'REJECTED' %}
+                                        <span class="badge bg-danger">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ offer.publishedAt ? offer.publishedAt|date('Y-m-d') : 'Not published' }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {# Approve #}
+                                        {% if offer.status.value == 'PENDING' %}
+                                            <form method="post" action="{{ path('admin_job_offer_approve', {id: offer.id}) }}" style="display:inline;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('approve-' ~ offer.id) }}">
+                                                <button type="submit" class="btn btn-outline-success" title="Approve" onclick="return confirm('Approve this job offer?')">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+
+                                        {# Reject #}
+                                        {% if offer.status.value == 'PENDING' or offer.status.value == 'ACTIVE' %}
+                                            <form method="post" action="{{ path('admin_job_offer_reject', {id: offer.id}) }}" style="display:inline;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('reject-' ~ offer.id) }}">
+                                                <button type="submit" class="btn btn-outline-warning" title="Reject" onclick="return confirm('Reject this job offer?')">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+
+                                        {# Close #}
+                                        {% if offer.status.value == 'ACTIVE' %}
+                                            <form method="post" action="{{ path('admin_job_offer_close', {id: offer.id}) }}" style="display:inline;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('close-' ~ offer.id) }}">
+                                                <button type="submit" class="btn btn-outline-secondary" title="Close" onclick="return confirm('Close this job offer?')">
+                                                    <i class="bi bi-lock"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+
+                                        {# Delete #}
+                                        <form method="post" action="{{ path('admin_job_offer_delete', {id: offer.id}) }}" style="display:inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete-' ~ offer.id) }}">
+                                            <button type="submit" class="btn btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this job offer?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">No job offers found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -92,10 +92,35 @@
                     <span>Event</span>
                 </a>
                 
-                <a class="sidebar-link {% if 'job' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_job_offer') }}">
+                <a class="sidebar-link {% if 'job' in app.request.attributes.get('_route') and 'partner' not in app.request.attributes.get('_route') and 'admin' not in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_job_offer_index') }}">
                     <i class="bi bi-briefcase-fill"></i>
-                    <span>Job Offer</span>
+                    <span>Job Offers</span>
                 </a>
+
+                {% if is_granted('ROLE_BUSINESS_PARTNER') %}
+                <div class="sidebar-dropdown">
+                    <a class="sidebar-link {% if 'partner_job' in app.request.attributes.get('_route') %}active{% endif %}" href="#partnerJobSubmenu" data-bs-toggle="collapse">
+                        <i class="bi bi-building"></i>
+                        <span>My Job Offers</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse sidebar-submenu" id="partnerJobSubmenu">
+                        <a class="sidebar-sublink" href="{{ path('app_partner_job_offer_index') }}">
+                            <i class="bi bi-list-ul"></i> My Offers
+                        </a>
+                        <a class="sidebar-sublink" href="{{ path('app_partner_job_offer_new') }}">
+                            <i class="bi bi-plus-circle"></i> Create Offer
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if is_granted('ROLE_ADMIN') %}
+                <a class="sidebar-link {% if 'admin_job' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('admin_job_offer_list') }}">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Moderate Job Offers</span>
+                </a>
+                {% endif %}
             </div>
         </div>
         

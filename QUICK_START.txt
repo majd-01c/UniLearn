@@ -1,0 +1,208 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                     UNILEARN - QUICK START GUIDE                   ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🎓 UNILEARN - University Learning Management System
+   Built with Symfony 6.4 + Bootstrap 5 + MySQL
+
+═══════════════════════════════════════════════════════════════════════
+
+🚀 STEP 1: START THE APPLICATION
+═══════════════════════════════════════════════════════════════════════
+
+Open a terminal and run:
+    
+    symfony server:start
+    
+    OR
+    
+    php -S localhost:8000 -t public/
+
+Access at: http://localhost:8000
+
+═══════════════════════════════════════════════════════════════════════
+
+🔐 STEP 2: LOGIN
+═══════════════════════════════════════════════════════════════════════
+
+Navigate to: http://localhost:8000/login
+
+Default Admin Credentials:
+    Email:    admin@unilearn.com
+    Password: admin123
+
+═══════════════════════════════════════════════════════════════════════
+
+📊 AVAILABLE PAGES
+═══════════════════════════════════════════════════════════════════════
+
+After login, you'll see the Dashboard with access to:
+
+✅ FUNCTIONAL MODULES:
+   • Home (Dashboard)              → /
+   • Users - List                  → /users
+   • Users - Add New               → /users/new
+
+🚧 PLACEHOLDER MODULES (Coming Soon):
+   • Programme                     → /programme
+   • Programme - Modules           → /programme/modules
+   • Programme - Courses           → /programme/courses
+   • Programme - Contenus          → /programme/contenus
+   • Classe                        → /classe
+   • Event                         → /event
+   • Job Offer                     → /job-offer
+
+═══════════════════════════════════════════════════════════════════════
+
+👥 USER MANAGEMENT (ADMIN ONLY)
+═══════════════════════════════════════════════════════════════════════
+
+CREATE A NEW USER:
+1. Click "Users" in navbar → "Add User"
+2. Fill in the form:
+   
+   REQUIRED FIELDS:
+   ✓ Role         → ADMIN, TEACHER, STUDENT, or PARTNER
+   ✓ Email        → Must be unique
+   ✓ Password     → Minimum 6 characters
+   
+   OPTIONAL FIELDS:
+   • Name, Phone, Location
+   • About (description)
+   • Skills (comma-separated: PHP, JavaScript, MySQL)
+   • Profile Picture (JPG, PNG, GIF - max 2MB)
+   • Status flags (Active, Verified, Needs Verification)
+
+3. Click "Create User"
+4. User is saved with hashed password
+
+═══════════════════════════════════════════════════════════════════════
+
+🎯 USER ROLES
+═══════════════════════════════════════════════════════════════════════
+
+ADMIN     → Full access to all modules
+TEACHER   → Can access teaching modules (TBD)
+STUDENT   → Can access learning modules (TBD)
+PARTNER   → Can access partnership features (TBD)
+
+═══════════════════════════════════════════════════════════════════════
+
+📁 FILE UPLOADS
+═══════════════════════════════════════════════════════════════════════
+
+Profile pictures are stored in:
+    public/uploads/profiles/
+
+Allowed formats: JPG, JPEG, PNG, GIF
+Max size: 2MB
+
+═══════════════════════════════════════════════════════════════════════
+
+🗄️  DATABASE
+═══════════════════════════════════════════════════════════════════════
+
+Container: unilearn-database-1
+Database:  app
+User:      app
+Password:  !ChangeMe!
+
+View users via MySQL:
+    docker exec unilearn-database-1 mysql -uapp -p'!ChangeMe!' -D app -e "SELECT * FROM user;"
+
+═══════════════════════════════════════════════════════════════════════
+
+🛠️  USEFUL COMMANDS
+═══════════════════════════════════════════════════════════════════════
+
+Clear cache:
+    php bin/console cache:clear
+
+List all routes:
+    php bin/console debug:router
+
+Create migration:
+    php bin/console make:migration
+
+Run migrations:
+    php bin/console doctrine:migrations:migrate
+
+Migration status:
+    php bin/console doctrine:migrations:status
+
+═══════════════════════════════════════════════════════════════════════
+
+📋 PROJECT STRUCTURE
+═══════════════════════════════════════════════════════════════════════
+
+src/
+├── Controller/           → All page controllers
+│   ├── SecurityController.php
+│   ├── HomeController.php
+│   ├── UserController.php
+│   ├── ProgrammeController.php
+│   ├── ClasseController.php
+│   ├── EventController.php
+│   └── JobOfferController.php
+├── Entity/
+│   └── User.php         → User entity with security
+├── Form/
+│   └── UserType.php     → User creation form
+└── Repository/
+    └── UserRepository.php
+
+templates/
+├── base.html.twig       → Main layout with navbar
+├── auth/login.html.twig
+├── home/index.html.twig
+├── user/
+│   ├── index.html.twig  → User list
+│   └── new.html.twig    → Add user form
+└── [other modules]/     → Placeholder pages
+
+═══════════════════════════════════════════════════════════════════════
+
+✨ FEATURES IMPLEMENTED
+═══════════════════════════════════════════════════════════════════════
+
+✅ User authentication (login/logout)
+✅ Role-based access control
+✅ Password hashing
+✅ User CRUD (Create, Read)
+✅ File upload for profiles
+✅ Skills as JSON array
+✅ Bootstrap 5 responsive UI
+✅ Flash messages
+✅ CSRF protection
+✅ Remember me functionality
+✅ Database migrations
+✅ Form validation
+
+═══════════════════════════════════════════════════════════════════════
+
+🔜 NEXT STEPS (TO BE IMPLEMENTED)
+═══════════════════════════════════════════════════════════════════════
+
+• Complete User CRUD (Edit, Delete)
+• Implement Programme/Module/Course/Contenu entities
+• Build Classe management
+• Create Event calendar
+• Add Job Offer posting system
+• Email verification system
+• Password reset functionality
+• User profile editing
+• Advanced role permissions
+• API endpoints
+
+═══════════════════════════════════════════════════════════════════════
+
+📚 DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════
+
+Full documentation: UNILEARN_README.md
+
+═══════════════════════════════════════════════════════════════════════
+
+🎉 You're all set! Start by logging in and exploring the system.
+
+═══════════════════════════════════════════════════════════════════════

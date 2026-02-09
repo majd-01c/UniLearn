@@ -1,0 +1,184 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Community Forum - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="content-wrapper">
+        {# Header #}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 fw-bold mb-1">
+                    <i class="bi bi-chat-square-text-fill text-primary"></i> Community Forum
+                </h1>
+                <p class="text-muted mb-0">Ask questions, share knowledge, and connect with others</p>
+            </div>
+            <a href="{{ path('app_forum_new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> New Topic
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {# Main Content - Categories #}
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-collection"></i> Categories
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if categories is empty %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-folder2-open display-4 text-muted"></i>
+                                <p class="text-muted mt-2">No categories available yet.</p>
+                            </div>
+                        {% else %}
+                            <div class="list-group list-group-flush">
+                                {% for category in categories %}
+                                <a href="{{ path('app_forum_category', {id: category.id}) }}" class="list-group-item list-group-item-action p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-box bg-gradient-primary me-3" style="width: 50px; height: 50px;">
+                                            <i class="bi {{ category.icon ?: 'bi-chat-dots' }} text-white"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-semibold">{{ category.name }}</h6>
+                                            {% if category.description %}
+                                                <p class="text-muted mb-0 small">{{ category.description }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary">{{ category.topicsCount }} topics</span>
+                                            <br>
+                                            <small class="text-muted">{{ category.repliesCount }} replies</small>
+                                        </div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Recent Topics #}
+                <div class="card mt-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-clock-history"></i> Recent Discussions
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if recentTopics is empty %}
+                            <div class="text-center py-4">
+                                <p class="text-muted mb-0">No discussions yet. Be the first to start one!</p>
+                            </div>
+                        {% else %}
+                            <div class="list-group list-group-flush">
+                                {% for topic in recentTopics %}
+                                <a href="{{ path('app_forum_topic', {id: topic.id}) }}" class="list-group-item list-group-item-action p-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="me-3">
+                                            {% if topic.isPinned %}
+                                                <i class="bi bi-pin-angle-fill text-warning"></i>
+                                            {% endif %}
+                                            <span class="badge bg-{{ topic.status.color }}">{{ topic.status.label }}</span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ topic.title }}</h6>
+                                            <small class="text-muted">
+                                                by {{ topic.author.profile ? topic.author.profile.firstName ~ ' ' ~ topic.author.profile.lastName : topic.author.email }}
+                                                in <strong>{{ topic.category.name }}</strong>
+                                                &bull; {{ topic.createdAt|date('M d, Y') }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">
+                                                <i class="bi bi-chat"></i> {{ topic.repliesCount }}
+                                                &nbsp;
+                                                <i class="bi bi-eye"></i> {{ topic.viewCount }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Sidebar #}
+            <div class="col-lg-4">
+                {# Stats Card #}
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-bar-chart"></i> Forum Stats
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h4 class="fw-bold text-primary mb-0">{{ categories|length }}</h4>
+                                <small class="text-muted">Categories</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="fw-bold text-success mb-0">{{ recentTopics|length }}</h4>
+                                <small class="text-muted">Topics</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="fw-bold text-info mb-0">{{ unansweredTopics|length }}</h4>
+                                <small class="text-muted">Unanswered</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Unanswered Topics #}
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-question-circle text-warning"></i> Needs Answer
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if unansweredTopics is empty %}
+                            <div class="text-center py-4">
+                                <p class="text-muted mb-0 small">All questions answered!</p>
+                            </div>
+                        {% else %}
+                            <ul class="list-group list-group-flush">
+                                {% for topic in unansweredTopics %}
+                                <li class="list-group-item">
+                                    <a href="{{ path('app_forum_topic', {id: topic.id}) }}" class="text-decoration-none">
+                                        <small>{{ topic.title|length > 40 ? topic.title|slice(0, 40) ~ '...' : topic.title }}</small>
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ topic.createdAt|date('M d') }}</small>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Admin Quick Links #}
+                {% if is_granted('ROLE_ADMIN') %}
+                <div class="card mt-4">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-gear"></i> Admin Tools
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="{{ path('app_forum_admin_categories') }}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-folder-plus"></i> Manage Categories
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Categories - Forum Admin - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="content-wrapper">
+        {# Breadcrumb #}
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_forum') }}">Forum</a></li>
+                <li class="breadcrumb-item active">Manage Categories</li>
+            </ol>
+        </nav>
+
+        {# Header #}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 fw-bold mb-1">
+                    <i class="bi bi-gear text-primary"></i> Manage Categories
+                </h1>
+                <p class="text-muted mb-0">Create and manage forum categories</p>
+            </div>
+            <a href="{{ path('app_forum_admin_category_new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> New Category
+            </a>
+        </div>
+
+        {# Categories Table #}
+        <div class="card">
+            <div class="card-body p-0">
+                {% if categories is empty %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-folder2-open display-4 text-muted"></i>
+                        <p class="text-muted mt-2">No categories yet.</p>
+                        <a href="{{ path('app_forum_admin_category_new') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-lg"></i> Create First Category
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th class="text-center">Topics</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in categories %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ category.position }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="icon-box bg-gradient-primary me-2" style="width: 35px; height: 35px;">
+                                                <i class="bi {{ category.icon ?: 'bi-chat-dots' }} text-white" style="font-size: 0.9rem;"></i>
+                                            </div>
+                                            <strong>{{ category.name }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ category.description|slice(0, 50) }}{{ category.description|length > 50 ? '...' : '' }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ category.topicsCount }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if category.isActive %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ path('app_forum_admin_category_edit', {id: category.id}) }}" 
+                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST" action="{{ path('app_forum_admin_category_delete', {id: category.id}) }}" 
+                                              class="d-inline" onsubmit="return confirm('Delete this category and all its topics?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete-category-' ~ category.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Back Button #}
+        <div class="mt-4">
+            <a href="{{ path('app_forum') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Forum
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -117,6 +117,16 @@
                                         <button type="button" class="btn btn-sm btn-light" title="Edit User" data-bs-toggle="tooltip">
                                             <i class="bi bi-pencil"></i>
                                         </button>
+                                        <form method="post" action="{{ path('app_user_toggle_status', {id: user.id}) }}" style="display:inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('toggle-status-' ~ user.id) }}">
+                                            <button type="submit" 
+                                                    class="btn btn-sm btn-{{ user.isActive ? 'warning' : 'success' }}" 
+                                                    title="{{ user.isActive ? 'Deactivate Account' : 'Activate Account' }}"
+                                                    data-bs-toggle="tooltip"
+                                                    onclick="return confirm('Are you sure you want to {{ user.isActive ? 'deactivate' : 'activate' }} this user account?')">
+                                                <i class="bi bi-{{ user.isActive ? 'toggle-on' : 'toggle-off' }}"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

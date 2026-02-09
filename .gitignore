@@ -20,6 +20,10 @@
 ###< symfony/asset-mapper ###
 /.env
 
+# Docker Compose files
+compose.yaml
+compose.override.yaml
+
 # Custom scripts
 start.batcompose.yaml
 compose.yaml

@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="content-wrapper">
+        {# Page Header #}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="page-title">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </h1>
+                <p class="page-subtitle">Welcome back! Here's your UniLearn overview.</p>
+            </div>
+        </div>
+
+        {# Stats Cards #}
+        <div class="row g-4 stagger-animation">
+            {% if is_granted('ROLE_ADMIN') %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-primary">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h5>Users</h5>
+                        <p>Manage system users and permissions</p>
+                        <a href="{{ path('app_user_index') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-success">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-book-fill"></i>
+                        </div>
+                        <h5>Programme</h5>
+                        <p>Browse and manage academic programmes</p>
+                        <a href="{{ path('app_programme') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-danger">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-door-open-fill"></i>
+                        </div>
+                        <h5>Classe</h5>
+                        <p>Manage classrooms and schedules</p>
+                        <a href="{{ path('app_classe') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-warning">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-calendar-event-fill"></i>
+                        </div>
+                        <h5>Events</h5>
+                        <p>University events and activities</p>
+                        <a href="{{ path('app_event') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card dashboard-card bg-gradient-info">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <i class="bi bi-briefcase-fill"></i>
+                        </div>
+                        <h5>Job Offers</h5>
+                        <p>Career opportunities and internships</p>
+                        <a href="{{ path('app_job_offer') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Quick Info Section #}
+        {% if app.user %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="section-title">
+                            <i class="bi bi-person-badge"></i> Account Information
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="info-item">
+                                    <div class="info-item-label">Logged in as</div>
+                                    <div class="info-item-value">{{ app.user.email }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-item">
+                                    <div class="info-item-label">Role</div>
+                                    <div class="info-item-value">
+                                        <span class="badge bg-primary">{{ app.user.role }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-item">
+                                    <div class="info-item-label">Status</div>
+                                    <div class="info-item-value">
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Active
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Quick Actions #}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="section-title">
+                            <i class="bi bi-lightning-charge-fill"></i> Quick Actions
+                        </h5>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('app_user_new') }}" class="btn btn-primary">
+                                <i class="bi bi-person-plus"></i> Add New User
+                            </a>
+                            {% endif %}
+                            <a href="{{ path('app_programme') }}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Browse Programmes
+                            </a>
+                            <a href="{{ path('app_event') }}" class="btn btn-warning">
+                                <i class="bi bi-calendar-plus"></i> View Events
+                            </a>
+                            <a href="{{ path('app_job_offer') }}" class="btn btn-info">
+                                <i class="bi bi-briefcase"></i> Job Offers
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

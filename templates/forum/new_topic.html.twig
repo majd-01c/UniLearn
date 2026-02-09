@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Topic - Forum - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="content-wrapper">
+        {# Breadcrumb #}
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_forum') }}">Forum</a></li>
+                <li class="breadcrumb-item active">New Topic</li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h4 class="card-title mb-0">
+                            <i class="bi bi-plus-circle text-primary"></i> Create New Topic
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-lightbulb"></i> 
+                            <strong>Tips for a great question:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Use a clear, descriptive title</li>
+                                <li>Provide enough context and details</li>
+                                <li>Check if a similar topic already exists</li>
+                            </ul>
+                        </div>
+
+                        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                            <div class="mb-3">
+                                {{ form_label(form.category) }}
+                                {{ form_widget(form.category) }}
+                                {{ form_errors(form.category) }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form_label(form.title) }}
+                                {{ form_widget(form.title) }}
+                                {{ form_errors(form.title) }}
+                                <div class="form-text">A clear, concise title helps others find and understand your topic.</div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ form_label(form.content) }}
+                                {{ form_widget(form.content) }}
+                                {{ form_errors(form.content) }}
+                                <div class="form-text">Provide detailed information. The more context you give, the better answers you'll get.</div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ path('app_forum') }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> Create Topic
+                                </button>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

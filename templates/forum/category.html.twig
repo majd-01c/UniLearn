@@ -1,0 +1,163 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ category.name }} - Forum - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="content-wrapper">
+        {# Breadcrumb #}
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_forum') }}">Forum</a></li>
+                <li class="breadcrumb-item active">{{ category.name }}</li>
+            </ol>
+        </nav>
+
+        {# Header #}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 fw-bold mb-1">
+                    <i class="bi {{ category.icon ?: 'bi-chat-dots' }} text-primary"></i> {{ category.name }}
+                </h1>
+                {% if category.description %}
+                    <p class="text-muted mb-0">{{ category.description }}</p>
+                {% endif %}
+            </div>
+            <a href="{{ path('app_forum_new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> New Topic
+            </a>
+        </div>
+
+        {# Search Bar #}
+        <div class="card mb-4">
+            <div class="card-body py-2">
+                <form method="GET" action="{{ path('app_forum_category', {id: category.id}) }}" class="d-flex">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0" 
+                               placeholder="Search topics in this category..." 
+                               value="{{ search }}">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                        {% if search %}
+                            <a href="{{ path('app_forum_category', {id: category.id}) }}" class="btn btn-outline-secondary">Clear</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# Topics List #}
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-ul"></i> Topics
+                    {% if search %}
+                        <small class="text-muted">(searching: "{{ search }}")</small>
+                    {% endif %}
+                </h5>
+                <span class="badge bg-secondary">{{ topics|length }} topic(s)</span>
+            </div>
+            <div class="card-body p-0">
+                {% if topics|length == 0 %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-square display-4 text-muted"></i>
+                        <p class="text-muted mt-2">
+                            {% if search %}
+                                No topics found matching "{{ search }}".
+                            {% else %}
+                                No topics in this category yet. Be the first to start a discussion!
+                            {% endif %}
+                        </p>
+                        <a href="{{ path('app_forum_new') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-lg"></i> Create Topic
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50%;">Topic</th>
+                                    <th class="text-center">Replies</th>
+                                    <th class="text-center">Views</th>
+                                    <th>Last Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for topic in topics %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-start">
+                                            <div class="me-2">
+                                                {% if topic.isPinned %}
+                                                    <i class="bi bi-pin-angle-fill text-warning" title="Pinned"></i>
+                                                {% endif %}
+                                                {% if topic.acceptedAnswer %}
+                                                    <i class="bi bi-check-circle-fill text-success" title="Solved"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <a href="{{ path('app_forum_topic', {id: topic.id}) }}" class="text-decoration-none fw-semibold">
+                                                    {{ topic.title }}
+                                                </a>
+                                                <div class="small text-muted">
+                                                    <span class="badge bg-{{ topic.status.color }} bg-opacity-25 text-{{ topic.status.color }}">
+                                                        {{ topic.status.label }}
+                                                    </span>
+                                                    by {{ topic.author.profile ? topic.author.profile.firstName ~ ' ' ~ topic.author.profile.lastName : topic.author.email }}
+                                                    &bull; {{ topic.createdAt|date('M d, Y') }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <span class="badge bg-light text-dark">{{ topic.repliesCount }}</span>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <span class="text-muted">{{ topic.viewCount }}</span>
+                                    </td>
+                                    <td class="align-middle">
+                                        <small class="text-muted">
+                                            {{ topic.lastActivityAt|date('M d, Y H:i') }}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {# Pagination #}
+                    {% if totalPages > 1 %}
+                    <div class="card-footer bg-white">
+                        <nav aria-label="Topics pagination">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item {{ page <= 1 ? 'disabled' : '' }}">
+                                    <a class="page-link" href="{{ path('app_forum_category', {id: category.id, page: page - 1, search: search}) }}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% for p in 1..totalPages %}
+                                    {% if p >= page - 2 and p <= page + 2 %}
+                                    <li class="page-item {{ p == page ? 'active' : '' }}">
+                                        <a class="page-link" href="{{ path('app_forum_category', {id: category.id, page: p, search: search}) }}">{{ p }}</a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                                <li class="page-item {{ page >= totalPages ? 'disabled' : '' }}">
+                                    <a class="page-link" href="{{ path('app_forum_category', {id: category.id, page: page + 1, search: search}) }}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

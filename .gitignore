@@ -19,5 +19,8 @@
 /assets/vendor/
 ###< symfony/asset-mapper ###
 /.env
-compose.yaml
+
+# Custom scripts
+start.batcompose.yaml
 compose.override.yaml
+compose.yaml

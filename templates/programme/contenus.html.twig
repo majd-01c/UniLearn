@@ -35,6 +35,7 @@
                             <th>Title</th>
                             <th>Type</th>
                             <th>File Type</th>
+                            <th>File</th>
                             <th>Status</th>
                             <th>Created</th>
                             <th class="text-end">Actions</th>
@@ -55,6 +56,18 @@
                                     <span class="badge bg-secondary">{{ contenu.fileType.value|upper }}</span>
                                 {% else %}
                                     <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if contenu.fileName %}
+                                    <a href="{{ vich_uploader_asset(contenu, 'contentFile') }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       download>
+                                        <i class="bi bi-download"></i> {{ contenu.fileName|length > 20 ? contenu.fileName|slice(0, 20) ~ '...' : contenu.fileName }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">No file</span>
                                 {% endif %}
                             </td>
                             <td>

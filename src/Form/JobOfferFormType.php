@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Form for creating and editing job offers
  */
-class JobOfferType extends AbstractType
+class JobOfferFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {

@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvelle Réclamation{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fas fa-exclamation-circle"></i> Soumettre une Réclamation</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            {{ form_start(form) }}
+                <div class="mb-3">
+                    {{ form_row(form.subject) }}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form_row(form.description) }}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form_row(form.relatedCourse) }}
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('app_espace_etudiant_reclamations') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Soumettre
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+    
+    <div class="alert alert-info mt-3">
+        <h6><i class="fas fa-info-circle"></i> Conseils pour une réclamation efficace:</h6>
+        <ul class="mb-0">
+            <li>Soyez précis et détaillé dans votre description</li>
+            <li>Incluez toutes les informations pertinentes (dates, noms, etc.)</li>
+            <li>Restez courtois et professionnel</li>
+            <li>Si possible, sélectionnez le cours concerné</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

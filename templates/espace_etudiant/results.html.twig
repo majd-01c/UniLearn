@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Résultats du Semestre{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Résultats du Semestre</h1>
+    
+    <!-- Overall Summary -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Résumé Général</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h2 class="text-primary">{{ results.overallAverage }}%</h2>
+                            <p class="text-muted">Moyenne Générale</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h2 class="text-success">{{ results.passedCourses }}</h2>
+                            <p class="text-muted">Cours Réussis</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h2 class="text-danger">{{ results.failedCourses }}</h2>
+                            <p class="text-muted">Cours Échoués</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h2 class="text-info">{{ results.courses|length }}</h2>
+                            <p class="text-muted">Total Cours</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Results by Course -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Détails par Cours</h5>
+                </div>
+                <div class="card-body">
+                    {% if results.courses|length > 0 %}
+                    <div class="accordion" id="coursesAccordion">
+                        {% for courseName, courseData in results.courses %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ loop.index }}">
+                                <button class="accordion-button {% if loop.index > 1 %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="{% if loop.index == 1 %}true{% else %}false{% endif %}" aria-controls="collapse{{ loop.index }}">
+                                    <strong>{{ courseData.name }}</strong>
+                                    <span class="ms-3 badge {% if courseData.status == 'Passed' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ courseData.average }}% - {{ courseData.status }}
+                                    </span>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.index == 1 %}show{% endif %}" aria-labelledby="heading{{ loop.index }}" data-bs-parent="#coursesAccordion">
+                                <div class="accordion-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Évaluation</th>
+                                                    <th>Note</th>
+                                                    <th>Sur</th>
+                                                    <th>Pourcentage</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for grade in courseData.grades %}
+                                                <tr>
+                                                    <td>{{ grade.assessment }}</td>
+                                                    <td>{{ grade.score }}</td>
+                                                    <td>{{ grade.maxScore }}</td>
+                                                    <td>
+                                                        <span class="badge {% if grade.percentage >= 50 %}bg-success{% else %}bg-danger{% endif %}">
+                                                            {{ grade.percentage|round(1) }}%
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr class="table-active">
+                                                    <th colspan="3">Moyenne du Cours</th>
+                                                    <th>
+                                                        <span class="badge {% if courseData.average >= 50 %}bg-success{% else %}bg-danger{% endif %}">
+                                                            {{ courseData.average }}%
+                                                        </span>
+                                                    </th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Aucun résultat disponible pour le moment.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="mt-4">
+        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+        <a href="{{ path('app_espace_etudiant_recommendations') }}" class="btn btn-warning">
+            <i class="fas fa-lightbulb"></i> Voir les recommandations
+        </a>
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fas fa-print"></i> Imprimer
+        </button>
+    </div>
+</div>
+{% endblock %}

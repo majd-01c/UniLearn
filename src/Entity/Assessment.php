@@ -177,4 +177,19 @@ class Assessment
         }
         return $this;
     }
+    #[ORM\ManyToOne(targetEntity: Course::class)]
+#[ORM\JoinColumn(nullable: false)]
+private ?Course $course = null;
+
+public function getCourse(): ?Course
+{
+    return $this->course;
+}
+
+public function setCourse(?Course $course): self
+{
+    $this->course = $course;
+    return $this;
+}
+
 }

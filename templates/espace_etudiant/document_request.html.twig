@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demande de Document{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fas fa-file-alt"></i> Demander un Document</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_row(form.documentType) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_row(form.additionalInfo) }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_espace_etudiant_documents') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Soumettre la Demande
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Types de Documents</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <strong>Attestation de Stage:</strong>
+                            <small class="d-block text-muted">Pour les démarches de stage</small>
+                        </li>
+                        <li class="mb-2">
+                            <strong>Attestation d'Inscription:</strong>
+                            <small class="d-block text-muted">Preuve d'inscription pour l'année en cours</small>
+                        </li>
+                        <li class="mb-2">
+                            <strong>Relevé de Notes:</strong>
+                            <small class="d-block text-muted">Document officiel des notes</small>
+                        </li>
+                        <li class="mb-2">
+                            <strong>Certificat de Scolarité:</strong>
+                            <small class="d-block text-muted">Preuve de statut étudiant</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning mt-3">
+                <small>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Important:</strong> Certains documents peuvent nécessiter des frais administratifs.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

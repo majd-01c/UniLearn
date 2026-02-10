@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espace Étudiant - Tableau de Bord{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Bienvenue dans votre Espace Étudiant</h1>
+    
+    <div class="row">
+        <!-- Quick Stats -->
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Moyenne Générale</h5>
+                    <h2>{{ semesterResults.overallAverage }}/20</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Cours Réussis</h5>
+                    <h2>{{ semesterResults.passedCourses }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">Cours à Améliorer</h5>
+                    <h2>{{ recommendations|length }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Total Cours</h5>
+                    <h2>{{ semesterResults.courses|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Links -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Accès Rapide</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ path('app_espace_etudiant_grades') }}" class="btn btn-outline-primary btn-block w-100">
+                                <i class="fas fa-chart-line"></i> Mes Notes
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ path('app_espace_etudiant_schedule') }}" class="btn btn-outline-info btn-block w-100">
+                                <i class="fas fa-calendar"></i> Emploi du Temps
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ path('app_espace_etudiant_recommendations') }}" class="btn btn-outline-warning btn-block w-100">
+                                <i class="fas fa-lightbulb"></i> Recommandations IA
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ path('app_espace_etudiant_reclamations') }}" class="btn btn-outline-secondary btn-block w-100">
+                                <i class="fas fa-exclamation-circle"></i> Réclamations
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ path('app_espace_etudiant_documents') }}" class="btn btn-outline-success btn-block w-100">
+                                <i class="fas fa-file-alt"></i> Demandes de Documents
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{{ path('app_espace_etudiant_results') }}" class="btn btn-outline-danger btn-block w-100">
+                                <i class="fas fa-trophy"></i> Résultats du Semestre
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Recommendations Alert -->
+    {% if recommendations|length > 0 %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="alert alert-warning" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-robot"></i> Recommandations IA</h5>
+                <p>Notre système d'intelligence artificielle a détecté {{ recommendations|length }} cours où vous pourriez améliorer vos performances.</p>
+                <hr>
+                <a href="{{ path('app_espace_etudiant_recommendations') }}" class="btn btn-warning">Voir les recommandations</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Grades -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Notes Récentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if recentGrades|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Cours</th>
+                                    <th>Évaluation</th>
+                                    <th>Note</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in recentGrades %}
+                                <tr>
+                                    <td>{{ grade.assessment.course.name }}</td>
+                                    <td>{{ grade.assessment.title }}</td>
+                                    <td>
+                                        <span class="badge {% if grade.score >= 12 %}bg-success{% elseif grade.score >= 10 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ grade.score }}/{{ grade.assessment.maxScore }}
+                                        </span>
+                                    </td>
+                                    <td>{{ grade.assessment.dueDate|date('d/m/Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{{ path('app_espace_etudiant_grades') }}" class="btn btn-primary">Voir toutes les notes</a>
+                    {% else %}
+                    <p class="text-muted">Aucune note disponible pour le moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

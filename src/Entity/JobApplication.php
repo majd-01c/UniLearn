@@ -6,10 +6,14 @@ use App\Repository\JobApplicationRepository;
 use App\Enum\JobApplicationStatus;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: JobApplicationRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(name: 'uniq_offer_student', columns: ['offer_id', 'student_id'])]
+#[Vich\Uploadable]
 class JobApplication
 {
     #[ORM\Id]
@@ -25,17 +29,33 @@ class JobApplication
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $student = null;
 
+    #[Assert\Length(max: 5000)]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $message = null;
 
+    #[Vich\UploadableField(mapping: 'cv_files', fileNameProperty: 'cvFileName')]
+    #[Assert\File(
+        maxSize: '5M',
+        mimeTypes: [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        mimeTypesMessage: 'Please upload a valid document (PDF, DOC, or DOCX)'
+    )]
+    private ?File $cvFile = null;
+
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $cvFile = null;
+    private ?string $cvFileName = null;
 
     #[ORM\Column(type: 'string', enumType: JobApplicationStatus::class)]
     private ?JobApplicationStatus $status = JobApplicationStatus::SUBMITTED;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\PrePersist]
     public function onPrePersist(): void
@@ -83,14 +103,39 @@ class JobApplication
         return $this;
     }
 
-    public function getCvFile(): ?string
+    public function getCvFile(): ?File
     {
         return $this->cvFile;
     }
 
-    public function setCvFile(?string $cvFile): static
+    public function setCvFile(?File $cvFile = null): void
     {
         $this->cvFile = $cvFile;
+
+        if (null !== $cvFile) {
+            $this->updatedAt = new \DateTime();
+        }
+    }
+
+    public function getCvFileName(): ?string
+    {
+        return $this->cvFileName;
+    }
+
+    public function setCvFileName(?string $cvFileName): static
+    {
+        $this->cvFileName = $cvFileName;
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
         return $this;
     }
 

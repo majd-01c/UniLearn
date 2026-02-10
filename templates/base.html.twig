@@ -60,6 +60,32 @@
                 </div>
                 {% endif %}
                 
+                <!-- ADD THIS NEW SECTION HERE ↓↓↓ -->
+                {% if is_granted('ROLE_STUDENT') %}
+                <div class="sidebar-dropdown">
+                    <a class="sidebar-link {% if 'espace_etudiant' in app.request.attributes.get('_route') %}active{% endif %}" href="#espaceEtudiantSubmenu" data-bs-toggle="collapse">
+                        <i class="bi bi-mortarboard-fill"></i>
+                        <span>Espace Étudiant</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse sidebar-submenu" id="espaceEtudiantSubmenu">
+                        <a class="sidebar-sublink" href="{{ path('app_espace_etudiant_dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Tableau de Bord
+                        </a>
+                        <a class="sidebar-sublink" href="{{ path('app_espace_etudiant_grades') }}">
+                            <i class="bi bi-graph-up"></i> Mes Notes
+                        </a>
+                        <a class="sidebar-sublink" href="{{ path('app_espace_etudiant_reclamations') }}">
+                            <i class="bi bi-exclamation-circle"></i> Réclamations
+                        </a>
+                        <a class="sidebar-sublink" href="{{ path('app_espace_etudiant_documents') }}">
+                            <i class="bi bi-file-earmark-text"></i> Documents
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- ↑↑↑ END OF NEW SECTION -->
+
                 <div class="sidebar-dropdown">
                     <a class="sidebar-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}" href="#eduSubmenu" data-bs-toggle="collapse">
                         <i class="bi bi-book-fill"></i>

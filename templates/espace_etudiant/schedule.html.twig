@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Emploi du Temps{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fas fa-calendar"></i> Emploi du Temps</h1>
+    
+    {% if classe %}
+    <div class="alert alert-info mb-4">
+        <strong>Classe:</strong> {{ classe.name }}
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 100px;">Horaire</th>
+                            <th>Lundi</th>
+                            <th>Mardi</th>
+                            <th>Mercredi</th>
+                            <th>Jeudi</th>
+                            <th>Vendredi</th>
+                            <th>Samedi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'] %}
+                        
+                        {% for timeSlot in timeSlots %}
+                        <tr>
+                            <td class="text-center align-middle"><strong>{{ timeSlot }}</strong></td>
+                            
+                            {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] %}
+                            <td>
+                                {% set hasClass = false %}
+                                {% for schedule in weekSchedule[day] %}
+                                    {% if schedule.startTime|date('H:i') <= timeSlot and schedule.endTime|date('H:i') > timeSlot %}
+                                        {% set hasClass = true %}
+                                        <div class="p-2 bg-primary text-white rounded">
+                                            <strong>{{ schedule.course.name }}</strong><br>
+                                            <small>{{ schedule.startTime|date('H:i') }} - {{ schedule.endTime|date('H:i') }}</small><br>
+                                            {% if schedule.room %}
+                                                <small><i class="fas fa-door-open"></i> {{ schedule.room }}</small><br>
+                                            {% endif %}
+                                            {% if schedule.teacher %}
+                                                <small><i class="fas fa-user"></i> {{ schedule.teacher.name }}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not hasClass %}
+                                    <div class="text-center text-muted">-</div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="card mt-3">
+        <div class="card-body">
+            <h6>Légende:</h6>
+            <div class="d-flex align-items-center">
+                <div class="p-2 bg-primary text-white rounded me-3" style="width: 100px;">Cours</div>
+                <span class="me-3"><i class="fas fa-door-open"></i> Salle de classe</span>
+                <span><i class="fas fa-user"></i> Enseignant</span>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> Vous n'êtes pas encore assigné à une classe. Veuillez contacter l'administration.
+    </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        </a>
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fas fa-print"></i> Imprimer l'emploi du temps
+        </button>
+    </div>
+</div>
+{% endblock %}

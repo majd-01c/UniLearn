@@ -6,13 +6,11 @@ use App\Form\ChangePasswordType;
 use App\Form\ProfileType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/profile')]
 #[IsGranted('ROLE_USER')]
@@ -28,7 +26,7 @@ class ProfileController extends AbstractController
      * View and edit user profile
      */
     #[Route('', name: 'profile_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, SluggerInterface $slugger): Response
+    public function edit(Request $request): Response
     {
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
@@ -44,24 +42,6 @@ class ProfileController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                // Handle photo upload
-                $photoFile = $form->get('photoFile')->getData();
-                if ($photoFile) {
-                    $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $safeFilename = $slugger->slug($originalFilename);
-                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $photoFile->guessExtension();
-
-                    try {
-                        $photoFile->move(
-                            $this->getParameter('profile_photos_directory'),
-                            $newFilename
-                        );
-                        $profile->setPhoto($newFilename);
-                    } catch (FileException $e) {
-                        $this->addFlash('error', 'Error uploading photo: ' . $e->getMessage());
-                    }
-                }
-
                 $user->setUpdatedAt(new \DateTimeImmutable());
                 $this->entityManager->flush();
 

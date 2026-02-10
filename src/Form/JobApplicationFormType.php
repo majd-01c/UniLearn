@@ -4,16 +4,16 @@ namespace App\Form;
 
 use App\Entity\JobApplication;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Form\Type\VichFileType;
 
 /**
  * Form for job application submission
  */
-class JobApplicationType extends AbstractType
+class JobApplicationFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -30,21 +30,11 @@ class JobApplicationType extends AbstractType
                     new Assert\Length(['max' => 5000]),
                 ],
             ])
-            ->add('cvFile', FileType::class, [
+            ->add('cvFile', VichFileType::class, [
                 'label' => 'Upload CV / Resume',
                 'required' => false,
-                'mapped' => false,
-                'constraints' => [
-                    new Assert\File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'application/msword',
-                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        ],
-                        'mimeTypesMessage' => 'Please upload a valid document (PDF, DOC, or DOCX)',
-                    ]),
-                ],
+                'allow_delete' => false,
+                'download_uri' => true,
                 'attr' => [
                     'class' => 'form-control',
                 ],

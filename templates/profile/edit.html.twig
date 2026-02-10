@@ -37,7 +37,7 @@
                     {# Current Photo #}
                     {% if profile.photo %}
                         <div class="text-center mb-4">
-                            <img src="{{ asset('uploads/profiles/' ~ profile.photo) }}" 
+                            <img src="{{ vich_uploader_asset(profile, 'photoFile') }}" 
                                  alt="Profile Photo" 
                                  class="rounded-circle" 
                                  style="width: 150px; height: 150px; object-fit: cover;">

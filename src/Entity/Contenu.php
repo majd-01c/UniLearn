@@ -9,10 +9,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ContenuRepository::class)]
 #[ORM\Index(columns: ['type'])]
 #[ORM\Index(columns: ['published'])]
+#[Vich\Uploadable]
 class Contenu
 {
     #[ORM\Id]
@@ -23,8 +27,38 @@ class Contenu
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[Vich\UploadableField(mapping: 'content_files', fileNameProperty: 'fileName', size: 'fileSize')]
+    #[Assert\File(
+        maxSize: '50M',
+        mimeTypes: [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'video/mp4',
+            'video/webm',
+            'video/ogg',
+            'video/quicktime',
+            'audio/mpeg',
+            'audio/ogg',
+            'audio/wav',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+        ],
+        mimeTypesMessage: 'Please upload a valid file (PDF, Word, PPT, Excel, Video, Audio, or Image)'
+    )]
+    private ?File $contentFile = null;
+
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $fileUrl = null;
+    private ?string $fileName = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $fileSize = null;
 
     #[ORM\Column(type: 'string', enumType: FileType::class, nullable: true)]
     private ?FileType $fileType = null;
@@ -70,14 +104,39 @@ class Contenu
         return $this;
     }
 
-    public function getFileUrl(): ?string
+    public function getContentFile(): ?File
     {
-        return $this->fileUrl;
+        return $this->contentFile;
     }
 
-    public function setFileUrl(?string $fileUrl): static
+    public function setContentFile(?File $contentFile = null): void
     {
-        $this->fileUrl = $fileUrl;
+        $this->contentFile = $contentFile;
+
+        if (null !== $contentFile) {
+            $this->updatedAt = new \DateTime();
+        }
+    }
+
+    public function getFileName(): ?string
+    {
+        return $this->fileName;
+    }
+
+    public function setFileName(?string $fileName): static
+    {
+        $this->fileName = $fileName;
+        return $this;
+    }
+
+    public function getFileSize(): ?int
+    {
+        return $this->fileSize;
+    }
+
+    public function setFileSize(?int $fileSize): static
+    {
+        $this->fileSize = $fileSize;
         return $this;
     }
 

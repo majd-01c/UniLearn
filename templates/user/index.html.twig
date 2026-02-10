@@ -45,7 +45,7 @@
                                 </td>
                                 <td>
                                     {% if user.profile and user.profile.photo %}
-                                        <img src="{{ asset('uploads/profiles/' ~ user.profile.photo) }}" 
+                                        <img src="{{ vich_uploader_asset(user.profile, 'photoFile') }}" 
                                              alt="Profile" 
                                              class="avatar">
                                     {% else %}

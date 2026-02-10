@@ -73,15 +73,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if offer.status.value == 'ACTIVE' %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% elseif offer.status.value == 'PENDING' %}
-                                            <span class="badge bg-warning">Pending</span>
-                                        {% elseif offer.status.value == 'CLOSED' %}
-                                            <span class="badge bg-secondary">Closed</span>
-                                        {% elseif offer.status.value == 'REJECTED' %}
-                                            <span class="badge bg-danger">Rejected</span>
-                                        {% endif %}
+                                        {% include 'job_offer/_offer_status_badge.html.twig' with {status: offer.status} only %}
                                     </td>
                                     <td>
                                         <a href="{{ path('app_partner_job_offer_applications', {id: offer.id}) }}" class="badge bg-primary text-decoration-none">
@@ -104,7 +96,7 @@
 
                                             {# Close/Reopen Button #}
                                             {% if offer.status.value == 'CLOSED' %}
-                                                <form method="post" action="{{ path('app_partner_job_offer_reopen', {id: offer.id}) }}" style="display:inline;">
+                                                <form method="post" action="{{ path('app_partner_job_offer_reopen', {id: offer.id}) }}" class="d-inline">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('reopen-' ~ offer.id) }}">
                                                     <button type="submit" 
                                                             class="btn btn-outline-success" 
@@ -114,7 +106,7 @@
                                                     </button>
                                                 </form>
                                             {% else %}
-                                                <form method="post" action="{{ path('app_partner_job_offer_close', {id: offer.id}) }}" style="display:inline;">
+                                                <form method="post" action="{{ path('app_partner_job_offer_close', {id: offer.id}) }}" class="d-inline">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('close-' ~ offer.id) }}">
                                                     <button type="submit" 
                                                             class="btn btn-outline-warning" 
@@ -133,7 +125,7 @@
                                             </a>
 
                                             {# Delete Button #}
-                                            <form method="post" action="{{ path('app_partner_job_offer_delete', {id: offer.id}) }}" style="display:inline;">
+                                            <form method="post" action="{{ path('app_partner_job_offer_delete', {id: offer.id}) }}" class="d-inline">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete-' ~ offer.id) }}">
                                                 <button type="submit" 
                                                         class="btn btn-outline-danger" 

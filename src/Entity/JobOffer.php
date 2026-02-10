@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: JobOfferRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -24,15 +25,20 @@ class JobOffer
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: 'Title is required.')]
+    #[Assert\Length(max: 255)]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[Assert\NotNull(message: 'Job type is required.')]
     #[ORM\Column(type: 'string', enumType: JobOfferType::class)]
     private ?JobOfferType $type = null;
 
+    #[Assert\Length(max: 255)]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $location = null;
 
+    #[Assert\NotBlank(message: 'Description is required.')]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 

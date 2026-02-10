@@ -104,8 +104,15 @@
         </div>
 
         <div class="mt-3 text-muted">
-            <i class="bi bi-info-circle"></i> Showing {{ offers|length }} job offer(s)
+            <i class="bi bi-info-circle"></i> Showing {{ offers|length }} job offer(s) ({{ totalItems }} total)
         </div>
+
+        {% include 'job_offer/_pagination.html.twig' with {
+            currentPage: currentPage,
+            totalPages: totalPages,
+            route: 'app_job_offer_index',
+            routeParams: {q: currentQ, type: currentType, location: currentLocation}
+        } only %}
     {% endif %}
 </div>
 {% endblock %}

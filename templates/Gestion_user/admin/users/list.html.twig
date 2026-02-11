@@ -67,6 +67,7 @@
                             <th>Email</th>
                             <th>Role</th>
                             <th>Status</th>
+                            <th>Verified</th>
                             <th>Created</th>
                             <th>Actions</th>
                         </tr>
@@ -102,6 +103,17 @@
                                     {% endif %}
                                     {% if user.mustChangePassword %}
                                         <span class="badge bg-warning">Must Change Pwd</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.isVerified %}
+                                        <span class="badge bg-success" title="Email Verified">
+                                            <i class="bi bi-check-circle-fill"></i> Yes
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark" title="Email Not Verified">
+                                            <i class="bi bi-exclamation-circle-fill"></i> No
+                                        </span>
                                     {% endif %}
                                 </td>
                                 <td>{{ user.createdAt ? user.createdAt|date('Y-m-d') : '' }}</td>

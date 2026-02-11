@@ -1,0 +1,225 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ user.profile ? user.profile.fullName : user.email }} - User Details{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="content-wrapper">
+        {# Page Header #}
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+            <div>
+                <h1 class="page-title">
+                    <i class="bi bi-person-circle"></i> User Details
+                </h1>
+                <p class="page-subtitle mb-0">Viewing information for {{ user.profile ? user.profile.fullName : user.email }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_user_edit', {id: user.id}) }}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edit User
+                </a>
+                <a href="{{ path('app_user_index') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            {# User Profile Card #}
+            <div class="col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        {% if user.profile and user.profile.photo %}
+                            <img src="{{ vich_uploader_asset(user.profile, 'photoFile') }}" 
+                                 alt="Profile Photo" 
+                                 class="rounded-circle mb-3"
+                                 style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 150px; height: 150px;">
+                                <i class="bi bi-person" style="font-size: 4rem; color: #6c757d;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <h4 class="mb-2">
+                            {% if user.profile %}
+                                {{ user.profile.firstName }} {{ user.profile.lastName }}
+                            {% else %}
+                                <em class="text-muted">No Profile</em>
+                            {% endif %}
+                        </h4>
+                        
+                        <p class="text-muted mb-3">
+                            <i class="bi bi-envelope"></i> {{ user.email }}
+                        </p>
+
+                        {% set roleClass = {
+                            'ADMIN': 'danger',
+                            'TEACHER': 'primary',
+                            'STUDENT': 'info',
+                            'BUSINESS_PARTNER': 'warning'
+                        } %}
+                        <span class="badge bg-{{ roleClass[user.role] ?? 'secondary' }} mb-3">
+                            <i class="bi bi-{{ user.role == 'ADMIN' ? 'shield-check' : (user.role == 'TEACHER' ? 'mortarboard' : (user.role == 'STUDENT' ? 'person' : 'briefcase')) }}"></i>
+                            {{ user.role }}
+                        </span>
+                        
+                        <div class="mb-3">
+                            {% if user.isActive %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                            
+                            {% if user.mustChangePassword %}
+                                <span class="badge bg-warning">Must Change Password</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{{ path('app_user_edit', {id: user.id}) }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-pencil"></i> Edit Profile
+                            </a>
+                            <form method="post" action="{{ path('app_user_toggle_status', {id: user.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle-status-' ~ user.id) }}">
+                                <button type="submit" 
+                                        class="btn btn-{{ user.isActive ? 'warning' : 'success' }} btn-sm w-100"
+                                        onclick="return confirm('Are you sure you want to {{ user.isActive ? 'deactivate' : 'activate' }} this user?')">
+                                    <i class="bi bi-{{ user.isActive ? 'toggle-off' : 'toggle-on' }}"></i>
+                                    {{ user.isActive ? 'Deactivate Account' : 'Activate Account' }}
+                                </button>
+                            </form>
+                            <form method="post" action="{{ path('app_user_delete', {id: user.id}) }}" 
+                                  onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ user.id) }}">
+                                <button type="submit" class="btn btn-danger btn-sm w-100">
+                                    <i class="bi bi-trash"></i> Delete User
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# User Information Cards #}
+            <div class="col-lg-8">
+                {# Basic Information #}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Basic Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">User ID</label>
+                                <div class="fw-medium">{{ user.id }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Email Address</label>
+                                <div class="fw-medium">{{ user.email }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Role</label>
+                                <div class="fw-medium">{{ user.role }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Account Status</label>
+                                <div class="fw-medium">{{ user.isActive ? 'Active' : 'Inactive' }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Email Verification</label>
+                                <div class="fw-medium">
+                                    {% if user.isVerified %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle-fill"></i> Verified
+                                        </span>
+                                        {% if user.emailVerifiedAt %}
+                                            <br><small class="text-muted">Verified on {{ user.emailVerifiedAt|date('M d, Y') }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-exclamation-circle-fill"></i> Not Verified
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Profile Information #}
+                {% if user.profile %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-person-badge"></i> Profile Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">First Name</label>
+                                <div class="fw-medium">{{ user.profile.firstName }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Last Name</label>
+                                <div class="fw-medium">{{ user.profile.lastName }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Phone Number</label>
+                                <div class="fw-medium">{{ user.profile.phone ?: '—' }}</div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="text-muted small">Description</label>
+                                <div class="fw-medium">{{ user.profile.description ?: '—' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Account Dates #}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Account Dates</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Account Created</label>
+                                <div class="fw-medium">
+                                    {% if user.createdAt %}
+                                        <i class="bi bi-calendar"></i> {{ user.createdAt|date('F d, Y') }}
+                                        <br><small class="text-muted">{{ user.createdAt|date('h:i A') }}</small>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Last Updated</label>
+                                <div class="fw-medium">
+                                    {% if user.updatedAt %}
+                                        <i class="bi bi-calendar"></i> {{ user.updatedAt|date('F d, Y') }}
+                                        <br><small class="text-muted">{{ user.updatedAt|date('h:i A') }}</small>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Temp Password Generated</label>
+                                <div class="fw-medium">
+                                    {% if user.tempPasswordGeneratedAt %}
+                                        <i class="bi bi-calendar"></i> {{ user.tempPasswordGeneratedAt|date('F d, Y') }}
+                                        <br><small class="text-muted">{{ user.tempPasswordGeneratedAt|date('h:i A') }}</small>
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

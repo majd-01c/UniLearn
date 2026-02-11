@@ -312,12 +312,32 @@ class ProgrammeController extends AbstractController
     // ============ CONTENUS ============
 
     #[Route('/programme/contenus', name: 'app_programme_contenus')]
-    public function contenus(ContenuRepository $contenuRepository): Response
+    public function contenus(Request $request, ContenuRepository $contenuRepository): Response
     {
-        $contenus = $contenuRepository->findAll();
+        $title = $request->query->get('title', '');
+        $type = $request->query->get('type', '');
+        
+        $qb = $contenuRepository->createQueryBuilder('c');
+        
+        if ($title) {
+            $qb->andWhere('c.title LIKE :title')
+               ->setParameter('title', '%' . $title . '%');
+        }
+        
+        if ($type) {
+            $qb->andWhere('c.type = :type')
+               ->setParameter('type', $type);
+        }
+        
+        $qb->orderBy('c.createdAt', 'DESC');
+        $contenus = $qb->getQuery()->getResult();
         
         return $this->render('Gestion_Program/programme/contenus.html.twig', [
-            'contenus' => $contenus
+            'contenus' => $contenus,
+            'filters' => [
+                'title' => $title,
+                'type' => $type,
+            ]
         ]);
     }
 

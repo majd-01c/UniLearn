@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Class - {{ classe.name }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ path('app_classe_show', {id: classe.id}) }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="h3 mb-0"><i class="bi bi-pencil-square text-warning"></i> Edit Class</h1>
+                    <p class="text-muted mb-0">Modify {{ classe.name }}</p>
+                </div>
+            </div>
+
+            <div class="card card-elevated">
+                <div class="card-body p-4">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Class Name</label>
+                            {{ form_widget(form.name) }}
+                            {{ form_errors(form.name) }}
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Program</label>
+                            {{ form_widget(form.program) }}
+                            {{ form_errors(form.program) }}
+                            <div class="form-text">The program this class belongs to</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Level</label>
+                            {{ form_widget(form.level) }}
+                            {{ form_errors(form.level) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Specialty</label>
+                            {{ form_widget(form.specialty) }}
+                            {{ form_errors(form.specialty) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Maximum Capacity</label>
+                            {{ form_widget(form.capacity) }}
+                            {{ form_errors(form.capacity) }}
+                            <div class="form-text">Currently {{ classe.studentCount }} students enrolled</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Status</label>
+                            {{ form_widget(form.status) }}
+                            {{ form_errors(form.status) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Start Date</label>
+                            {{ form_widget(form.startDate) }}
+                            {{ form_errors(form.startDate) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">End Date</label>
+                            {{ form_widget(form.endDate) }}
+                            {{ form_errors(form.endDate) }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Image URL (optional)</label>
+                            {{ form_widget(form.imageUrl) }}
+                            {{ form_errors(form.imageUrl) }}
+                            <div class="form-text">URL to an image representing this class</div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <form action="{{ path('app_classe_delete', {id: classe.id}) }}" method="post" 
+                              onsubmit="return confirm('Are you sure you want to delete this class? All student enrollments will be removed.');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ classe.id) }}">
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-trash"></i> Delete Class
+                            </button>
+                        </form>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_classe_show', {id: classe.id}) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-check-circle"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

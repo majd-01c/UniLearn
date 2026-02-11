@@ -1,0 +1,134 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit User - {{ user.profile ? user.profile.fullName : user.email }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            {# Breadcrumb #}
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_home') }}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_user_index') }}" class="text-decoration-none">Users</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit User</li>
+                </ol>
+            </nav>
+            
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h4 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-pencil-fill"></i> Edit User
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                    {# Account Information Section #}
+                    <div class="mb-4">
+                        <h6 class="section-title border-bottom pb-2">
+                            <i class="bi bi-shield-lock"></i> Account Information
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                                {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'user@example.com'}}) }}
+                                {{ form_errors(form.email) }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Role <span class="text-danger">*</span></label>
+                                {{ form_widget(form.role, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_errors(form.role) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Personal Information Section #}
+                    <div class="mb-4">
+                        <h6 class="section-title border-bottom pb-2">
+                            <i class="bi bi-person"></i> Personal Information
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First Name <span class="text-danger">*</span></label>
+                                {{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': 'John'}}) }}
+                                {{ form_errors(form.firstName) }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                                {{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Doe'}}) }}
+                                {{ form_errors(form.lastName) }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone Number</label>
+                                {{ form_widget(form.phone, {'attr': {'class': 'form-control', 'placeholder': '+1 234 567 890'}}) }}
+                                {{ form_errors(form.phone) }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Account Status</label>
+                                <div class="form-check form-switch mt-2">
+                                    {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input', 'role': 'switch'}}) }}
+                                    <label class="form-check-label">Active Account</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Description / Bio</label>
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description about the user...'}}) }}
+                                {{ form_errors(form.description) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Form Actions #}
+                    <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_user_index') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <a href="{{ path('app_user_show', {id: user.id}) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save"></i> Update User
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            {# Additional Actions #}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Additional Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <form method="post" action="{{ path('app_user_toggle_status', {id: user.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle-status-' ~ user.id) }}">
+                                <button type="submit" 
+                                        class="btn btn-{{ user.isActive ? 'warning' : 'success' }} w-100"
+                                        onclick="return confirm('Are you sure you want to {{ user.isActive ? 'deactivate' : 'activate' }} this user?')">
+                                    <i class="bi bi-{{ user.isActive ? 'toggle-off' : 'toggle-on' }}"></i>
+                                    {{ user.isActive ? 'Deactivate Account' : 'Activate Account' }}
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <form method="post" action="{{ path('app_user_delete', {id: user.id}) }}" 
+                                  onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ user.id) }}">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="bi bi-trash"></i> Delete User
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

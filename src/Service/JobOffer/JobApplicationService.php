@@ -22,10 +22,7 @@ final class JobApplicationService
 
     public function hasAlreadyApplied(JobOffer $offer, User $student): bool
     {
-        return $this->applicationRepository->findOneBy([
-            'offer' => $offer,
-            'student' => $student,
-        ]) !== null;
+        return $this->applicationRepository->hasStudentApplied($offer, $student);
     }
 
     /**

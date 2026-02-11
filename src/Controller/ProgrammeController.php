@@ -43,12 +43,46 @@ class ProgrammeController extends AbstractController
     // ============ PROGRAM CRUD ============
 
     #[Route('/programme/programs', name: 'app_programme_programs')]
-    public function programs(ProgramRepository $programRepository): Response
+    public function programs(Request $request, ProgramRepository $programRepository): Response
     {
-        $programs = $programRepository->findAll();
+        $name = $request->query->get('name', '');
+        $status = $request->query->get('status', '');
+        
+        $criteria = [];
+        if ($status === 'published') {
+            $criteria['published'] = true;
+        } elseif ($status === 'draft') {
+            $criteria['published'] = false;
+        }
+        
+        if ($name || $criteria) {
+            $qb = $programRepository->createQueryBuilder('p');
+            
+            if ($name) {
+                $qb->andWhere('p.name LIKE :name')
+                   ->setParameter('name', '%' . $name . '%');
+            }
+            
+            if ($status === 'published') {
+                $qb->andWhere('p.published = :published')
+                   ->setParameter('published', true);
+            } elseif ($status === 'draft') {
+                $qb->andWhere('p.published = :published')
+                   ->setParameter('published', false);
+            }
+            
+            $qb->orderBy('p.createdAt', 'DESC');
+            $programs = $qb->getQuery()->getResult();
+        } else {
+            $programs = $programRepository->findBy([], ['createdAt' => 'DESC']);
+        }
         
         return $this->render('Gestion_Program/programme/programs.html.twig', [
-            'programs' => $programs
+            'programs' => $programs,
+            'filters' => [
+                'name' => $name,
+                'status' => $status,
+            ]
         ]);
     }
 

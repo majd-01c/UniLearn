@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Emploi du Temps - {{ classe.name }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-calendar-week"></i> Emploi du Temps - {{ classe.name }}</h1>
+        <div>
+            <a href="{{ path('app_admin_schedule_new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nouveau Créneau
+            </a>
+            <a href="{{ path('app_admin_schedules') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 100px;">Horaire</th>
+                            <th>Lundi</th>
+                            <th>Mardi</th>
+                            <th>Mercredi</th>
+                            <th>Jeudi</th>
+                            <th>Vendredi</th>
+                            <th>Samedi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'] %}
+                        {% set days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] %}
+                        
+                        {% for timeSlot in timeSlots %}
+                        <tr>
+                            <td class="text-center align-middle"><strong>{{ timeSlot }}</strong></td>
+                            
+                            {% for day in days %}
+                            <td>
+                                {% set hasClass = false %}
+                                {% for schedule in schedules %}
+                                    {% if schedule.dayOfWeek == day and schedule.startTime|date('H:i') <= timeSlot and schedule.endTime|date('H:i') > timeSlot %}
+                                        {% set hasClass = true %}
+                                        <div class="p-2 bg-primary text-white rounded position-relative">
+                                            <strong>{{ schedule.course.name }}</strong><br>
+                                            <small>{{ schedule.startTime|date('H:i') }} - {{ schedule.endTime|date('H:i') }}</small><br>
+                                            {% if schedule.room %}
+                                                <small><i class="bi bi-door-open"></i> {{ schedule.room }}</small><br>
+                                            {% endif %}
+                                            {% if schedule.teacher %}
+                                                <small><i class="bi bi-person"></i> {{ schedule.teacher.name }}</small>
+                                            {% endif %}
+                                            <div class="mt-2">
+                                                <a href="{{ path('app_admin_schedule_edit', {id: schedule.id}) }}" class="btn btn-sm btn-light">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <form method="post" action="{{ path('app_admin_schedule_delete', {id: schedule.id}) }}" class="d-inline" onsubmit="return confirm('Supprimer ce créneau ?');">
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not hasClass %}
+                                    <div class="text-center text-muted">-</div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

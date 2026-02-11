@@ -53,6 +53,12 @@
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
+                                    <a href="{{ path('app_programme_modules_show', {id: module.id}) }}" 
+                                       class="btn btn-outline-info" 
+                                       data-bs-toggle="tooltip" 
+                                       title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
                                     <a href="{{ path('app_programme_modules_edit', {id: module.id}) }}" 
                                        class="btn btn-outline-primary" 
                                        data-bs-toggle="tooltip" 

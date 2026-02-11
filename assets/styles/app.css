@@ -726,20 +726,6 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 1.1rem;
 }
 
-/* Collapsible Menu */
-.sidebar-link[data-bs-toggle="collapse"]::after {
-    content: '\f078';
-    font-family: 'Font Awesome 5 Free';
-    font-weight: 900;
-    margin-left: auto;
-    font-size: 0.75rem;
-    transition: transform var(--transition-fast);
-}
-
-.sidebar-link[data-bs-toggle="collapse"]:not(.collapsed)::after {
-    transform: rotate(180deg);
-}
-
 /* Sidebar Submenu */
 .sidebar-submenu {
     background: rgba(0, 0, 0, 0.15);

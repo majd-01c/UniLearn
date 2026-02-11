@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Réclamations{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-exclamation-circle"></i> Gestion des Réclamations</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Étudiant</th>
+                            <th>Sujet</th>
+                            <th>Cours</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reclamation in reclamations %}
+                        <tr>
+                            <td>{{ reclamation.id }}</td>
+                            <td>{{ reclamation.student.name ?? reclamation.student.email }}</td>
+                            <td>{{ reclamation.subject }}</td>
+                            <td>{{ reclamation.relatedCourse ? reclamation.relatedCourse.name : '-' }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if reclamation.status == 'pending' %}bg-warning
+                                    {% elseif reclamation.status == 'in_progress' %}bg-info
+                                    {% elseif reclamation.status == 'resolved' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {% if reclamation.status == 'pending' %}En Attente
+                                    {% elseif reclamation.status == 'in_progress' %}En Cours
+                                    {% elseif reclamation.status == 'resolved' %}Résolue
+                                    {% else %}Rejetée{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ reclamation.createdAt|date('d/m/Y H:i') }}</td>
+                            <td>
+                                <a href="{{ path('app_admin_reclamation_show', {id: reclamation.id}) }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> Voir
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Aucune réclamation trouvée</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

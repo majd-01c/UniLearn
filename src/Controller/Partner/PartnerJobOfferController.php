@@ -28,15 +28,22 @@ class PartnerJobOfferController extends AbstractController
      * List all job offers for current partner
      */
     #[Route('', name: 'app_partner_job_offer_index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 20;
 
-        $offers = $this->jobOfferService->getPartnerOffers($user);
+        $paginator = $this->jobOfferService->getPartnerOffersPaginated($user, $page, $limit);
+        $totalItems = count($paginator);
+        $totalPages = (int) ceil($totalItems / $limit);
 
         return $this->render('Gestion_Job_Offre/partner/job_offer/index.html.twig', [
-            'offers' => $offers,
+            'offers' => $paginator,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalItems' => $totalItems,
         ]);
     }
 

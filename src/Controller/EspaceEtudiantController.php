@@ -24,8 +24,7 @@ class EspaceEtudiantController extends AbstractController
 {
     #[Route('/', name: 'app_espace_etudiant_dashboard')]
     public function dashboard(
-        GradeRepository $gradeRepository,
-        AIRecommendationService $aiService
+        GradeRepository $gradeRepository
     ): Response {
         $user = $this->getUser();
         
@@ -38,16 +37,8 @@ class EspaceEtudiantController extends AbstractController
             ->getQuery()
             ->getResult();
         
-        // Get AI recommendations
-        $recommendations = $aiService->getRecommendations($user, 12.0);
-        
-        // Get semester results
-        $semesterResults = $aiService->getSemesterResults($user);
-        
         return $this->render('Gestion_Evaluation/espace_etudiant/dashboard.html.twig', [
             'recentGrades' => $recentGrades,
-            'recommendations' => $recommendations,
-            'semesterResults' => $semesterResults,
         ]);
     }
 
@@ -70,29 +61,9 @@ class EspaceEtudiantController extends AbstractController
         ]);
     }
 
-    #[Route('/resultats', name: 'app_espace_etudiant_results')]
-    public function results(AIRecommendationService $aiService): Response
-    {
-        $user = $this->getUser();
-        
-        $semesterResults = $aiService->getSemesterResults($user);
-        
-        return $this->render('Gestion_Evaluation/espace_etudiant/results.html.twig', [
-            'results' => $semesterResults,
-        ]);
-    }
+   
 
-    #[Route('/recommendations', name: 'app_espace_etudiant_recommendations')]
-    public function recommendations(AIRecommendationService $aiService): Response
-    {
-        $user = $this->getUser();
-        
-        $recommendations = $aiService->getRecommendations($user, 12.0);
-        
-        return $this->render('Gestion_Evaluation/espace_etudiant/recommendations.html.twig', [
-            'recommendations' => $recommendations,
-        ]);
-    }
+   
 
    #[Route('/emploi-du-temps', name: 'app_espace_etudiant_schedule')]
 public function schedule(ScheduleRepository $scheduleRepository): Response
@@ -103,7 +74,6 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
     $this->addFlash('info', 'La fonctionnalité emploi du temps sera bientôt disponible.');
     return $this->redirectToRoute('app_espace_etudiant_dashboard');
     
-    /* UNCOMMENT THIS LATER WHEN YOU ADD classe_id TO DATABASE
     $classe = $user->getClasse();
     
     if (!$classe) {
@@ -133,7 +103,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
         'weekSchedule' => $weekSchedule,
         'classe' => $classe,
     ]);
-    */
+    
 }
 
 

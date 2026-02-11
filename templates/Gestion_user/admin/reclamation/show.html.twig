@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-exclamation-circle"></i> Réclamation #{{ reclamation.id }}</h1>
+        <a href="{{ path('app_admin_reclamations') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Détails de la Réclamation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Étudiant:</strong>
+                        <p>{{ reclamation.student.name ?? reclamation.student.email }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Sujet:</strong>
+                        <p>{{ reclamation.subject }}</p>
+                    </div>
+                    
+                    {% if reclamation.relatedCourse %}
+                    <div class="mb-3">
+                        <strong>Cours concerné:</strong>
+                        <p>{{ reclamation.relatedCourse.name }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <strong>Description:</strong>
+                        <p>{{ reclamation.description|nl2br }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Date de création:</strong>
+                        <p>{{ reclamation.createdAt|date('d/m/Y à H:i') }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Statut:</strong>
+                        <span class="badge 
+                            {% if reclamation.status == 'pending' %}bg-warning
+                            {% elseif reclamation.status == 'in_progress' %}bg-info
+                            {% elseif reclamation.status == 'resolved' %}bg-success
+                            {% else %}bg-danger{% endif %}">
+                            {% if reclamation.status == 'pending' %}En Attente
+                            {% elseif reclamation.status == 'in_progress' %}En Cours
+                            {% elseif reclamation.status == 'resolved' %}Résolue
+                            {% else %}Rejetée{% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if reclamation.adminResponse %}
+                    <div class="alert alert-info">
+                        <strong>Réponse de l'administration:</strong>
+                        <p class="mb-0 mt-2">{{ reclamation.adminResponse|nl2br }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if reclamation.resolvedAt %}
+                    <div class="mb-3">
+                        <strong>Résolue le:</strong>
+                        <p>{{ reclamation.resolvedAt|date('d/m/Y à H:i') }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ path('app_admin_reclamation_respond', {id: reclamation.id}) }}">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Changer le statut</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="pending" {% if reclamation.status == 'pending' %}selected{% endif %}>En Attente</option>
+                                <option value="in_progress" {% if reclamation.status == 'in_progress' %}selected{% endif %}>En Cours</option>
+                                <option value="resolved" {% if reclamation.status == 'resolved' %}selected{% endif %}>Résolue</option>
+                                <option value="rejected" {% if reclamation.status == 'rejected' %}selected{% endif %}>Rejetée</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="admin_response" class="form-label">Réponse</label>
+                            <textarea name="admin_response" id="admin_response" rows="5" class="form-control" placeholder="Écrivez votre réponse...">{{ reclamation.adminResponse }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-check-circle"></i> Mettre à jour
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <form method="post" action="{{ path('app_admin_reclamation_delete', {id: reclamation.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-trash"></i> Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

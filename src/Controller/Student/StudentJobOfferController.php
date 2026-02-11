@@ -51,7 +51,7 @@ class StudentJobOfferController extends AbstractController
         $totalItems = count($paginator);
         $totalPages = (int) ceil($totalItems / $limit);
 
-        return $this->render('job_offer/index.html.twig', [
+        return $this->render('Gestion_Job_Offre/job_offer/index.html.twig', [
             'offers' => $paginator,
             'currentPage' => $page,
             'totalPages' => $totalPages,
@@ -89,7 +89,7 @@ class StudentJobOfferController extends AbstractController
             }
         }
 
-        return $this->render('job_offer/show.html.twig', [
+        return $this->render('Gestion_Job_Offre/job_offer/show.html.twig', [
             'offer' => $offer,
             'form' => $form?->createView(),
             'alreadyApplied' => $alreadyApplied,

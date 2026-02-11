@@ -73,7 +73,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% include 'job_offer/_offer_status_badge.html.twig' with {status: offer.status} only %}
+                                        {% include 'Gestion_Job_Offre/job_offer/_offer_status_badge.html.twig' with {status: offer.status} only %}
                                     </td>
                                     <td>
                                         <a href="{{ path('app_partner_job_offer_applications', {id: offer.id}) }}" class="badge bg-primary text-decoration-none">

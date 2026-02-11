@@ -40,7 +40,7 @@ class ForumController extends AbstractController
         $recentTopics = $this->topicRepository->findRecent(5);
         $unansweredTopics = $this->topicRepository->findUnanswered(5);
 
-        return $this->render('forum/index.html.twig', [
+        return $this->render('Gestion_Communication/forum/index.html.twig', [
             'categories' => $categories,
             'recentTopics' => $recentTopics,
             'unansweredTopics' => $unansweredTopics,
@@ -61,7 +61,7 @@ class ForumController extends AbstractController
         $search = $request->query->get('search');
         $topics = $this->topicRepository->findPaginated($page, 15, $category, $search);
 
-        return $this->render('forum/category.html.twig', [
+        return $this->render('Gestion_Communication/forum/category.html.twig', [
             'category' => $category,
             'topics' => $topics,
             'page' => $page,
@@ -108,7 +108,7 @@ class ForumController extends AbstractController
         $page = max(1, $request->query->getInt('page', 1));
         $replies = $this->replyRepository->findByTopicPaginated($topic, $page, 20);
 
-        return $this->render('forum/topic.html.twig', [
+        return $this->render('Gestion_Communication/forum/topic.html.twig', [
             'topic' => $topic,
             'replies' => $replies,
             'form' => $form,
@@ -137,7 +137,7 @@ class ForumController extends AbstractController
             return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
         }
 
-        return $this->render('forum/new_topic.html.twig', [
+        return $this->render('Gestion_Communication/forum/new_topic.html.twig', [
             'form' => $form,
         ]);
     }
@@ -164,7 +164,7 @@ class ForumController extends AbstractController
             return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
         }
 
-        return $this->render('forum/edit_topic.html.twig', [
+        return $this->render('Gestion_Communication/forum/edit_topic.html.twig', [
             'topic' => $topic,
             'form' => $form,
         ]);
@@ -278,7 +278,7 @@ class ForumController extends AbstractController
             return $this->redirectToRoute('app_forum_topic', ['id' => $reply->getTopic()->getId()]);
         }
 
-        return $this->render('forum/edit_reply.html.twig', [
+        return $this->render('Gestion_Communication/forum/edit_reply.html.twig', [
             'reply' => $reply,
             'form' => $form,
         ]);
@@ -327,7 +327,7 @@ class ForumController extends AbstractController
     {
         $categories = $this->categoryRepository->findBy([], ['position' => 'ASC']);
 
-        return $this->render('forum/admin/categories.html.twig', [
+        return $this->render('Gestion_Communication/forum/admin/categories.html.twig', [
             'categories' => $categories,
         ]);
     }
@@ -351,7 +351,7 @@ class ForumController extends AbstractController
             return $this->redirectToRoute('app_forum_admin_categories');
         }
 
-        return $this->render('forum/admin/category_form.html.twig', [
+        return $this->render('Gestion_Communication/forum/admin/category_form.html.twig', [
             'form' => $form,
             'category' => null,
         ]);
@@ -374,7 +374,7 @@ class ForumController extends AbstractController
             return $this->redirectToRoute('app_forum_admin_categories');
         }
 
-        return $this->render('forum/admin/category_form.html.twig', [
+        return $this->render('Gestion_Communication/forum/admin/category_form.html.twig', [
             'form' => $form,
             'category' => $category,
         ]);

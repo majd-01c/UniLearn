@@ -64,7 +64,7 @@ class AdminUserController extends AbstractController
 
         $users = $queryBuilder->getQuery()->getResult();
 
-        return $this->render('admin/users/list.html.twig', [
+        return $this->render('Gestion_user/admin/users/list.html.twig', [
             'users' => $users,
             'currentRole' => $role,
             'currentStatus' => $status,
@@ -121,7 +121,7 @@ class AdminUserController extends AbstractController
             }
         }
 
-        return $this->render('admin/users/new.html.twig', [
+        return $this->render('Gestion_user/admin/users/new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
@@ -173,7 +173,7 @@ class AdminUserController extends AbstractController
             }
         }
 
-        return $this->render('admin/users/edit.html.twig', [
+        return $this->render('Gestion_user/admin/users/edit.html.twig', [
             'form' => $form->createView(),
             'user' => $user,
         ]);

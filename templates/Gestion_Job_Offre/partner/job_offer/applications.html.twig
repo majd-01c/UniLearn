@@ -36,7 +36,7 @@
                 </div>
                 <div class="col-md-4">
                     <strong>Status:</strong> 
-                    {% include 'job_offer/_offer_status_badge.html.twig' with {status: offer.status} only %}
+                    {% include 'Gestion_Job_Offre/job_offer/_offer_status_badge.html.twig' with {status: offer.status} only %}
                 </div>
                 <div class="col-md-4">
                     <strong>Total Applications:</strong> 
@@ -115,7 +115,7 @@
                                         </small>
                                     </td>
                                     <td>
-                                        {% include 'job_offer/_application_status_badge.html.twig' with {status: application.status} only %}
+                                        {% include 'Gestion_Job_Offre/job_offer/_application_status_badge.html.twig' with {status: application.status} only %}
                                     </td>
                                     <td>
                                         {# Status Update Form #}

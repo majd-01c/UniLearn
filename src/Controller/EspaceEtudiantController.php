@@ -44,7 +44,7 @@ class EspaceEtudiantController extends AbstractController
         // Get semester results
         $semesterResults = $aiService->getSemesterResults($user);
         
-        return $this->render('espace_etudiant/dashboard.html.twig', [
+        return $this->render('Gestion_Evaluation/espace_etudiant/dashboard.html.twig', [
             'recentGrades' => $recentGrades,
             'recommendations' => $recommendations,
             'semesterResults' => $semesterResults,
@@ -65,7 +65,7 @@ class EspaceEtudiantController extends AbstractController
             ->getQuery()
             ->getResult();
         
-        return $this->render('espace_etudiant/grades.html.twig', [
+        return $this->render('Gestion_Evaluation/espace_etudiant/grades.html.twig', [
             'grades' => $grades,
         ]);
     }
@@ -77,7 +77,7 @@ class EspaceEtudiantController extends AbstractController
         
         $semesterResults = $aiService->getSemesterResults($user);
         
-        return $this->render('espace_etudiant/results.html.twig', [
+        return $this->render('Gestion_Evaluation/espace_etudiant/results.html.twig', [
             'results' => $semesterResults,
         ]);
     }
@@ -89,7 +89,7 @@ class EspaceEtudiantController extends AbstractController
         
         $recommendations = $aiService->getRecommendations($user, 12.0);
         
-        return $this->render('espace_etudiant/recommendations.html.twig', [
+        return $this->render('Gestion_Evaluation/espace_etudiant/recommendations.html.twig', [
             'recommendations' => $recommendations,
         ]);
     }
@@ -129,7 +129,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
         }
     }
     
-    return $this->render('espace_etudiant/schedule.html.twig', [
+    return $this->render('Gestion_Evaluation/espace_etudiant/schedule.html.twig', [
         'weekSchedule' => $weekSchedule,
         'classe' => $classe,
     ]);
@@ -144,7 +144,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
         
         $reclamations = $reclamationRepository->findByStudent($user);
         
-        return $this->render('espace_etudiant/reclamations.html.twig', [
+        return $this->render('Gestion_Evaluation/espace_etudiant/reclamations.html.twig', [
             'reclamations' => $reclamations,
         ]);
     }
@@ -167,7 +167,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
             return $this->redirectToRoute('app_espace_etudiant_reclamations');
         }
         
-        return $this->render('espace_etudiant/reclamation_new.html.twig', [
+        return $this->render('Gestion_Evaluation/espace_etudiant/reclamation_new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
@@ -179,7 +179,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
         
         $documentRequests = $documentRequestRepository->findByStudent($user);
         
-        return $this->render('espace_etudiant/documents.html.twig', [
+        return $this->render('Gestion_Evaluation/espace_etudiant/documents.html.twig', [
             'documentRequests' => $documentRequests,
         ]);
     }
@@ -202,7 +202,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
             return $this->redirectToRoute('app_espace_etudiant_documents');
         }
         
-        return $this->render('espace_etudiant/document_request.html.twig', [
+        return $this->render('Gestion_Evaluation/espace_etudiant/document_request.html.twig', [
             'form' => $form->createView(),
         ]);
     }

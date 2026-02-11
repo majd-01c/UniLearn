@@ -3,6 +3,13 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {# Prevent flash of wrong theme on page load #}
+        <script>
+            (function() {
+                var t = localStorage.getItem('unilearn-theme') || 'light';
+                document.documentElement.setAttribute('data-theme', t);
+            })();
+        </script>
         <title>{% block title %}UniLearn - University LMS{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🎓</text></svg>">
         
@@ -17,6 +24,9 @@
         
         {# Custom CSS - Material Design Theme #}
         <link rel="stylesheet" href="{{ asset('assets/styles/app.css') }}">
+
+        {# Bootstrap 5 JS Bundle - must be in <head> so Turbo keeps it persistent #}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
         
         {% block stylesheets %}
         {% endblock %}
@@ -167,8 +177,14 @@
                 <i class="bi bi-mortarboard-fill text-primary"></i> UniLearn 
             </div>
             
+            {# Theme toggle button #}
+            <button class="theme-toggle ms-auto" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">
+                <i class="bi bi-sun-fill"></i>
+                <i class="bi bi-moon-stars-fill"></i>
+            </button>
+
             {# User menu in top right #}
-            <div class="topbar-user ms-auto">
+            <div class="topbar-user">
                 <div class="dropdown">
                     <button class="btn btn-link text-decoration-none dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="user-avatar">
@@ -215,18 +231,42 @@
             {% block body %}{% endblock %}
         </div>
 
-        {# Bootstrap 5 JS Bundle #}
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        {# Bootstrap 5 JS is loaded in <head> with defer #}
         
         {# Sidebar toggle and animations #}
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            // Cleanup function to remove old listeners on Turbo navigation
+            let _sidebarCleanup = null;
+
+            document.addEventListener('turbo:load', function() {
+                // Clean up previous listeners to avoid stacking
+                if (_sidebarCleanup) _sidebarCleanup();
+
                 const sidebar = document.getElementById('sidebar');
                 const sidebarToggle = document.getElementById('sidebarToggle');
                 const sidebarOverlay = document.getElementById('sidebarOverlay');
                 const mainContent = document.getElementById('mainContent');
                 const topbar = document.querySelector('.topbar');
-                
+
+                if (!sidebar || !mainContent) return;
+
+                // Re-initialize all Bootstrap components after Turbo navigation
+                // Dispose old instances first to avoid duplicates
+                document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(el) {
+                    var existing = bootstrap.Dropdown.getInstance(el);
+                    if (existing) existing.dispose();
+                    new bootstrap.Dropdown(el);
+                });
+                document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(el) {
+                    var existing = bootstrap.Collapse.getInstance(el);
+                    if (existing) existing.dispose();
+                });
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+                    var existing = bootstrap.Tooltip.getInstance(el);
+                    if (existing) existing.dispose();
+                    new bootstrap.Tooltip(el);
+                });
+
                 // Check if sidebar should be open from localStorage (default: closed)
                 const sidebarOpen = localStorage.getItem('sidebarOpen') === 'true';
                 
@@ -237,61 +277,64 @@
                     if (topbar) topbar.classList.add('shifted');
                 }
                 
-                // Toggle sidebar
+                // Toggle sidebar handler
+                function handleToggle() {
+                    const isOpen = sidebar.classList.toggle('show');
+                    
+                    if (window.innerWidth < 992) {
+                        sidebarOverlay.classList.toggle('show', isOpen);
+                    }
+                    
+                    if (window.innerWidth >= 992) {
+                        mainContent.classList.toggle('shifted', isOpen);
+                        if (topbar) topbar.classList.toggle('shifted', isOpen);
+                    }
+                    
+                    localStorage.setItem('sidebarOpen', isOpen);
+                }
+
                 if (sidebarToggle) {
-                    sidebarToggle.addEventListener('click', function() {
-                        const isOpen = sidebar.classList.toggle('show');
-                        
-                        // Show overlay only on mobile
-                        if (window.innerWidth < 992) {
-                            sidebarOverlay.classList.toggle('show', isOpen);
-                        }
-                        
-                        // Shift content on desktop
-                        if (window.innerWidth >= 992) {
-                            mainContent.classList.toggle('shifted', isOpen);
-                            if (topbar) topbar.classList.toggle('shifted', isOpen);
-                        }
-                        
-                        // Save state to localStorage
-                        localStorage.setItem('sidebarOpen', isOpen);
-                    });
+                    sidebarToggle.addEventListener('click', handleToggle);
                 }
                 
                 // Close sidebar when clicking overlay (mobile)
+                function handleOverlay() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                    localStorage.setItem('sidebarOpen', 'false');
+                }
+
                 if (sidebarOverlay) {
-                    sidebarOverlay.addEventListener('click', function() {
-                        sidebar.classList.remove('show');
-                        sidebarOverlay.classList.remove('show');
-                        localStorage.setItem('sidebarOpen', 'false');
-                    });
+                    sidebarOverlay.addEventListener('click', handleOverlay);
                 }
                 
                 // Close sidebar on mobile when clicking any sidebar link
+                function handleLinkClick() {
+                    if (window.innerWidth < 992) {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                    }
+                }
+
                 const sidebarLinks = document.querySelectorAll('.sidebar-link, .sidebar-sublink');
                 sidebarLinks.forEach(function(link) {
-                    link.addEventListener('click', function() {
-                        if (window.innerWidth < 992) {
-                            sidebar.classList.remove('show');
-                            sidebarOverlay.classList.remove('show');
-                        }
-                    });
+                    link.addEventListener('click', handleLinkClick);
                 });
                 
                 // Handle window resize
-                window.addEventListener('resize', function() {
+                function handleResize() {
                     if (window.innerWidth < 992) {
-                        // Mobile: remove shifted class and overlay
                         mainContent.classList.remove('shifted');
                         if (topbar) topbar.classList.remove('shifted');
                         sidebarOverlay.classList.remove('show');
                     } else if (sidebar.classList.contains('show')) {
-                        // Desktop: restore shifted if sidebar is open
                         mainContent.classList.add('shifted');
                         if (topbar) topbar.classList.add('shifted');
                         sidebarOverlay.classList.remove('show');
                     }
-                });
+                }
+
+                window.addEventListener('resize', handleResize);
                 
                 // Add animation class to content wrapper
                 const contentWrapper = document.querySelector('.content-wrapper');
@@ -300,19 +343,50 @@
                 }
                 
                 // Auto-dismiss alerts after 5 seconds
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function(alert) {
+                document.querySelectorAll('.alert').forEach(function(alert) {
                     setTimeout(function() {
-                        const bsAlert = new bootstrap.Alert(alert);
-                        bsAlert.close();
+                        if (alert.isConnected) {
+                            var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                            bsAlert.close();
+                        }
                     }, 5000);
                 });
-                
-                // Initialize tooltips
-                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                tooltipTriggerList.map(function (tooltipTriggerEl) {
-                    return new bootstrap.Tooltip(tooltipTriggerEl);
+
+                // Theme toggle
+                var themeToggleBtn = document.getElementById('themeToggle');
+                function handleThemeToggle() {
+                    var html = document.documentElement;
+                    html.classList.add('theme-transition');
+                    var current = html.getAttribute('data-theme') || 'light';
+                    var next = current === 'light' ? 'dark' : 'light';
+                    html.setAttribute('data-theme', next);
+                    localStorage.setItem('unilearn-theme', next);
+                    setTimeout(function() { html.classList.remove('theme-transition'); }, 400);
+                }
+                if (themeToggleBtn) {
+                    themeToggleBtn.addEventListener('click', handleThemeToggle);
+                }
+
+                // Store cleanup function for next navigation
+                _sidebarCleanup = function() {
+                    if (themeToggleBtn) themeToggleBtn.removeEventListener('click', handleThemeToggle);
+                    if (sidebarToggle) sidebarToggle.removeEventListener('click', handleToggle);
+                    if (sidebarOverlay) sidebarOverlay.removeEventListener('click', handleOverlay);
+                    sidebarLinks.forEach(function(link) {
+                        link.removeEventListener('click', handleLinkClick);
+                    });
+                    window.removeEventListener('resize', handleResize);
+                };
+            });
+
+            // Also re-init Bootstrap components on turbo:render for cached pages
+            document.addEventListener('turbo:before-cache', function() {
+                // Dispose all Bootstrap instances before Turbo caches the page
+                document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(el) {
+                    var instance = bootstrap.Dropdown.getInstance(el);
+                    if (instance) instance.dispose();
                 });
+                document.querySelectorAll('.tooltip').forEach(function(el) { el.remove(); });
             });
         </script>
     </body>

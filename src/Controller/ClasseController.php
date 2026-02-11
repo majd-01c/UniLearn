@@ -11,6 +11,6 @@ class ClasseController extends AbstractController
     #[Route('/classe', name: 'app_classe')]
     public function index(): Response
     {
-        return $this->render('classe/index.html.twig');
+        return $this->render('Gestion_Program/classe/index.html.twig');
     }
 }

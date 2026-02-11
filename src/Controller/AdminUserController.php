@@ -93,6 +93,10 @@ class AdminUserController extends AbstractController
                 $user->setMustChangePassword(true);
                 $user->setTempPasswordGeneratedAt(new \DateTimeImmutable());
 
+                // Set verification flags (code will be sent when user accesses verification page)
+                $user->setIsVerified(false);
+                $user->setNeedsVerification(true);
+
                 // Create profile
                 $profile = new Profile();
                 $profile->setFirstName($form->get('firstName')->getData());
@@ -111,7 +115,7 @@ class AdminUserController extends AbstractController
                 $this->mailerService->sendWelcomeEmail($user, $tempPassword, $loginUrl);
 
                 $this->addFlash('success', sprintf(
-                    'User account created successfully. Welcome email sent to %s',
+                    'User account created successfully. Welcome email sent to %s. Verification code will be sent when user logs in.',
                     $user->getEmail()
                 ));
 

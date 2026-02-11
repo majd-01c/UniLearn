@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Verify Your Email - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-envelope-check-fill"></i> Email Verification
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle-fill"></i> <strong>Email Verification Required!</strong>
+                        <p class="mb-0 mt-2">We've sent a 6-digit verification code to <strong>{{ user.email }}</strong>. Please check your email and enter the code below. The code is valid for <strong>1 minute</strong>.</p>
+                    </div>
+
+                    {% if expired is defined and expired %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-hourglass-split"></i> Your verification code has expired. Click the "Resend Code" button below to get a new one.
+                        </div>
+                    {% endif %}
+
+                    <form method="post" id="verificationForm">
+                        <div class="mb-4">
+                            <label for="verification_code" class="form-label fw-bold">
+                                <i class="bi bi-shield-lock-fill"></i> Enter Verification Code
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control form-control-lg text-center" 
+                                id="verification_code" 
+                                name="verification_code" 
+                                placeholder="000000"
+                                maxlength="6"
+                                pattern="[0-9]{6}"
+                                required
+                                autofocus
+                                style="letter-spacing: 10px; font-size: 24px; font-weight: bold;"
+                            >
+                            <small class="form-text text-muted">Enter the 6-digit code sent to your email</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check2-circle"></i> Verify Email
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="text-muted mb-2">Didn't receive the code?</p>
+                        <form method="post" action="{{ path('app_verify_resend') }}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="bi bi-send-fill"></i> Resend Code
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="alert alert-warning mt-4 mb-0">
+                        <small>
+                            <i class="bi bi-exclamation-circle-fill"></i> <strong>Note:</strong> Your account will not be fully activated until you verify your email address.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{{ path('app_home') }}" class="text-muted">
+                    <i class="bi bi-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-format verification code input
+    document.getElementById('verification_code').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
+    // Auto-submit when 6 digits are entered
+    document.getElementById('verification_code').addEventListener('input', function(e) {
+        if (this.value.length === 6) {
+            // Optional: auto-submit form
+            // document.getElementById('verificationForm').submit();
+        }
+    });
+</script>
+{% endblock %}

@@ -43,7 +43,7 @@ class AdminJobOfferController extends AbstractController
         $totalItems = count($paginator);
         $totalPages = (int) ceil($totalItems / $limit);
 
-        return $this->render('Gestion_user/admin/job_offer/list.html.twig', [
+        return $this->render('Gestion_Job_Offre/admin/job_offer/list.html.twig', [
             'offers' => $paginator,
             'currentPage' => $page,
             'totalPages' => $totalPages,

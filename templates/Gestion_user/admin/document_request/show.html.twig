@@ -1,0 +1,134 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demande de Document #{{ documentRequest.id }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-file-earmark-text"></i> Demande #{{ documentRequest.id }}</h1>
+        <a href="{{ path('app_admin_document_requests') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Détails de la Demande</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Étudiant:</strong>
+                        <p>{{ documentRequest.student.name ?? documentRequest.student.email }}</p>
+                        <small class="text-muted">{{ documentRequest.student.email }}</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Type de Document:</strong>
+                        <p>
+                            {% if documentRequest.documentType == 'attestation_stage' %}
+                                Attestation de Stage
+                            {% elseif documentRequest.documentType == 'attestation_inscription' %}
+                                Attestation d'Inscription
+                            {% elseif documentRequest.documentType == 'releve_notes' %}
+                                Relevé de Notes
+                            {% elseif documentRequest.documentType == 'attestation_reussite' %}
+                                Attestation de Réussite
+                            {% elseif documentRequest.documentType == 'certificat_scolarite' %}
+                                Certificat de Scolarité
+                            {% else %}
+                                {{ documentRequest.documentType }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    {% if documentRequest.additionalInfo %}
+                    <div class="mb-3">
+                        <strong>Informations complémentaires:</strong>
+                        <p>{{ documentRequest.additionalInfo|nl2br }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <strong>Date de demande:</strong>
+                        <p>{{ documentRequest.requestedAt|date('d/m/Y à H:i') }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Statut:</strong>
+                        <span class="badge 
+                            {% if documentRequest.status == 'pending' %}bg-warning
+                            {% elseif documentRequest.status == 'approved' %}bg-info
+                            {% elseif documentRequest.status == 'ready' %}bg-success
+                            {% elseif documentRequest.status == 'delivered' %}bg-primary
+                            {% else %}bg-danger{% endif %}">
+                            {% if documentRequest.status == 'pending' %}En Attente
+                            {% elseif documentRequest.status == 'approved' %}Approuvée
+                            {% elseif documentRequest.status == 'ready' %}Prête
+                            {% elseif documentRequest.status == 'delivered' %}Livrée
+                            {% else %}Rejetée{% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if documentRequest.deliveredAt %}
+                    <div class="mb-3">
+                        <strong>Livrée le:</strong>
+                        <p>{{ documentRequest.deliveredAt|date('d/m/Y à H:i') }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if documentRequest.documentPath %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-file-check"></i> Document généré: 
+                        <a href="{{ asset('uploads/documents/' ~ documentRequest.documentPath) }}" target="_blank" class="btn btn-sm btn-success">
+                            <i class="bi bi-download"></i> Télécharger
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ path('app_admin_document_request_update_status', {id: documentRequest.id}) }}">
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Changer le statut</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="pending" {% if documentRequest.status == 'pending' %}selected{% endif %}>En Attente</option>
+                                <option value="approved" {% if documentRequest.status == 'approved' %}selected{% endif %}>Approuvée</option>
+                                <option value="ready" {% if documentRequest.status == 'ready' %}selected{% endif %}>Prête</option>
+                                <option value="delivered" {% if documentRequest.status == 'delivered' %}selected{% endif %}>Livrée</option>
+                                <option value="rejected" {% if documentRequest.status == 'rejected' %}selected{% endif %}>Rejetée</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-check-circle"></i> Mettre à jour
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <div class="alert alert-info">
+                        <small><i class="bi bi-info-circle"></i> Pour générer le document, changez le statut à "Prête" et uploadez le fichier manuellement dans <code>public/uploads/documents/</code></small>
+                    </div>
+
+                    <hr>
+
+                    <form method="post" action="{{ path('app_admin_document_request_delete', {id: documentRequest.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette demande ?');">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-trash"></i> Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

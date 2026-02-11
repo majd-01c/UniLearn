@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Enum\JobOfferStatus;
 use App\Repository\JobOfferRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 final class JobOfferService
 {
@@ -54,12 +55,11 @@ final class JobOfferService
         $this->em->flush();
     }
 
-    /** @return JobOffer[] */
-    public function getPartnerOffers(User $partner): array
+    /**
+     * @return Paginator<JobOffer>
+     */
+    public function getPartnerOffersPaginated(User $partner, int $page = 1, int $limit = 20): Paginator
     {
-        return $this->jobOfferRepository->findBy(
-            ['partner' => $partner],
-            ['createdAt' => 'DESC']
-        );
+        return $this->jobOfferRepository->findByPartnerPaginated($partner, $page, $limit);
     }
 }

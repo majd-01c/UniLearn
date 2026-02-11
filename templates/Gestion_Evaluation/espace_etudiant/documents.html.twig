@@ -71,14 +71,27 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if request.documentPath and request.status == 'ready' or request.status == 'delivered' %}
-                                    <a href="{{ asset('uploads/documents/' ~ request.documentPath) }}" class="btn btn-sm btn-success" target="_blank">
-                                        <i class="fas fa-download"></i> Télécharger
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">Non disponible</span>
-                                {% endif %}
-                            </td>
+    {% if request.documentPath %}
+        <a href="{{ asset('uploads/documents/' ~ request.documentPath) }}" class="btn btn-sm btn-success" target="_blank">
+            <i class="fas fa-download"></i> Télécharger
+        </a>
+    {% elseif request.status == 'pending' %}
+        <span class="badge bg-warning">
+            <i class="fas fa-clock"></i> En attente
+        </span>
+    {% elseif request.status == 'approved' %}
+        <span class="badge bg-info">
+            <i class="fas fa-spinner"></i> En cours
+        </span>
+    {% elseif request.status == 'ready' or request.status == 'delivered' %}
+        <span class="badge bg-secondary">
+            <i class="fas fa-exclamation-circle"></i> Document manquant
+        </span>
+    {% else %}
+        <span class="text-muted">Non disponible</span>
+    {% endif %}
+</td>
+
                         </tr>
                         {% endfor %}
                     </tbody>

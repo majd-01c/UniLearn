@@ -116,6 +116,7 @@ class UserMailerService
     private function getWelcomeEmailHtml(User $user, string $roleLabel, string $tempPassword, string $loginUrl): string
     {
         $userName = $user->getProfile()?->getFirstName() ?? 'User';
+        
         return <<<HTML
 <!DOCTYPE html>
 <html>
@@ -130,6 +131,7 @@ class UserMailerService
         .credentials h3 { margin-top: 0; color: #667eea; }
         .btn { display: inline-block; background: #667eea; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
         .warning { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .info { background: #d1ecf1; border: 1px solid #0c5460; padding: 15px; border-radius: 5px; margin: 20px 0; }
         .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
     </style>
 </head>
@@ -151,6 +153,10 @@ class UserMailerService
             <p style="text-align: center;">
                 <a href="{$loginUrl}" class="btn">Login to UniLearn</a>
             </p>
+            
+            <div class="info">
+                <strong>📧 Email Verification:</strong> After logging in, you will receive a verification code via email to activate your account. The code will be valid for 1 minute.
+            </div>
             
             <div class="warning">
                 <strong>⚠️ Important:</strong> For security reasons, you must change your password on your first login.

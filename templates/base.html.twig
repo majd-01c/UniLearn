@@ -68,6 +68,28 @@
                         </a>
                     </div>
                 </div>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+<div class="sidebar-dropdown">
+    <a class="sidebar-link {% if 'admin' in app.request.attributes.get('_route') and 'reclamation' in app.request.attributes.get('_route') or 'document' in app.request.attributes.get('_route') or 'schedule' in app.request.attributes.get('_route') %}active{% endif %}" href="#adminEspaceSubmenu" data-bs-toggle="collapse">
+        <i class="bi bi-shield-check"></i>
+        <span>Admin Espace Étudiant</span>
+        <i class="bi bi-chevron-down ms-auto"></i>
+    </a>
+    <div class="collapse sidebar-submenu" id="adminEspaceSubmenu">
+        <a class="sidebar-sublink" href="{{ path('app_admin_reclamations') }}">
+            <i class="bi bi-exclamation-circle"></i> Réclamations
+        </a>
+        <a class="sidebar-sublink" href="{{ path('app_admin_document_requests') }}">
+            <i class="bi bi-file-earmark-text"></i> Demandes Documents
+        </a>
+        <a class="sidebar-sublink" href="{{ path('app_admin_schedules') }}">
+            <i class="bi bi-calendar-week"></i> Emplois du Temps
+        </a>
+    </div>
+</div>
+{% endif %}
+
                 {% endif %} 
                 
                 <!-- ADD THIS NEW SECTION HERE ↓↓↓ -->

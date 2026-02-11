@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Enum\ClasseStatus;
+use App\Enum\Level;
+use App\Enum\Specialty;
 use App\Repository\ClasseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,6 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ClasseRepository::class)]
 #[ORM\Index(columns: ['program_id'])]
+#[ORM\Index(columns: ['level'])]
+#[ORM\Index(columns: ['specialty'])]
 class Classe
 {
     #[ORM\Id]
@@ -24,6 +28,15 @@ class Classe
     #[ORM\ManyToOne(targetEntity: Program::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Program $program = null;
+
+    #[ORM\Column(type: 'string', length: 10, enumType: Level::class)]
+    private ?Level $level = null;
+
+    #[ORM\Column(type: 'string', length: 50, enumType: Specialty::class)]
+    private ?Specialty $specialty = null;
+
+    #[ORM\Column]
+    private int $capacity = 30;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $startDate = null;
@@ -43,9 +56,16 @@ class Classe
     #[ORM\OneToMany(targetEntity: ClasseModule::class, mappedBy: 'classe', orphanRemoval: true, cascade: ['persist', 'remove'])]
     private Collection $modules;
 
+    /**
+     * @var Collection<int, StudentClasse>
+     */
+    #[ORM\OneToMany(targetEntity: StudentClasse::class, mappedBy: 'classe', orphanRemoval: true, cascade: ['persist', 'remove'])]
+    private Collection $students;
+
     public function __construct()
     {
         $this->modules = new ArrayCollection();
+        $this->students = new ArrayCollection();
         $this->status = ClasseStatus::INACTIVE;
     }
 
@@ -73,6 +93,39 @@ class Classe
     public function setProgram(?Program $program): static
     {
         $this->program = $program;
+        return $this;
+    }
+
+    public function getLevel(): ?Level
+    {
+        return $this->level;
+    }
+
+    public function setLevel(Level $level): static
+    {
+        $this->level = $level;
+        return $this;
+    }
+
+    public function getSpecialty(): ?Specialty
+    {
+        return $this->specialty;
+    }
+
+    public function setSpecialty(Specialty $specialty): static
+    {
+        $this->specialty = $specialty;
+        return $this;
+    }
+
+    public function getCapacity(): int
+    {
+        return $this->capacity;
+    }
+
+    public function setCapacity(int $capacity): static
+    {
+        $this->capacity = $capacity;
         return $this;
     }
 
@@ -160,5 +213,55 @@ class Classe
     public function isActive(): bool
     {
         return $this->status === ClasseStatus::ACTIVE;
+    }
+
+    /**
+     * @return Collection<int, StudentClasse>
+     */
+    public function getStudents(): Collection
+    {
+        return $this->students;
+    }
+
+    public function addStudent(StudentClasse $student): static
+    {
+        if (!$this->students->contains($student)) {
+            $this->students->add($student);
+            $student->setClasse($this);
+        }
+        return $this;
+    }
+
+    public function removeStudent(StudentClasse $student): static
+    {
+        if ($this->students->removeElement($student)) {
+            if ($student->getClasse() === $this) {
+                $student->setClasse(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getStudentCount(): int
+    {
+        return $this->students->filter(fn($sc) => $sc->isActive())->count();
+    }
+
+    public function isFull(): bool
+    {
+        return $this->getStudentCount() >= $this->capacity;
+    }
+
+    public function getRemainingCapacity(): int
+    {
+        return max(0, $this->capacity - $this->getStudentCount());
+    }
+
+    public function getOccupancyPercentage(): float
+    {
+        if ($this->capacity <= 0) {
+            return 0;
+        }
+        return round(($this->getStudentCount() / $this->capacity) * 100, 1);
     }
 }

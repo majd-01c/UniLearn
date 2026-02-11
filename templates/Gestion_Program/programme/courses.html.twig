@@ -53,6 +53,12 @@
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
+                                    <a href="{{ path('app_programme_courses_show', {id: course.id}) }}" 
+                                       class="btn btn-outline-info" 
+                                       data-bs-toggle="tooltip" 
+                                       title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
                                     <a href="{{ path('app_programme_courses_edit', {id: course.id}) }}" 
                                        class="btn btn-outline-warning" 
                                        data-bs-toggle="tooltip" 

@@ -11,10 +11,10 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Form for creating and editing job offers
+ * Form for creating and editing job offers.
+ * Validation constraints are defined on the entity (single source of truth).
  */
 class JobOfferFormType extends AbstractType
 {
@@ -28,10 +28,6 @@ class JobOfferFormType extends AbstractType
                     'class' => 'form-control',
                     'placeholder' => 'e.g., Software Developer Intern',
                 ],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Job title is required']),
-                    new Assert\Length(['max' => 255]),
-                ],
             ])
             ->add('type', EnumType::class, [
                 'label' => 'Job Type',
@@ -39,9 +35,6 @@ class JobOfferFormType extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-select'],
                 'choice_label' => fn($choice) => ucfirst(strtolower(str_replace('_', ' ', $choice->value))),
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Job type is required']),
-                ],
             ])
             ->add('location', TextType::class, [
                 'label' => 'Location',
@@ -49,9 +42,6 @@ class JobOfferFormType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'placeholder' => 'e.g., Paris, France or Remote',
-                ],
-                'constraints' => [
-                    new Assert\Length(['max' => 255]),
                 ],
             ])
             ->add('description', TextareaType::class, [
@@ -61,9 +51,6 @@ class JobOfferFormType extends AbstractType
                     'class' => 'form-control',
                     'placeholder' => 'Describe the job responsibilities, duties, and details...',
                     'rows' => 8,
-                ],
-                'constraints' => [
-                    new Assert\NotBlank(['message' => 'Job description is required']),
                 ],
             ])
             ->add('requirements', TextareaType::class, [

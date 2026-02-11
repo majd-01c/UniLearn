@@ -11,11 +11,9 @@ use App\Enum\JobApplicationStatus;
 use App\Enum\JobOfferStatus;
 use App\Enum\JobOfferType;
 use App\Repository\JobApplicationRepository;
-use App\Service\JobOffer\CvUploadService;
 use App\Service\JobOffer\JobApplicationService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class JobApplicationServiceTest extends TestCase
 {
@@ -27,9 +25,7 @@ class JobApplicationServiceTest extends TestCase
     {
         $this->em = $this->createMock(EntityManagerInterface::class);
         $this->repo = $this->createMock(JobApplicationRepository::class);
-        // CvUploadService is final, so instantiate with real dependencies (won't be called in these tests)
-        $cvService = new CvUploadService(new AsciiSlugger(), sys_get_temp_dir());
-        $this->service = new JobApplicationService($this->em, $this->repo, $cvService);
+        $this->service = new JobApplicationService($this->em, $this->repo);
     }
 
     public function testApplySuccess(): void

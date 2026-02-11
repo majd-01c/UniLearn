@@ -52,7 +52,7 @@ class ProfileController extends AbstractController
             }
         }
 
-        return $this->render('profile/edit.html.twig', [
+        return $this->render('Gestion_user/profile/edit.html.twig', [
             'form' => $form->createView(),
             'user' => $user,
             'profile' => $profile,
@@ -97,7 +97,7 @@ class ProfileController extends AbstractController
             }
         }
 
-        return $this->render('profile/change_password.html.twig', [
+        return $this->render('Gestion_user/profile/change_password.html.twig', [
             'form' => $form->createView(),
             'user' => $user,
             'mustChange' => $user->isMustChangePassword(),

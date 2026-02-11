@@ -33,7 +33,7 @@ class NameController extends AbstractController
         // Get all names from database
         $names = $entityManager->getRepository(Name::class)->findAll();
 
-        return $this->render('name/index.html.twig', [
+        return $this->render('Gestion_user/name/index.html.twig', [
             'names' => $names,
             'savedName' => $savedName,
         ]);

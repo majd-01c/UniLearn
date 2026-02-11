@@ -107,7 +107,7 @@
             <i class="bi bi-info-circle"></i> Showing {{ offers|length }} job offer(s) ({{ totalItems }} total)
         </div>
 
-        {% include 'job_offer/_pagination.html.twig' with {
+        {% include 'Gestion_Job_Offre/job_offer/_pagination.html.twig' with {
             currentPage: currentPage,
             totalPages: totalPages,
             route: 'app_job_offer_index',

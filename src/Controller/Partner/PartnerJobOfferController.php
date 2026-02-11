@@ -35,7 +35,7 @@ class PartnerJobOfferController extends AbstractController
 
         $offers = $this->jobOfferService->getPartnerOffers($user);
 
-        return $this->render('partner/job_offer/index.html.twig', [
+        return $this->render('Gestion_Job_Offre/partner/job_offer/index.html.twig', [
             'offers' => $offers,
         ]);
     }
@@ -63,7 +63,7 @@ class PartnerJobOfferController extends AbstractController
             }
         }
 
-        return $this->render('partner/job_offer/new.html.twig', [
+        return $this->render('Gestion_Job_Offre/partner/job_offer/new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
@@ -89,7 +89,7 @@ class PartnerJobOfferController extends AbstractController
             }
         }
 
-        return $this->render('partner/job_offer/edit.html.twig', [
+        return $this->render('Gestion_Job_Offre/partner/job_offer/edit.html.twig', [
             'form' => $form->createView(),
             'offer' => $offer,
         ]);
@@ -171,7 +171,7 @@ class PartnerJobOfferController extends AbstractController
 
         $applications = $this->applicationService->getApplicationsForOffer($offer);
 
-        return $this->render('partner/job_offer/applications.html.twig', [
+        return $this->render('Gestion_Job_Offre/partner/job_offer/applications.html.twig', [
             'offer' => $offer,
             'applications' => $applications,
         ]);

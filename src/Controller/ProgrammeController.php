@@ -22,7 +22,7 @@ class ProgrammeController extends AbstractController
     #[Route('/programme', name: 'app_programme')]
     public function index(): Response
     {
-        return $this->render('programme/index.html.twig');
+        return $this->render('Gestion_Program/programme/index.html.twig');
     }
 
     // ============ MODULES ============
@@ -32,7 +32,7 @@ class ProgrammeController extends AbstractController
     {
         $modules = $moduleRepository->findAll();
         
-        return $this->render('programme/modules.html.twig', [
+        return $this->render('Gestion_Program/programme/modules.html.twig', [
             'modules' => $modules
         ]);
     }
@@ -52,7 +52,7 @@ class ProgrammeController extends AbstractController
             return $this->redirectToRoute('app_programme_modules');
         }
 
-        return $this->render('programme/module_new.html.twig', [
+        return $this->render('Gestion_Program/programme/module_new.html.twig', [
             'form' => $form->createView()
         ]);
     }
@@ -71,7 +71,7 @@ class ProgrammeController extends AbstractController
             return $this->redirectToRoute('app_programme_modules');
         }
 
-        return $this->render('programme/module_edit.html.twig', [
+        return $this->render('Gestion_Program/programme/module_edit.html.twig', [
             'form' => $form->createView(),
             'module' => $module
         ]);
@@ -94,7 +94,7 @@ class ProgrammeController extends AbstractController
     {
         $courses = $courseRepository->findAll();
         
-        return $this->render('programme/courses.html.twig', [
+        return $this->render('Gestion_Program/programme/courses.html.twig', [
             'courses' => $courses
         ]);
     }
@@ -114,7 +114,7 @@ class ProgrammeController extends AbstractController
             return $this->redirectToRoute('app_programme_courses');
         }
 
-        return $this->render('programme/course_new.html.twig', [
+        return $this->render('Gestion_Program/programme/course_new.html.twig', [
             'form' => $form->createView()
         ]);
     }
@@ -133,7 +133,7 @@ class ProgrammeController extends AbstractController
             return $this->redirectToRoute('app_programme_courses');
         }
 
-        return $this->render('programme/course_edit.html.twig', [
+        return $this->render('Gestion_Program/programme/course_edit.html.twig', [
             'form' => $form->createView(),
             'course' => $course
         ]);
@@ -156,7 +156,7 @@ class ProgrammeController extends AbstractController
     {
         $contenus = $contenuRepository->findAll();
         
-        return $this->render('programme/contenus.html.twig', [
+        return $this->render('Gestion_Program/programme/contenus.html.twig', [
             'contenus' => $contenus
         ]);
     }
@@ -176,7 +176,7 @@ class ProgrammeController extends AbstractController
             return $this->redirectToRoute('app_programme_contenus');
         }
 
-        return $this->render('programme/contenu_new.html.twig', [
+        return $this->render('Gestion_Program/programme/contenu_new.html.twig', [
             'form' => $form->createView()
         ]);
     }
@@ -195,7 +195,7 @@ class ProgrammeController extends AbstractController
             return $this->redirectToRoute('app_programme_contenus');
         }
 
-        return $this->render('programme/contenu_edit.html.twig', [
+        return $this->render('Gestion_Program/programme/contenu_edit.html.twig', [
             'form' => $form->createView(),
             'contenu' => $contenu
         ]);

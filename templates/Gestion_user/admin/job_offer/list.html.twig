@@ -96,7 +96,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% include 'job_offer/_offer_status_badge.html.twig' with {status: offer.status} only %}
+                                    {% include 'Gestion_Job_Offre/job_offer/_offer_status_badge.html.twig' with {status: offer.status} only %}
                                 </td>
                                 <td>
                                     <small class="text-muted">
@@ -156,7 +156,7 @@
         </div>
     </div>
 
-    {% include 'job_offer/_pagination.html.twig' with {
+    {% include 'Gestion_Job_Offre/job_offer/_pagination.html.twig' with {
         currentPage: currentPage,
         totalPages: totalPages,
         route: 'admin_job_offer_list',

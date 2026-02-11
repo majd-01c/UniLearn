@@ -45,8 +45,8 @@ class Program
     {
         $this->modules = new ArrayCollection();
         $this->chatMessages = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
     }
 
     public function getId(): ?int

@@ -40,7 +40,7 @@
                                     {% if schedule.startTime|date('H:i') <= timeSlot and schedule.endTime|date('H:i') > timeSlot %}
                                         {% set hasClass = true %}
                                         <div class="p-2 bg-primary text-white rounded">
-                                            <strong>{{ schedule.course.name }}</strong><br>
+                                            <strong>{{ schedule.course.title }}</strong><br>
                                             <small>{{ schedule.startTime|date('H:i') }} - {{ schedule.endTime|date('H:i') }}</small><br>
                                             {% if schedule.room %}
                                                 <small><i class="fas fa-door-open"></i> {{ schedule.room }}</small><br>

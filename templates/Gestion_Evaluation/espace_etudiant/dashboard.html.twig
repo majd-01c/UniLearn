@@ -128,7 +128,7 @@
                             <tbody>
                                 {% for grade in recentGrades %}
                                 <tr>
-                                    <td>{{ grade.assessment.course.name }}</td>
+                                    <td>{{ grade.assessment.course.title }}</td>
                                     <td>{{ grade.assessment.title }}</td>
                                     <td>
                                         <span class="badge {% if grade.score >= 12 %}bg-success{% elseif grade.score >= 10 %}bg-warning{% else %}bg-danger{% endif %}">

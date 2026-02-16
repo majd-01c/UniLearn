@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add Course - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {# Header #}
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ path('app_teacher_classe_show', {id: teacherClasse.id}) }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-journal-plus text-success"></i> Add Course
+                    </h1>
+                    <p class="text-muted mb-0">Add a new course to module "{{ module.name }}"</p>
+                </div>
+            </div>
+
+            <div class="card card-elevated">
+                <div class="card-body">
+                    <form action="{{ path('app_teacher_course_add', {id: teacherClasse.id}) }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('add_course' ~ teacherClasse.id) }}">
+                        
+                        <div class="mb-4">
+                            <label for="course_title" class="form-label">Course Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="course_title" name="course_title" 
+                                   placeholder="e.g., Introduction to Programming" required autofocus>
+                            <div class="form-text">Enter a descriptive title for your course.</div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill"></i>
+                            After creating the course, you can add content items like videos, quizzes, and exercises.
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ path('app_teacher_classe_show', {id: teacherClasse.id}) }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-plus-lg"></i> Add Course
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

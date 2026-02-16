@@ -32,6 +32,9 @@ class ClasseCourse
     #[ORM\OneToMany(targetEntity: ClasseContenu::class, mappedBy: 'classeCourse', orphanRemoval: true, cascade: ['persist', 'remove'])]
     private Collection $contenus;
 
+    #[ORM\Column]
+    private bool $isHidden = false;
+
     public function __construct()
     {
         $this->contenus = new ArrayCollection();
@@ -88,6 +91,17 @@ class ClasseCourse
                 $contenu->setClasseCourse(null);
             }
         }
+        return $this;
+    }
+
+    public function isHidden(): bool
+    {
+        return $this->isHidden;
+    }
+
+    public function setIsHidden(bool $isHidden): static
+    {
+        $this->isHidden = $isHidden;
         return $this;
     }
 }

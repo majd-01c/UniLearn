@@ -15,11 +15,11 @@ class Schedule
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Classe::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Classe $classe = null;
 
     #[ORM\ManyToOne(targetEntity: Course::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Course $course = null;
 
     #[ORM\Column(length: 20)]

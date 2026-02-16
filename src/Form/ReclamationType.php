@@ -26,7 +26,7 @@ class ReclamationType extends AbstractType
             ])
             ->add('relatedCourse', EntityType::class, [
                 'class' => Course::class,
-                'choice_label' => 'name',
+                'choice_label' => 'title',
                 'label' => 'Cours concerné (optionnel)',
                 'required' => false,
                 'placeholder' => 'Sélectionnez un cours',

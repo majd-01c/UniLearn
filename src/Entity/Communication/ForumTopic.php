@@ -28,7 +28,6 @@ class ForumTopic
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: 'Topic content is required')]
-    #[Assert\Length(min: 20, minMessage: 'Content must be at least 20 characters')]
     private ?string $content = null;
 
     #[ORM\Column(type: 'string', enumType: TopicStatus::class)]
@@ -63,10 +62,6 @@ class ForumTopic
     #[ORM\OneToMany(targetEntity: ForumReply::class, mappedBy: 'topic', orphanRemoval: true)]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $replies;
-
-    #[ORM\OneToOne(targetEntity: ForumReply::class)]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?ForumReply $acceptedAnswer = null;
 
     public function __construct()
     {
@@ -227,16 +222,46 @@ class ForumTopic
 
     public function getAcceptedAnswer(): ?ForumReply
     {
-        return $this->acceptedAnswer;
+        // Return first accepted answer from replies
+        $accepted = $this->getAcceptedAnswers()->first();
+        return $accepted ?: null;
     }
 
-    public function setAcceptedAnswer(?ForumReply $acceptedAnswer): static
+    /**
+     * Get all accepted answers for this topic
+     * @return Collection<int, ForumReply>
+     */
+    public function getAcceptedAnswers(): Collection
     {
-        $this->acceptedAnswer = $acceptedAnswer;
-        if ($acceptedAnswer !== null) {
+        return $this->replies->filter(fn(ForumReply $reply) => $reply->isAccepted());
+    }
+
+    /**
+     * Check if topic has any accepted answers
+     */
+    public function hasAcceptedAnswers(): bool
+    {
+        return !$this->getAcceptedAnswers()->isEmpty();
+    }
+
+    /**
+     * Get count of accepted answers
+     */
+    public function getAcceptedAnswersCount(): int
+    {
+        return $this->getAcceptedAnswers()->count();
+    }
+
+    /**
+     * Update topic status based on accepted answers
+     */
+    public function updateSolvedStatus(): void
+    {
+        if ($this->hasAcceptedAnswers() && $this->status === TopicStatus::OPEN) {
             $this->status = TopicStatus::SOLVED;
+        } elseif (!$this->hasAcceptedAnswers() && $this->status === TopicStatus::SOLVED) {
+            $this->status = TopicStatus::OPEN;
         }
-        return $this;
     }
 
     public function getRepliesCount(): int

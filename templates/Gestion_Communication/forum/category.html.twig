@@ -2,6 +2,18 @@
 
 {% block title %}{{ category.name }} - Forum - UniLearn{% endblock %}
 
+{% block stylesheets %}
+<style>
+    .table-hover tbody tr {
+        transition: background-color 0.2s;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+    }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="container mt-4">
     <div class="content-wrapper">
@@ -94,8 +106,8 @@
                                                 {% if topic.isPinned %}
                                                     <i class="bi bi-pin-angle-fill text-warning" title="Pinned"></i>
                                                 {% endif %}
-                                                {% if topic.acceptedAnswer %}
-                                                    <i class="bi bi-check-circle-fill text-success" title="Solved"></i>
+                                                {% if topic.hasAcceptedAnswers() %}
+                                                    <i class="bi bi-check-circle-fill text-success" title="{{ topic.acceptedAnswersCount }} accepted answer(s)"></i>
                                                 {% endif %}
                                             </div>
                                             <div>

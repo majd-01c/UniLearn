@@ -28,7 +28,7 @@ class AdminScheduleType extends AbstractType
             ])
             ->add('course', EntityType::class, [
                 'class' => Course::class,
-                'choice_label' => 'name',
+                'choice_label' => 'title',
                 'label' => 'Cours',
                 'attr' => ['class' => 'form-control'],
             ])

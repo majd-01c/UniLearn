@@ -16,6 +16,9 @@ class ClasseContenu
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column]
+    private bool $isHidden = false;
+
     #[ORM\ManyToOne(targetEntity: ClasseCourse::class, inversedBy: 'contenus')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?ClasseCourse $classeCourse = null;
@@ -48,6 +51,17 @@ class ClasseContenu
     public function setContenu(?Contenu $contenu): static
     {
         $this->contenu = $contenu;
+        return $this;
+    }
+
+    public function isHidden(): bool
+    {
+        return $this->isHidden;
+    }
+
+    public function setIsHidden(bool $isHidden): static
+    {
+        $this->isHidden = $isHidden;
         return $this;
     }
 }

@@ -92,6 +92,12 @@
                 
                 <!-- ADD THIS NEW SECTION HERE ↓↓↓ -->
                 {% if is_granted('ROLE_STUDENT') %}
+                {# My Learning - Direct link for easy access #}
+                <a class="sidebar-link {% if 'student_learning' in app.request.attributes.get('_route') or 'student_classe' in app.request.attributes.get('_route') or 'student_module' in app.request.attributes.get('_route') or 'student_course' in app.request.attributes.get('_route') or 'student_contenu' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_student_learning_index') }}">
+                    <i class="bi bi-book-fill"></i>
+                    <span>My Learning</span>
+                </a>
+
                 <div class="sidebar-dropdown">
                     <a class="sidebar-link {% if 'espace_etudiant' in app.request.attributes.get('_route') %}active{% endif %}" href="#espaceEtudiantSubmenu" data-bs-toggle="collapse">
                         <i class="bi bi-mortarboard-fill"></i>
@@ -116,6 +122,8 @@
                 {% endif %}
                 <!-- ↑↑↑ END OF NEW SECTION -->
 
+                {# Admin Educational Management - Programs and Classes only #}
+                {% if is_granted('ROLE_ADMIN') %}
                 <div class="sidebar-dropdown">
                     <a class="sidebar-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}" href="#eduSubmenu" data-bs-toggle="collapse">
                         <i class="bi bi-book-fill"></i>
@@ -126,24 +134,24 @@
                         <a class="sidebar-sublink" href="{{ path('app_programme') }}">
                             <i class="bi bi-collection"></i> Programs
                         </a>
-                        <a class="sidebar-sublink" href="{{ path('app_programme_modules') }}">
-                            <i class="bi bi-grid-3x3-gap"></i> Modules
-                        </a>
-                        <a class="sidebar-sublink" href="{{ path('app_programme_courses') }}">
-                            <i class="bi bi-journal-text"></i> Courses
-                        </a>
-                        <a class="sidebar-sublink" href="{{ path('app_programme_contenus') }}">
-                            <i class="bi bi-file-earmark-text"></i> Contenus
-                        </a>
                     </div>
                 </div>
                 
-                <a class="sidebar-link {% if 'classe' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_classe') }}">
+                <a class="sidebar-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_classe') }}">
                     <i class="bi bi-door-open-fill"></i>
-                    <span>Classe</span>
+                    <span>Classes</span>
                 </a>
+                {% endif %}
+
+                {# Teacher Educational Management - My Classes only #}
+                {% if is_granted('ROLE_TEACHER') and not is_granted('ROLE_ADMIN') %}
+                <a class="sidebar-link {% if 'teacher_classe' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_teacher_my_classes') }}">
+                    <i class="bi bi-door-open-fill"></i>
+                    <span>My Classes</span>
+                </a>
+                {% endif %}
                 
-                <a class="sidebar-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_event') }}">
+                <a class="sidebar-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_event') }}">>
                     <i class="bi bi-calendar-event-fill"></i>
                     <span>Event</span>
                 </a>
@@ -193,9 +201,9 @@
             <button class="sidebar-toggle" id="sidebarToggle">
                 <i class="bi bi-list"></i>
             </button>
-            <div class="topbar-title">
+            <a href="{{ path('app_home') }}" class="topbar-title text-decoration-none">
                 <i class="bi bi-mortarboard-fill text-primary"></i> UniLearn 
-            </div>
+            </a>
             
             {# Theme toggle button #}
             <button class="theme-toggle ms-auto" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">
@@ -211,8 +219,8 @@
                             <i class="bi bi-person-circle fs-4"></i>
                         </div>
                         <div class="user-info text-start d-none d-md-block">
-                            <div class="user-name fw-semibold" style="color: var(--gray-800);">{{ app.user.profile ? app.user.profile.firstName ~ ' ' ~ app.user.profile.lastName : app.user.email }}</div>
-                            <small class="user-role" style="color: var(--gray-600);">{{ app.user.role }}</small>
+                            <div class="user-name fw-semibold">{{ app.user.profile ? app.user.profile.firstName ~ ' ' ~ app.user.profile.lastName : app.user.email }}</div>
+                            <small class="user-role text-muted">{{ app.user.role }}</small>
                         </div>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenu">
@@ -328,6 +336,23 @@
                     sidebarOverlay.addEventListener('click', handleOverlay);
                 }
                 
+                // Close sidebar when clicking on main content area
+                function handleMainContentClick() {
+                    if (sidebar.classList.contains('show')) {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                        if (window.innerWidth >= 992) {
+                            mainContent.classList.remove('shifted');
+                            if (topbar) topbar.classList.remove('shifted');
+                        }
+                        localStorage.setItem('sidebarOpen', 'false');
+                    }
+                }
+
+                if (mainContent) {
+                    mainContent.addEventListener('click', handleMainContentClick);
+                }
+                
                 // Close sidebar on mobile when clicking any sidebar link
                 function handleLinkClick() {
                     if (window.innerWidth < 992) {
@@ -392,6 +417,7 @@
                     if (themeToggleBtn) themeToggleBtn.removeEventListener('click', handleThemeToggle);
                     if (sidebarToggle) sidebarToggle.removeEventListener('click', handleToggle);
                     if (sidebarOverlay) sidebarOverlay.removeEventListener('click', handleOverlay);
+                    if (mainContent) mainContent.removeEventListener('click', handleMainContentClick);
                     sidebarLinks.forEach(function(link) {
                         link.removeEventListener('click', handleLinkClick);
                     });

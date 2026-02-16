@@ -18,6 +18,54 @@
             </a>
         </div>
 
+        {# Search and Filters Card #}
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-search"></i> Search
+                        </label>
+                        <input type="text" 
+                               name="search" 
+                               class="form-control" 
+                               placeholder="Search by name or email..." 
+                               value="{{ currentSearch }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-funnel"></i> Role
+                        </label>
+                        <select name="role" class="form-select">
+                            <option value="">All Roles</option>
+                            <option value="ADMIN" {{ currentRole == 'ADMIN' ? 'selected' : '' }}>Administrator</option>
+                            <option value="TEACHER" {{ currentRole == 'TEACHER' ? 'selected' : '' }}>Teacher</option>
+                            <option value="STUDENT" {{ currentRole == 'STUDENT' ? 'selected' : '' }}>Student</option>
+                            <option value="BUSINESS_PARTNER" {{ currentRole == 'BUSINESS_PARTNER' ? 'selected' : '' }}>Business Partner</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-toggle-on"></i> Status
+                        </label>
+                        <select name="status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="1" {{ currentStatus == '1' ? 'selected' : '' }}>Active</option>
+                            <option value="0" {{ currentStatus == '0' ? 'selected' : '' }}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-secondary flex-fill">
+                            <i class="bi bi-search"></i> Filter
+                        </button>
+                        <a href="{{ path('app_user_index') }}" class="btn btn-outline-secondary" title="Clear filters">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         {% if users|length > 0 %}
         {# Users Table Card #}
         <div class="card">

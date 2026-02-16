@@ -29,7 +29,7 @@
                             <td>{{ reclamation.id }}</td>
                             <td>{{ reclamation.student.name ?? reclamation.student.email }}</td>
                             <td>{{ reclamation.subject }}</td>
-                            <td>{{ reclamation.relatedCourse ? reclamation.relatedCourse.name : '-' }}</td>
+                            <td>{{ reclamation.relatedCourse ? reclamation.relatedCourse.title : '-' }}</td>
                             <td>
                                 <span class="badge 
                                     {% if reclamation.status == 'pending' %}bg-warning

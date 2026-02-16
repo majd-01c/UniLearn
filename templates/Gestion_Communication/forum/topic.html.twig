@@ -2,6 +2,30 @@
 
 {% block title %}{{ topic.title }} - Forum - UniLearn{% endblock %}
 
+{% block stylesheets %}
+<style>
+    .highlight-flash {
+        animation: highlightFade 2s ease-in-out;
+    }
+    
+    @keyframes highlightFade {
+        0% { background-color: #fff3cd; }
+        100% { background-color: transparent; }
+    }
+    
+    .icon-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="container mt-4">
     <div class="content-wrapper">
@@ -24,8 +48,11 @@
                                 <span class="badge bg-warning"><i class="bi bi-pin-angle-fill"></i> Pinned</span>
                             {% endif %}
                             <span class="badge bg-{{ topic.status.color }}">{{ topic.status.label }}</span>
-                            {% if topic.acceptedAnswer %}
-                                <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Solved</span>
+                            {% if topic.hasAcceptedAnswers() %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle-fill"></i> 
+                                    {{ topic.acceptedAnswersCount }} Accepted Answer{{ topic.acceptedAnswersCount > 1 ? 's' : '' }}
+                                </span>
                             {% endif %}
                         </div>
                         <h1 class="h3 fw-bold mb-0">{{ topic.title }}</h1>
@@ -37,7 +64,7 @@
                             <i class="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            {% if topic.author == app.user or app.user.role == 'ADMIN' %}
+                            {% if topic.author == app.user or is_granted('ROLE_ADMIN') %}
                                 <li>
                                     <a class="dropdown-item" href="{{ path('app_forum_topic_edit', {id: topic.id}) }}">
                                         <i class="bi bi-pencil me-2"></i> Edit Topic
@@ -55,7 +82,7 @@
                                 <li><hr class="dropdown-divider"></li>
                             {% endif %}
                             
-                            {% if is_granted('ROLE_TEACHER') or is_granted('ROLE_ADMIN') %}
+                            {% if is_granted('ROLE_TEACHER') or is_granted('ROLE_TRAINER') or is_granted('ROLE_ADMIN') %}
                                 <li>
                                     <form method="POST" action="{{ path('app_forum_topic_pin', {id: topic.id}) }}">
                                         <input type="hidden" name="_token" value="{{ csrf_token('pin-topic-' ~ topic.id) }}">
@@ -93,7 +120,7 @@
                     {# Content #}
                     <div class="flex-grow-1">
                         <div class="topic-content mb-3">
-                            {{ topic.content|nl2br }}
+                            {{ topic.content|e|nl2br }}
                         </div>
                         <div class="d-flex justify-content-between text-muted small">
                             <div>
@@ -114,7 +141,7 @@
         </div>
 
         {# Replies #}
-        <div class="card mb-4">
+        <div class="card mb-4" id="replies">
             <div class="card-header bg-white">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-chat-left-text"></i> Replies ({{ topic.repliesCount }})
@@ -153,7 +180,7 @@
                                 {% endif %}
                                 
                                 <div class="reply-content mb-2">
-                                    {{ reply.content|nl2br }}
+                                    {{ reply.content|e|nl2br }}
                                 </div>
                                 
                                 <div class="d-flex justify-content-between align-items-center">
@@ -166,19 +193,55 @@
                                     
                                     {# Reply Actions #}
                                     <div>
-                                        {% if not reply.isAccepted and not topic.isLocked and (topic.author == app.user or is_granted('ROLE_TEACHER') or is_granted('ROLE_ADMIN')) %}
-                                            <form method="POST" action="{{ path('app_forum_reply_accept', {id: reply.id}) }}" class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('accept-reply-' ~ reply.id) }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-success" title="Mark as accepted answer">
-                                                    <i class="bi bi-check-lg"></i> Accept
-                                                </button>
-                                            </form>
+                                        {# Accept/Unaccept button rules:
+                                           - Topic author: can accept/unaccept (except own replies)
+                                           - Teacher/Trainer: can ONLY accept (to help students), NOT unaccept
+                                           - Admin: CANNOT accept/unaccept (only moderate via delete)
+                                        #}
+                                        {% set isTopicAuthor = topic.author == app.user %}
+                                        {% set isOwnReply = reply.author == app.user %}
+                                        {% set isTeacherOrTrainer = is_granted('ROLE_TEACHER') or is_granted('ROLE_TRAINER') %}
+                                        {% set isAdmin = is_granted('ROLE_ADMIN') and not isTopicAuthor %}
+                                        
+                                        {# Can accept: topic author or teacher/trainer (not admin unless they're topic author) #}
+                                        {% set canAccept = isTopicAuthor or (isTeacherOrTrainer and not isAdmin) %}
+                                        {# Can unaccept: only topic author #}
+                                        {% set canUnaccept = isTopicAuthor %}
+                                        
+                                        {% if not topic.isLocked %}
+                                            {% if reply.isAccepted and canUnaccept %}
+                                                {# Unaccept button - only topic author #}
+                                                <form method="POST" action="{{ path('app_forum_reply_accept', {id: reply.id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('accept-reply-' ~ reply.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-success" title="Remove accepted status">
+                                                        <i class="bi bi-check-circle-fill"></i> Accepted
+                                                    </button>
+                                                </form>
+                                            {% elseif reply.isAccepted and not canUnaccept %}
+                                                {# Show accepted badge (no button) for teacher/trainer who can't unaccept #}
+                                                <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Accepted</span>
+                                            {% elseif not reply.isAccepted and canAccept and not isOwnReply %}
+                                                {# Accept button - cannot accept own reply #}
+                                                <form method="POST" action="{{ path('app_forum_reply_accept', {id: reply.id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('accept-reply-' ~ reply.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Mark as accepted answer">
+                                                        <i class="bi bi-check-lg"></i> Accept
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% elseif reply.isAccepted %}
+                                            {# Topic is locked, just show badge #}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Accepted</span>
                                         {% endif %}
                                         
-                                        {% if reply.author == app.user or app.user.role == 'ADMIN' %}
+                                        {# Edit button - author only #}
+                                        {% if reply.author == app.user %}
                                             <a href="{{ path('app_forum_reply_edit', {id: reply.id}) }}" class="btn btn-sm btn-outline-secondary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
+                                        {% endif %}
+                                        {# Delete button - admin only #}
+                                        {% if is_granted('ROLE_ADMIN') %}
                                             <form method="POST" action="{{ path('app_forum_reply_delete', {id: reply.id}) }}" 
                                                   class="d-inline" onsubmit="return confirm('Delete this reply?');">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete-reply-' ~ reply.id) }}">
@@ -201,11 +264,23 @@
             <div class="card-footer bg-white">
                 <nav aria-label="Replies pagination">
                     <ul class="pagination pagination-sm justify-content-center mb-0">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('app_forum_topic', {id: topic.id, page: page - 1}) }}#replies">&laquo; Previous</a>
+                        </li>
+                        {% endif %}
+                        
                         {% for p in 1..totalPages %}
                         <li class="page-item {{ p == page ? 'active' : '' }}">
                             <a class="page-link" href="{{ path('app_forum_topic', {id: topic.id, page: p}) }}#replies">{{ p }}</a>
                         </li>
                         {% endfor %}
+                        
+                        {% if page < totalPages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('app_forum_topic', {id: topic.id, page: page + 1}) }}#replies">Next &raquo;</a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </nav>
             </div>
@@ -226,7 +301,7 @@
                 </div>
                 <div class="card-body">
                     {{ form_start(form) }}
-                        {{ form_row(form.content) }}
+                        {{ form_row(form.content, {'attr': {'rows': 5, 'placeholder': 'Write your reply here...'}}) }}
                         <div class="text-end">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-send"></i> Post Reply

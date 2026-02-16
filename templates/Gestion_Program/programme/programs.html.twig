@@ -14,15 +14,53 @@
         </a>
     </div>
 
+    {# Filter Form #}
+    <div class="card card-elevated mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ path('app_programme_programs') }}" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="filter-name" class="form-label"><i class="bi bi-search"></i> Search by Name</label>
+                    <input type="text" class="form-control" id="filter-name" name="name" 
+                           value="{{ filters.name|default('') }}" placeholder="Enter program name...">
+                </div>
+                <div class="col-md-4">
+                    <label for="filter-status" class="form-label"><i class="bi bi-funnel"></i> Status</label>
+                    <select class="form-select" id="filter-status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="published" {{ filters.status|default('') == 'published' ? 'selected' : '' }}>Published</option>
+                        <option value="draft" {{ filters.status|default('') == 'draft' ? 'selected' : '' }}>Draft</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="bi bi-filter"></i> Filter
+                        </button>
+                        <a href="{{ path('app_programme_programs') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {% if programs is empty %}
         <div class="card card-elevated text-center py-5">
             <div class="card-body">
                 <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                <h3 class="mt-3">No programs yet</h3>
-                <p class="text-muted">Create your first program to get started</p>
-                <a href="{{ path('app_programme_programs_new') }}" class="btn btn-success mt-2">
-                    <i class="bi bi-plus-circle"></i> Create Program
-                </a>
+                <h3 class="mt-3">No programs found</h3>
+                {% if filters.name or filters.status %}
+                    <p class="text-muted">No programs match your filter criteria</p>
+                    <a href="{{ path('app_programme_programs') }}" class="btn btn-outline-secondary mt-2">
+                        <i class="bi bi-x-circle"></i> Clear Filters
+                    </a>
+                {% else %}
+                    <p class="text-muted">Create your first program to get started</p>
+                    <a href="{{ path('app_programme_programs_new') }}" class="btn btn-success mt-2">
+                        <i class="bi bi-plus-circle"></i> Create Program
+                    </a>
+                {% endif %}
             </div>
         </div>
     {% else %}
@@ -99,7 +137,12 @@
         </div>
 
         <div class="mt-3 text-muted">
-            <i class="bi bi-info-circle"></i> Total: {{ programs|length }} program(s)
+            <i class="bi bi-info-circle"></i> 
+            {% if filters.name or filters.status %}
+                Found: {{ programs|length }} program(s) matching filters
+            {% else %}
+                Total: {{ programs|length }} program(s)
+            {% endif %}
         </div>
     {% endif %}
 </div>

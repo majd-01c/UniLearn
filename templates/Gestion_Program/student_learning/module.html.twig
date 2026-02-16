@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ classeModule.module.name }} - {{ classe.name }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Breadcrumb #}
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_student_learning_index') }}">My Learning</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_student_classe_view', {id: classe.id}) }}">{{ classe.name }}</a></li>
+            <li class="breadcrumb-item active">{{ classeModule.module.name }}</li>
+        </ol>
+    </nav>
+
+    {# Module Header #}
+    <div class="card card-elevated mb-4 border-start border-primary border-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-4">
+                        <i class="bi bi-grid-3x3-gap-fill text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                </div>
+                <div class="col">
+                    <h2 class="mb-1">{{ classeModule.module.name }}</h2>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-clock me-1"></i>
+                        Duration: {{ classeModule.module.duration }} {{ classeModule.module.periodUnit.value|lower }}{{ classeModule.module.duration > 1 ? 's' : '' }}
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-journal-text me-1"></i>
+                        {{ visibleCourses|length }} Course{{ visibleCourses|length != 1 ? 's' : '' }} available
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Courses List #}
+    <h4 class="mb-3">
+        <i class="bi bi-journal-text text-success me-2"></i> Courses
+    </h4>
+
+    {% if visibleCourses is empty %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            No courses available in this module yet. Check back later!
+        </div>
+    {% else %}
+        <div class="row g-4">
+            {% for classeCourse in visibleCourses %}
+                {% set course = classeCourse.course %}
+                {% set visibleContenus = 0 %}
+                {% for contenu in classeCourse.contenus %}
+                    {% if not contenu.isHidden %}
+                        {% set visibleContenus = visibleContenus + 1 %}
+                    {% endif %}
+                {% endfor %}
+                
+                <div class="col-12">
+                    <div class="card card-elevated hover-lift" style="transition: all 0.2s;">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="rounded bg-success bg-opacity-10 p-3">
+                                        <i class="bi bi-journal-bookmark-fill text-success" style="font-size: 2rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h5 class="mb-1">{{ course.title }}</h5>
+                                    <p class="text-muted mb-0">
+                                        <i class="bi bi-file-earmark-text me-1"></i>
+                                        {{ visibleContenus }} Content Item{{ visibleContenus != 1 ? 's' : '' }}
+                                    </p>
+                                </div>
+                                <div class="col-auto">
+                                    {% if visibleContenus > 0 %}
+                                        <a href="{{ path('app_student_course_view', {classeId: classe.id, courseId: classeCourse.id}) }}" 
+                                           class="btn btn-primary">
+                                            <i class="bi bi-play-fill me-1"></i> Start
+                                        </a>
+                                    {% else %}
+                                        <button class="btn btn-outline-secondary" disabled>
+                                            <i class="bi bi-lock me-1"></i> No Content
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# Navigation #}
+    <div class="mt-4">
+        <a href="{{ path('app_student_classe_view', {id: classe.id}) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Class
+        </a>
+    </div>
+</div>
+
+<style>
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12) !important;
+}
+</style>
+{% endblock %}

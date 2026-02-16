@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260211122312 extends AbstractMigration
+final class Version20260216092839 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,13 +20,14 @@ final class Version20260211122312 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        // All changes in this migration were already applied in previous migrations
-        // Skipping to avoid duplicate column errors
+        $this->addSql('ALTER TABLE classe_contenu ADD is_hidden TINYINT NOT NULL DEFAULT 0');
+        $this->addSql('ALTER TABLE classe_course ADD is_hidden TINYINT NOT NULL DEFAULT 0');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        // No changes to revert
+        $this->addSql('ALTER TABLE classe_contenu DROP is_hidden');
+        $this->addSql('ALTER TABLE classe_course DROP is_hidden');
     }
 }

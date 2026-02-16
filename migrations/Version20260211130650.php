@@ -20,12 +20,12 @@ final class Version20260211130650 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE classe ADD capacity INT NOT NULL, ADD current_student_count INT NOT NULL');
+      //  $this->addSql('ALTER TABLE classe ADD capacity INT NOT NULL, ADD current_student_count INT NOT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE classe DROP capacity, DROP current_student_count');
+       // $this->addSql('ALTER TABLE classe DROP capacity, DROP current_student_count');
     }
 }

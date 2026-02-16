@@ -62,10 +62,17 @@ class Classe
     #[ORM\OneToMany(targetEntity: StudentClasse::class, mappedBy: 'classe', orphanRemoval: true, cascade: ['persist', 'remove'])]
     private Collection $students;
 
+    /**
+     * @var Collection<int, TeacherClasse>
+     */
+    #[ORM\OneToMany(targetEntity: TeacherClasse::class, mappedBy: 'classe', orphanRemoval: true, cascade: ['persist', 'remove'])]
+    private Collection $teachers;
+
     public function __construct()
     {
         $this->modules = new ArrayCollection();
         $this->students = new ArrayCollection();
+        $this->teachers = new ArrayCollection();
         $this->status = ClasseStatus::INACTIVE;
     }
 
@@ -263,5 +270,73 @@ class Classe
             return 0;
         }
         return round(($this->getStudentCount() / $this->capacity) * 100, 1);
+    }
+
+    /**
+     * @return Collection<int, TeacherClasse>
+     */
+    public function getTeachers(): Collection
+    {
+        return $this->teachers;
+    }
+
+    public function addTeacher(TeacherClasse $teacher): static
+    {
+        if (!$this->teachers->contains($teacher)) {
+            $this->teachers->add($teacher);
+            $teacher->setClasse($this);
+        }
+        return $this;
+    }
+
+    public function removeTeacher(TeacherClasse $teacher): static
+    {
+        if ($this->teachers->removeElement($teacher)) {
+            if ($teacher->getClasse() === $this) {
+                $teacher->setClasse(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getTeacherCount(): int
+    {
+        return $this->teachers->filter(fn($tc) => $tc->isActive())->count();
+    }
+
+    /**
+     * Get the count of teachers who have created their modules
+     */
+    public function getTeachersWithModulesCount(): int
+    {
+        return $this->teachers->filter(fn($tc) => $tc->isActive() && $tc->hasCreatedModule())->count();
+    }
+
+    /**
+     * Check if all assigned teachers have created their modules
+     */
+    public function allTeachersHaveModules(): bool
+    {
+        $activeTeachers = $this->teachers->filter(fn($tc) => $tc->isActive());
+        if ($activeTeachers->isEmpty()) {
+            return false;
+        }
+        return $activeTeachers->forAll(fn($key, $tc) => $tc->hasCreatedModule());
+    }
+
+    /**
+     * Check if the program can be assigned to this class (all teachers have created modules)
+     */
+    public function canAssignProgram(): bool
+    {
+        return $this->getTeacherCount() > 0 && $this->allTeachersHaveModules();
+    }
+
+    /**
+     * Get remaining teachers who need to create modules
+     */
+    public function getPendingModuleTeachersCount(): int
+    {
+        return $this->getTeacherCount() - $this->getTeachersWithModulesCount();
     }
 }

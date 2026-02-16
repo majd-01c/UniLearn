@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ classeCourse.course.title }} - {{ classe.name }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Breadcrumb #}
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_student_learning_index') }}">My Learning</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_student_classe_view', {id: classe.id}) }}">{{ classe.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_student_module_view', {classeId: classe.id, moduleId: classeModule.id}) }}">{{ classeModule.module.name }}</a></li>
+            <li class="breadcrumb-item active">{{ classeCourse.course.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        {# Main Content Area #}
+        <div class="col-lg-8">
+            {# Course Header #}
+            <div class="card card-elevated mb-4 border-start border-success border-4">
+                <div class="card-body">
+                    <h2 class="mb-2">
+                        <i class="bi bi-journal-bookmark-fill text-success me-2"></i>
+                        {{ classeCourse.course.title }}
+                    </h2>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-grid-3x3-gap me-1"></i> Module: {{ classeModule.module.name }}
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-file-earmark-text me-1"></i> {{ visibleContenus|length }} lessons
+                    </p>
+                </div>
+            </div>
+
+            {# Content Items #}
+            {% if visibleContenus is empty %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    No content available in this course yet. Check back later!
+                </div>
+            {% else %}
+                <div class="card card-elevated">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-list-ol text-primary me-2"></i> Course Content</h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for index, classeContenu in visibleContenus %}
+                            {% set contenu = classeContenu.contenu %}
+                            <a href="{{ path('app_student_contenu_view', {classeId: classe.id, contenuId: classeContenu.id}) }}" 
+                               class="list-group-item list-group-item-action p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <span class="badge bg-primary rounded-circle" style="width: 32px; height: 32px; line-height: 22px; font-size: 0.85rem;">
+                                            {{ index + 1 }}
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ contenu.title }}</h6>
+                                        <small class="text-muted">
+                                            {% if contenu.type.value == 'VIDEO' %}
+                                                <i class="bi bi-play-circle text-danger me-1"></i> Video
+                                            {% elseif contenu.type.value == 'QUIZ' %}
+                                                <i class="bi bi-question-circle text-warning me-1"></i> Quiz
+                                            {% elseif contenu.type.value == 'TEXT' %}
+                                                <i class="bi bi-file-text text-info me-1"></i> Reading
+                                            {% elseif contenu.type.value == 'EXERCICE' %}
+                                                <i class="bi bi-pencil text-success me-1"></i> Exercise
+                                            {% elseif contenu.type.value == 'COURS' %}
+                                                <i class="bi bi-journal text-primary me-1"></i> Lesson
+                                            {% else %}
+                                                <i class="bi bi-file-earmark me-1"></i> {{ contenu.type.value }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Sidebar #}
+        <div class="col-lg-4">
+            {# Quick Start #}
+            {% if visibleContenus is not empty %}
+                <div class="card card-elevated mb-4">
+                    <div class="card-body text-center">
+                        <i class="bi bi-rocket-takeoff text-primary" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3">Ready to Learn?</h5>
+                        <p class="text-muted">Start from the beginning or continue where you left off.</p>
+                        <a href="{{ path('app_student_contenu_view', {classeId: classe.id, contenuId: visibleContenus[0].id}) }}" 
+                           class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-play-fill me-1"></i> Start Learning
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Course Info #}
+            <div class="card card-elevated">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i> Course Info</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-collection text-primary me-2"></i>
+                            <strong>Class:</strong> {{ classe.name }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-grid-3x3-gap text-success me-2"></i>
+                            <strong>Module:</strong> {{ classeModule.module.name }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-file-earmark-text text-info me-2"></i>
+                            <strong>Content:</strong> {{ visibleContenus|length }} items
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Navigation #}
+    <div class="mt-4">
+        <a href="{{ path('app_student_module_view', {classeId: classe.id, moduleId: classeModule.id}) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Module
+        </a>
+    </div>
+</div>
+{% endblock %}

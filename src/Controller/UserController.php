@@ -23,10 +23,43 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UserController extends AbstractController
 {
     #[Route('/', name: 'app_user_index', methods: ['GET'])]
-    public function index(UserRepository $userRepository): Response
+    public function index(Request $request, UserRepository $userRepository): Response
     {
+        $search = $request->query->get('search');
+        $role = $request->query->get('role');
+        $status = $request->query->get('status');
+
+        $queryBuilder = $userRepository->createQueryBuilder('u')
+            ->leftJoin('u.profile', 'p');
+
+        // Search by email or name
+        if ($search) {
+            $queryBuilder->andWhere(
+                'u.email LIKE :search OR p.firstName LIKE :search OR p.lastName LIKE :search'
+            )->setParameter('search', '%' . $search . '%');
+        }
+
+        // Filter by role
+        if ($role) {
+            $queryBuilder->andWhere('u.role = :role')
+                ->setParameter('role', $role);
+        }
+
+        // Filter by status
+        if ($status !== null && $status !== '') {
+            $queryBuilder->andWhere('u.isActive = :status')
+                ->setParameter('status', (bool) $status);
+        }
+
+        $queryBuilder->orderBy('u.createdAt', 'DESC');
+
+        $users = $queryBuilder->getQuery()->getResult();
+
         return $this->render('Gestion_user/user/index.html.twig', [
-            'users' => $userRepository->findAll(),
+            'users' => $users,
+            'currentSearch' => $search,
+            'currentRole' => $role,
+            'currentStatus' => $status,
         ]);
     }
 

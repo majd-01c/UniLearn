@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Classes - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-door-open-fill text-info"></i> My Classes
+            </h1>
+            <p class="text-muted mb-0">View and manage classes you are assigned to</p>
+        </div>
+    </div>
+
+    {% if teacherClasses is empty %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i>
+            You are not assigned to any classes yet. Please wait for an administrator to assign you.
+        </div>
+    {% else %}
+        <div class="row g-4">
+            {% for teacherClasse in teacherClasses %}
+                {% set classe = teacherClasse.classe %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card card-elevated h-100">
+                        {% if classe.imageUrl %}
+                            <img src="{{ classe.imageUrl }}" class="card-img-top" alt="{{ classe.name }}" style="height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" 
+                                 style="height: 150px; background: linear-gradient(135deg, #17a2b8, #138496);">
+                                <i class="bi bi-door-open-fill text-white" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ classe.name }}</h5>
+                            <div class="mb-2">
+                                <span class="badge bg-primary me-1">{{ classe.level.label }}</span>
+                                <span class="badge bg-secondary">{{ classe.specialty.label }}</span>
+                            </div>
+                            
+                            {# Module Status #}
+                            <div class="mb-3">
+                                {% if teacherClasse.hasCreatedModule %}
+                                    <div class="alert alert-success py-2 mb-0">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        <strong>Module:</strong> {{ teacherClasse.module.name }}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-warning py-2 mb-0">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        Module not created yet
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-people"></i> {{ classe.studentCount }} students
+                                </small>
+                                <a href="{{ path('app_teacher_classe_show', {id: teacherClasse.id}) }}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar3"></i>
+                                {{ classe.startDate|date('M d, Y') }} - {{ classe.endDate|date('M d, Y') }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

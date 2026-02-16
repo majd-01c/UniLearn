@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ classe.name }} - My Learning{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Breadcrumb #}
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_student_learning_index') }}">My Learning</a></li>
+            <li class="breadcrumb-item active">{{ classe.name }}</li>
+        </ol>
+    </nav>
+
+    {# Class Header #}
+    <div class="card card-elevated mb-4">
+        <div class="row g-0">
+            <div class="col-md-4">
+                {% if classe.imageUrl %}
+                    <img src="{{ classe.imageUrl }}" class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="{{ classe.name }}">
+                {% else %}
+                    <div class="d-flex align-items-center justify-content-center h-100 rounded-start" 
+                         style="min-height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="bi bi-mortarboard-fill text-white" style="font-size: 5rem;"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h2 class="card-title mb-2">{{ classe.name }}</h2>
+                    
+                    <div class="mb-3">
+                        <span class="badge bg-primary fs-6 me-1">{{ classe.level.value }}</span>
+                        <span class="badge bg-secondary fs-6">{{ classe.specialty.value }}</span>
+                    </div>
+
+                    {% if classe.program %}
+                        <p class="mb-2">
+                            <i class="bi bi-collection text-primary me-2"></i>
+                            <strong>Program:</strong> {{ classe.program.name }}
+                        </p>
+                    {% endif %}
+
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        {{ classe.startDate|date('M d, Y') }} - {{ classe.endDate|date('M d, Y') }}
+                    </p>
+
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Enrolled: {{ enrollment.enrolledAt|date('M d, Y') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Modules Section #}
+    <h4 class="mb-3">
+        <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i> Modules
+    </h4>
+
+    {% if classe.modules is empty %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            No modules available yet. Check back later!
+        </div>
+    {% else %}
+        <div class="row g-4">
+            {% for classeModule in classe.modules %}
+                {% set module = classeModule.module %}
+                {% set visibleCourses = 0 %}
+                {% for course in classeModule.courses %}
+                    {% if not course.isHidden %}
+                        {% set visibleCourses = visibleCourses + 1 %}
+                    {% endif %}
+                {% endfor %}
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card card-elevated h-100 hover-lift" style="transition: all 0.2s;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                    <i class="bi bi-grid-3x3-gap text-primary" style="font-size: 1.5rem;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-1">{{ module.name }}</h5>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        {{ module.duration }} {{ module.periodUnit.value|lower }}{{ module.duration > 1 ? 's' : '' }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-success bg-opacity-10 text-success">
+                                    <i class="bi bi-journal-text me-1"></i>
+                                    {{ visibleCourses }} Course{{ visibleCourses != 1 ? 's' : '' }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent border-0">
+                            {% if visibleCourses > 0 %}
+                                <a href="{{ path('app_student_module_view', {classeId: classe.id, moduleId: classeModule.id}) }}" 
+                                   class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-arrow-right-circle me-1"></i> Start Learning
+                                </a>
+                            {% else %}
+                                <button class="btn btn-outline-secondary w-100" disabled>
+                                    <i class="bi bi-lock me-1"></i> Coming Soon
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}

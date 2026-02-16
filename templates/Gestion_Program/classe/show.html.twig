@@ -118,9 +118,60 @@
                     {% endif %}
                 </div>
             </div>
+
+            {# Teachers Capacity Card #}
+            <div class="card card-elevated">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-badge-fill text-success"></i> Teachers & Modules</h5>
+                    <hr>
+                    <div class="text-center mb-3">
+                        <div class="display-4 fw-bold">
+                            {{ classe.teacherCount }}
+                        </div>
+                        <div class="text-muted">teachers assigned</div>
+                    </div>
+                    {% if classe.teacherCount > 0 %}
+                        {% set modulesCreated = classe.teachersWithModulesCount %}
+                        {% set modulePercentage = (modulesCreated / classe.teacherCount * 100)|round %}
+                        <div class="mb-2">
+                            <small class="text-muted">Module creation progress:</small>
+                        </div>
+                        <div class="progress mb-2" style="height: 20px;">
+                            {% if modulePercentage >= 100 %}
+                                {% set moduleBarClass = 'bg-success' %}
+                            {% elseif modulePercentage >= 50 %}
+                                {% set moduleBarClass = 'bg-info' %}
+                            {% else %}
+                                {% set moduleBarClass = 'bg-warning' %}
+                            {% endif %}
+                            <div class="progress-bar {{ moduleBarClass }}" role="progressbar" 
+                                 style="width: {{ modulePercentage }}%" 
+                                 aria-valuenow="{{ modulePercentage }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ modulesCreated }}/{{ classe.teacherCount }} modules
+                            </div>
+                        </div>
+                        {% if classe.allTeachersHaveModules %}
+                            <div class="alert alert-success mb-0 mt-3">
+                                <i class="bi bi-check-circle-fill"></i> All teachers have created their modules!
+                                {% if not classe.program %}
+                                    <br><small>Ready for program assignment.</small>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="text-muted text-center">
+                                {{ classe.pendingModuleTeachersCount }} teacher(s) need to create modules
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle-fill"></i> No teachers assigned yet. Assign teachers first.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
-        {# Right Column - Students #}
+        {# Right Column - Students and Teachers #}
         <div class="col-lg-8">
             {# Enrolled Students #}
             <div class="card card-elevated mb-4">
@@ -238,7 +289,175 @@
             {% elseif availableStudents|length == 0 %}
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle-fill"></i> 
-                    All users are already enrolled in this class.
+                    All students are already enrolled in this class.
+                </div>
+            {% endif %}
+
+            {# Assigned Teachers #}
+            <div class="card card-elevated mb-4 mt-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-person-badge text-success"></i> Assigned Teachers</h5>
+                    <span class="badge bg-success">{{ assignedTeachers|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if assignedTeachers is empty %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-person-x" style="font-size: 3rem;"></i>
+                            <p class="mt-2">No teachers assigned yet</p>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Teacher</th>
+                                        <th>Module</th>
+                                        <th>Assigned At</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for teacherClasse in assignedTeachers %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                                                        {{ teacherClasse.teacher.email|first|upper }}
+                                                    </div>
+                                                    <div>
+                                                        <strong>{{ teacherClasse.teacher.name ?? '' }}</strong>
+                                                        <br><small class="text-muted">{{ teacherClasse.teacher.email }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if teacherClasse.hasCreatedModule %}
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle"></i> {{ teacherClasse.module.name }}
+                                                    </span>
+                                                {% else %}
+                                                    <a href="{{ path('app_classe_teacher_create_module', {id: classe.id, teacherClasseId: teacherClasse.id}) }}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-plus-circle"></i> Create Module
+                                                    </a>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ teacherClasse.assignedAt|date('M d, Y') }}</td>
+                                            <td>
+                                                {% if teacherClasse.isActive %}
+                                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary"><i class="bi bi-pause-circle"></i> Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <form action="{{ path('app_classe_toggle_teacher_status', {id: classe.id, teacherClasseId: teacherClasse.id}) }}" 
+                                                      method="post" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle_teacher' ~ classe.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ teacherClasse.isActive ? 'Deactivate' : 'Activate' }}">
+                                                        <i class="bi bi-{{ teacherClasse.isActive ? 'pause' : 'play' }}-fill"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ path('app_classe_unassign_teacher', {id: classe.id, teacherClasseId: teacherClasse.id}) }}" 
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('Remove this teacher from the class?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('unassign_teacher' ~ classe.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove">
+                                                        <i class="bi bi-person-x-fill"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Add Teachers #}
+            {% if availableTeachers|length > 0 %}
+                <div class="card card-elevated">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-person-plus-fill text-success"></i> Assign Teachers</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">
+                            <i class="bi bi-info-circle"></i> 
+                            Assign teachers to this class. Each teacher will create their own module.
+                            <br><small>Note: Only users with TEACHER role are shown. Admins and Business Partners cannot be assigned.</small>
+                        </p>
+                        <div class="row g-2">
+                            {% for teacher in availableTeachers %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card border h-100">
+                                        <div class="card-body p-2 d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center overflow-hidden">
+                                                <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px;">
+                                                    {{ teacher.email|first|upper }}
+                                                </div>
+                                                <div class="text-truncate">
+                                                    <small class="fw-medium d-block text-truncate">
+                                                        {{ teacher.name ?? teacher.email|split('@')[0] }}
+                                                    </small>
+                                                    <small class="text-muted text-truncate d-block">{{ teacher.email }}</small>
+                                                </div>
+                                            </div>
+                                            <form action="{{ path('app_classe_assign_teacher', {id: classe.id, teacherId: teacher.id}) }}" 
+                                                  method="post" class="ms-2">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('assign_teacher' ~ classe.id) }}">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-plus"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% elseif availableTeachers|length == 0 and assignedTeachers|length > 0 %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i> 
+                    All available teachers are already assigned to this class.
+                </div>
+            {% endif %}
+
+            {# Program Assignment Section #}
+            {% if classe.canAssignProgram and not classe.program %}
+                <div class="card card-elevated mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-collection-fill"></i> Assign Program</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill"></i> 
+                            All teachers have created their modules! You can now assign a program to this class.
+                        </div>
+                        <form action="{{ path('app_classe_assign_program', {id: classe.id}) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('assign_program' ~ classe.id) }}">
+                            <div class="mb-3">
+                                <label for="program_id" class="form-label">Select Program</label>
+                                <select class="form-select" id="program_id" name="program_id" required>
+                                    <option value="">-- Choose a program --</option>
+                                    {% for program in programs %}
+                                        <option value="{{ program.id }}">{{ program.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-lg"></i> Assign Program
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% elseif classe.teacherCount > 0 and not classe.allTeachersHaveModules %}
+                <div class="alert alert-warning mt-4">
+                    <i class="bi bi-clock-fill"></i> 
+                    Waiting for {{ classe.pendingModuleTeachersCount }} teacher(s) to create their modules before program can be assigned.
                 </div>
             {% endif %}
         </div>

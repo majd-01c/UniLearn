@@ -1,0 +1,211 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ contenu.title }} - {{ classe.name }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Compact Breadcrumb #}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ path('app_student_learning_index') }}">My Learning</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_student_classe_view', {id: classe.id}) }}">{{ classe.name|slice(0, 20) }}{% if classe.name|length > 20 %}...{% endif %}</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_student_module_view', {classeId: classe.id, moduleId: classeModule.id}) }}">{{ classeModule.module.name|slice(0, 20) }}{% if classeModule.module.name|length > 20 %}...{% endif %}</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_student_course_view', {classeId: classe.id, courseId: classeCourse.id}) }}">{{ classeCourse.course.title|slice(0, 20) }}{% if classeCourse.course.title|length > 20 %}...{% endif %}</a></li>
+            <li class="breadcrumb-item active">{{ currentIndex }}/{{ totalContenus }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        {# Main Content Viewer #}
+        <div class="col-lg-9">
+            <div class="card card-elevated">
+                {# Content Header #}
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-primary me-2">{{ currentIndex }}/{{ totalContenus }}</span>
+                            {% if contenu.type.value == 'VIDEO' %}
+                                <span class="badge bg-danger"><i class="bi bi-play-circle me-1"></i> Video</span>
+                            {% elseif contenu.type.value == 'QUIZ' %}
+                                <span class="badge bg-warning"><i class="bi bi-question-circle me-1"></i> Quiz</span>
+                            {% elseif contenu.type.value == 'TEXT' %}
+                                <span class="badge bg-info"><i class="bi bi-file-text me-1"></i> Reading</span>
+                            {% elseif contenu.type.value == 'EXERCICE' %}
+                                <span class="badge bg-success"><i class="bi bi-pencil me-1"></i> Exercise</span>
+                            {% elseif contenu.type.value == 'COURS' %}
+                                <span class="badge bg-primary"><i class="bi bi-journal me-1"></i> Lesson</span>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-journal-text me-1"></i> {{ classeCourse.course.title }}
+                        </small>
+                    </div>
+                </div>
+
+                {# Content Title #}
+                <div class="card-body border-bottom">
+                    <h3 class="mb-0">{{ contenu.title }}</h3>
+                </div>
+
+                {# Content Display Area #}
+                <div class="card-body" style="min-height: 400px;">
+                    {% if contenu.type.value == 'VIDEO' %}
+                        {# Video Content #}
+                        {% if contenu.fileName %}
+                            <div class="ratio ratio-16x9 mb-3">
+                                <video controls class="rounded" style="background: #000;">
+                                    <source src="{{ asset('uploads/content/' ~ contenu.fileName) }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 bg-light rounded">
+                                <i class="bi bi-play-circle text-muted" style="font-size: 4rem;"></i>
+                                <p class="text-muted mt-3">Video content will be available soon.</p>
+                            </div>
+                        {% endif %}
+
+                    {% elseif contenu.type.value == 'QUIZ' %}
+                        {# Quiz Content #}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
+                                <i class="bi bi-question-circle text-warning" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4>Quiz: {{ contenu.title }}</h4>
+                            <p class="text-muted">Test your knowledge with this quiz.</p>
+                            <button class="btn btn-warning btn-lg">
+                                <i class="bi bi-play-fill me-1"></i> Start Quiz
+                            </button>
+                        </div>
+
+                    {% elseif contenu.fileName %}
+                        {# File Content (PDF, Documents, Images, Audio) #}
+                        {% set fileExt = contenu.fileName|split('.')|last|lower %}
+                        
+                        {% if fileExt in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                            {# Image #}
+                            <div class="text-center">
+                                <img src="{{ asset('uploads/content/' ~ contenu.fileName) }}" 
+                                     alt="{{ contenu.title }}" class="img-fluid rounded shadow-sm" style="max-height: 600px;">
+                            </div>
+                        {% elseif fileExt == 'pdf' %}
+                            {# PDF #}
+                            <div class="ratio" style="--bs-aspect-ratio: 130%;">
+                                <iframe src="{{ asset('uploads/content/' ~ contenu.fileName) }}" 
+                                        class="rounded" style="border: 1px solid #dee2e6;"></iframe>
+                            </div>
+                        {% elseif fileExt in ['mp3', 'wav', 'ogg'] %}
+                            {# Audio #}
+                            <div class="text-center py-4">
+                                <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
+                                    <i class="bi bi-music-note-beamed text-info" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="mb-3">{{ contenu.title }}</h5>
+                                <audio controls class="w-100" style="max-width: 500px;">
+                                    <source src="{{ asset('uploads/content/' ~ contenu.fileName) }}" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                        {% else %}
+                            {# Other files - Download link #}
+                            <div class="text-center py-5">
+                                <div class="rounded-circle bg-secondary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px;">
+                                    <i class="bi bi-file-earmark-arrow-down text-secondary" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="mb-3">{{ contenu.fileName }}</h5>
+                                <a href="{{ asset('uploads/content/' ~ contenu.fileName) }}" 
+                                   class="btn btn-primary btn-lg" download>
+                                    <i class="bi bi-download me-1"></i> Download File
+                                </a>
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+                        {# Text/Lesson Content (no file) #}
+                        <div class="py-4">
+                            <div class="text-center mb-4">
+                                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="bi bi-journal-text text-primary" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            <div class="mx-auto" style="max-width: 800px;">
+                                <p class="text-muted text-center">
+                                    This lesson content is being prepared. Please check back soon or contact your instructor.
+                                </p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Navigation Footer #}
+                <div class="card-footer bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        {% if prevContenu %}
+                            <a href="{{ path('app_student_contenu_view', {classeId: classe.id, contenuId: prevContenu.id}) }}" 
+                               class="btn btn-outline-primary">
+                                <i class="bi bi-arrow-left me-1"></i> Previous
+                            </a>
+                        {% else %}
+                            <span></span>
+                        {% endif %}
+
+                        <div class="text-center">
+                            <small class="text-muted">{{ currentIndex }} of {{ totalContenus }}</small>
+                            <div class="progress mt-1" style="width: 150px; height: 6px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ (currentIndex / totalContenus * 100)|round }}%"></div>
+                            </div>
+                        </div>
+
+                        {% if nextContenu %}
+                            <a href="{{ path('app_student_contenu_view', {classeId: classe.id, contenuId: nextContenu.id}) }}" 
+                               class="btn btn-primary">
+                                Next <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_student_course_view', {classeId: classe.id, courseId: classeCourse.id}) }}" 
+                               class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i> Complete
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Sidebar - Course Outline #}
+        <div class="col-lg-3">
+            <div class="card card-elevated position-sticky" style="top: 80px;">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-list-ol me-2"></i> Course Outline</h6>
+                </div>
+                <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                    {% for cc in classeCourse.contenus %}
+                        {% if not cc.isHidden %}
+                            <a href="{{ path('app_student_contenu_view', {classeId: classe.id, contenuId: cc.id}) }}" 
+                               class="list-group-item list-group-item-action py-2 {{ cc.id == classeContenu.id ? 'active' : '' }}">
+                                <div class="d-flex align-items-center">
+                                    <small class="me-2">
+                                        {% if cc.id == classeContenu.id %}
+                                            <i class="bi bi-play-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-circle"></i>
+                                        {% endif %}
+                                    </small>
+                                    <span class="small text-truncate">{{ cc.contenu.title }}</span>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="card-footer bg-light">
+                    <a href="{{ path('app_student_course_view', {classeId: classe.id, courseId: classeCourse.id}) }}" 
+                       class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Course
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

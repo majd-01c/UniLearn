@@ -46,6 +46,7 @@ security:
         ROLE_ADMIN: [ROLE_USER]
         ROLE_BUSINESS_PARTNER: [ROLE_USER]
         ROLE_STUDENT: [ROLE_USER]
+        ROLE_TEACHER: [ROLE_USER]
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
@@ -53,6 +54,8 @@ security:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/partner, roles: ROLE_BUSINESS_PARTNER }
+        - { path: ^/teacher, roles: ROLE_TEACHER }
+        - { path: ^/student, roles: ROLE_STUDENT }
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/, roles: ROLE_USER }
 

@@ -15,6 +15,7 @@ use App\Repository\ForumTopicRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -27,7 +28,8 @@ class ForumController extends AbstractController
         private EntityManagerInterface $em,
         private ForumCategoryRepository $categoryRepository,
         private ForumTopicRepository $topicRepository,
-        private ForumReplyRepository $replyRepository
+        private ForumReplyRepository $replyRepository,
+        private RequestStack $requestStack
     ) {}
 
     /**
@@ -76,9 +78,16 @@ class ForumController extends AbstractController
     #[Route('/topic/{id}', name: 'app_forum_topic')]
     public function topic(ForumTopic $topic, Request $request): Response
     {
-        // Increment view count
-        $topic->incrementViewCount();
-        $this->em->flush();
+        // Increment view count only once per session per topic
+        $session = $this->requestStack->getSession();
+        $viewedTopics = $session->get('viewed_forum_topics', []);
+        
+        if (!in_array($topic->getId(), $viewedTopics)) {
+            $topic->incrementViewCount();
+            $this->em->flush();
+            $viewedTopics[] = $topic->getId();
+            $session->set('viewed_forum_topics', $viewedTopics);
+        }
 
         // Handle reply form
         $reply = new ForumReply();
@@ -90,8 +99,8 @@ class ForumController extends AbstractController
             $reply->setAuthor($user);
             $reply->setTopic($topic);
             
-            // Mark as teacher response if user is teacher/admin
-            if (in_array($user->getRole(), ['TEACHER', 'TRAINER', 'ADMIN'])) {
+            // Mark as teacher response if user is teacher/admin/trainer
+            if ($this->isGranted('ROLE_TEACHER') || $this->isGranted('ROLE_TRAINER') || $this->isGranted('ROLE_ADMIN')) {
                 $reply->setIsTeacherResponse(true);
             }
 
@@ -101,7 +110,11 @@ class ForumController extends AbstractController
             $this->em->flush();
 
             $this->addFlash('success', 'Reply posted successfully!');
-            return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+            // Redirect to the new reply with anchor for scroll
+            return $this->redirectToRoute('app_forum_topic', [
+                'id' => $topic->getId(),
+                '_fragment' => 'reply-' . $reply->getId()
+            ]);
         }
 
         // Paginate replies
@@ -148,9 +161,9 @@ class ForumController extends AbstractController
     #[Route('/topic/{id}/edit', name: 'app_forum_topic_edit')]
     public function editTopic(ForumTopic $topic, Request $request): Response
     {
-        $user = $this->getUser();
-        if ($topic->getAuthor() !== $user && $user->getRole() !== 'ADMIN') {
-            throw $this->createAccessDeniedException();
+        // Check permission: author or admin can edit
+        if (!$this->canEditTopic($topic)) {
+            throw $this->createAccessDeniedException('You cannot edit this topic.');
         }
 
         $form = $this->createForm(ForumTopicType::class, $topic);
@@ -176,9 +189,9 @@ class ForumController extends AbstractController
     #[Route('/topic/{id}/delete', name: 'app_forum_topic_delete', methods: ['POST'])]
     public function deleteTopic(ForumTopic $topic, Request $request): Response
     {
-        $user = $this->getUser();
-        if ($topic->getAuthor() !== $user && $user->getRole() !== 'ADMIN') {
-            throw $this->createAccessDeniedException();
+        // Check permission: author or admin can delete
+        if (!$this->canEditTopic($topic)) {
+            throw $this->createAccessDeniedException('You cannot delete this topic.');
         }
 
         if ($this->isCsrfTokenValid('delete-topic-' . $topic->getId(), $request->request->get('_token'))) {
@@ -194,36 +207,76 @@ class ForumController extends AbstractController
     }
 
     /**
-     * Mark a reply as accepted answer (topic author or teacher/admin)
+     * Toggle a reply as accepted answer
+     * Rules:
+     * - Topic author: Can accept/unaccept any reply (except their own)
+     * - Teacher/Trainer: Can ONLY accept (to help students), but NOT unaccept
+     * - Admin: CANNOT accept/unaccept (only moderate via delete)
      */
     #[Route('/reply/{id}/accept', name: 'app_forum_reply_accept', methods: ['POST'])]
     public function acceptReply(ForumReply $reply, Request $request): Response
     {
         $topic = $reply->getTopic();
         $user = $this->getUser();
+        $isTopicAuthor = $topic->getAuthor() === $user;
+        $isTeacherOrTrainer = $this->isGranted('ROLE_TEACHER') || $this->isGranted('ROLE_TRAINER');
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
         
-        // Only topic author, teachers, or admins can accept answers
-        if ($topic->getAuthor() !== $user && !in_array($user->getRole(), ['TEACHER', 'TRAINER', 'ADMIN'])) {
-            throw $this->createAccessDeniedException();
+        // Admin cannot accept/unaccept - they should only moderate (delete)
+        if ($isAdmin && !$isTopicAuthor) {
+            $this->addFlash('warning', 'Admins cannot accept/unaccept answers. Use delete to moderate content.');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+        }
+        
+        // Cannot accept your own reply
+        if ($reply->getAuthor() === $user) {
+            $this->addFlash('warning', 'You cannot accept your own reply as an answer.');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+        }
+        
+        // Check if trying to unaccept
+        if ($reply->isAccepted()) {
+            // Only topic author can unaccept
+            if (!$isTopicAuthor) {
+                $this->addFlash('warning', 'Only the topic author can remove accepted status from an answer.');
+                return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+            }
+        }
+        
+        // Only topic author or teachers/trainers can accept
+        if (!$isTopicAuthor && !$isTeacherOrTrainer) {
+            throw $this->createAccessDeniedException('You cannot accept answers on this topic.');
         }
 
         if ($this->isCsrfTokenValid('accept-reply-' . $reply->getId(), $request->request->get('_token'))) {
-            $topic->setAcceptedAnswer($reply);
+            // Toggle the accepted status
+            if ($reply->isAccepted()) {
+                $reply->setIsAccepted(false);
+                $this->addFlash('success', 'Answer unmarked as accepted.');
+            } else {
+                $reply->setIsAccepted(true);
+                $this->addFlash('success', 'Answer marked as accepted!');
+            }
+            
+            // Update topic solved status
+            $topic->updateSolvedStatus();
             $this->em->flush();
-
-            $this->addFlash('success', 'Answer marked as accepted!');
         }
 
         return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
     }
 
     /**
-     * Toggle pin status of a topic (teacher/admin only)
+     * Toggle pin status of a topic (staff only - teacher/trainer/admin)
      */
     #[Route('/topic/{id}/pin', name: 'app_forum_topic_pin', methods: ['POST'])]
-    #[IsGranted('ROLE_TEACHER')]
     public function pinTopic(ForumTopic $topic, Request $request): Response
     {
+        // Only staff can pin/unpin topics
+        if (!$this->isStaff()) {
+            throw $this->createAccessDeniedException('Only staff members can pin topics.');
+        }
+        
         if ($this->isCsrfTokenValid('pin-topic-' . $topic->getId(), $request->request->get('_token'))) {
             $topic->setIsPinned(!$topic->isPinned());
             $this->em->flush();
@@ -236,12 +289,16 @@ class ForumController extends AbstractController
     }
 
     /**
-     * Lock/unlock a topic (teacher/admin only)
+     * Lock/unlock a topic (staff only - teacher/trainer/admin)
      */
     #[Route('/topic/{id}/lock', name: 'app_forum_topic_lock', methods: ['POST'])]
-    #[IsGranted('ROLE_TEACHER')]
     public function lockTopic(ForumTopic $topic, Request $request): Response
     {
+        // Only staff can lock/unlock topics
+        if (!$this->isStaff()) {
+            throw $this->createAccessDeniedException('Only staff members can lock topics.');
+        }
+        
         if ($this->isCsrfTokenValid('lock-topic-' . $topic->getId(), $request->request->get('_token'))) {
             if ($topic->isLocked()) {
                 $topic->setStatus(TopicStatus::OPEN);
@@ -262,9 +319,9 @@ class ForumController extends AbstractController
     #[Route('/reply/{id}/edit', name: 'app_forum_reply_edit')]
     public function editReply(ForumReply $reply, Request $request): Response
     {
-        $user = $this->getUser();
-        if ($reply->getAuthor() !== $user && $user->getRole() !== 'ADMIN') {
-            throw $this->createAccessDeniedException();
+        // Check permission: author or admin can edit
+        if (!$this->canEditReply($reply)) {
+            throw $this->createAccessDeniedException('You cannot edit this reply.');
         }
 
         $form = $this->createForm(ForumReplyType::class, $reply);
@@ -285,26 +342,24 @@ class ForumController extends AbstractController
     }
 
     /**
-     * Delete a reply (author only or admin)
+     * Delete a reply (admin only)
      */
     #[Route('/reply/{id}/delete', name: 'app_forum_reply_delete', methods: ['POST'])]
     public function deleteReply(ForumReply $reply, Request $request): Response
     {
-        $user = $this->getUser();
-        if ($reply->getAuthor() !== $user && $user->getRole() !== 'ADMIN') {
-            throw $this->createAccessDeniedException();
+        // Check permission: only admin can delete replies
+        if (!$this->canDeleteReply($reply)) {
+            throw $this->createAccessDeniedException('Only administrators can delete replies.');
         }
 
         if ($this->isCsrfTokenValid('delete-reply-' . $reply->getId(), $request->request->get('_token'))) {
-            $topicId = $reply->getTopic()->getId();
-            
-            // If this was the accepted answer, unset it
-            if ($reply->isAccepted()) {
-                $reply->getTopic()->setAcceptedAnswer(null);
-                $reply->getTopic()->setStatus(TopicStatus::OPEN);
-            }
+            $topic = $reply->getTopic();
+            $topicId = $topic->getId();
             
             $this->em->remove($reply);
+            
+            // Update topic solved status after reply removal
+            $topic->updateSolvedStatus();
             $this->em->flush();
 
             $this->addFlash('success', 'Reply deleted successfully!');
@@ -395,5 +450,58 @@ class ForumController extends AbstractController
         }
 
         return $this->redirectToRoute('app_forum_admin_categories');
+    }
+
+    // ================================
+    // PERMISSION HELPER METHODS
+    // ================================
+
+    /**
+     * Check if current user is staff (teacher, trainer, or admin)
+     */
+    private function isStaff(): bool
+    {
+        return $this->isGranted('ROLE_TEACHER') 
+            || $this->isGranted('ROLE_TRAINER') 
+            || $this->isGranted('ROLE_ADMIN');
+    }
+
+    /**
+     * Check if current user can edit/delete a topic
+     * (topic author or admin)
+     */
+    private function canEditTopic(ForumTopic $topic): bool
+    {
+        $user = $this->getUser();
+        return $topic->getAuthor() === $user || $this->isGranted('ROLE_ADMIN');
+    }
+
+    /**
+     * Check if current user can edit a reply
+     * (reply author only)
+     */
+    private function canEditReply(ForumReply $reply): bool
+    {
+        $user = $this->getUser();
+        return $reply->getAuthor() === $user;
+    }
+
+    /**
+     * Check if current user can delete a reply
+     * (admin only)
+     */
+    private function canDeleteReply(ForumReply $reply): bool
+    {
+        return $this->isGranted('ROLE_ADMIN');
+    }
+
+    /**
+     * Check if current user can accept answers on a topic
+     * (topic author, teachers, trainers, or admins)
+     */
+    private function canAcceptAnswer(ForumTopic $topic): bool
+    {
+        $user = $this->getUser();
+        return $topic->getAuthor() === $user || $this->isStaff();
     }
 }

@@ -9,6 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ForumReplyRepository::class)]
 #[ORM\Index(columns: ['created_at'])]
+#[ORM\Index(columns: ['is_accepted'])]
 class ForumReply
 {
     #[ORM\Id]
@@ -18,11 +19,13 @@ class ForumReply
 
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: 'Reply content is required')]
-    #[Assert\Length(min: 10, minMessage: 'Reply must be at least 10 characters')]
     private ?string $content = null;
 
     #[ORM\Column]
     private bool $isTeacherResponse = false;
+
+    #[ORM\Column]
+    private bool $isAccepted = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -117,6 +120,12 @@ class ForumReply
 
     public function isAccepted(): bool
     {
-        return $this->topic?->getAcceptedAnswer() === $this;
+        return $this->isAccepted;
+    }
+
+    public function setIsAccepted(bool $isAccepted): static
+    {
+        $this->isAccepted = $isAccepted;
+        return $this;
     }
 }

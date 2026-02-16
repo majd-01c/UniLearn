@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Module - {{ classe.name }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ path('app_classe_show', {id: classe.id}) }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-folder-plus text-success"></i> Create Module
+                </h1>
+                <div class="text-muted">
+                    For class: <strong>{{ classe.name }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card card-elevated">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-badge text-primary"></i> 
+                        Teacher: {{ teacherClasse.teacher.name ?? teacherClasse.teacher.email }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ path('app_classe_teacher_create_module', {id: classe.id, teacherClasseId: teacherClasse.id}) }}" method="post">
+                        <div class="mb-3">
+                            <label for="module_name" class="form-label">Module Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="module_name" name="module_name" 
+                                   placeholder="e.g., Introduction to Programming" required>
+                            <div class="form-text">Enter a descriptive name for your module.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="duration" class="form-label">Duration <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="duration" name="duration" 
+                                           value="1" min="1" max="52" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="period_unit" class="form-label">Period Unit <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="period_unit" name="period_unit" required>
+                                        <option value="DAY">Days</option>
+                                        <option value="WEEK" selected>Weeks</option>
+                                        <option value="MONTH">Months</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill"></i>
+                            Once you create this module, it will be linked to the class "{{ classe.name }}". 
+                            After all teachers create their modules, the admin can assign a program to the class.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_classe_show', {id: classe.id}) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-lg"></i> Create Module
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

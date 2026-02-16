@@ -43,12 +43,46 @@ class ProgrammeController extends AbstractController
     // ============ PROGRAM CRUD ============
 
     #[Route('/programme/programs', name: 'app_programme_programs')]
-    public function programs(ProgramRepository $programRepository): Response
+    public function programs(Request $request, ProgramRepository $programRepository): Response
     {
-        $programs = $programRepository->findAll();
+        $name = $request->query->get('name', '');
+        $status = $request->query->get('status', '');
+        
+        $criteria = [];
+        if ($status === 'published') {
+            $criteria['published'] = true;
+        } elseif ($status === 'draft') {
+            $criteria['published'] = false;
+        }
+        
+        if ($name || $criteria) {
+            $qb = $programRepository->createQueryBuilder('p');
+            
+            if ($name) {
+                $qb->andWhere('p.name LIKE :name')
+                   ->setParameter('name', '%' . $name . '%');
+            }
+            
+            if ($status === 'published') {
+                $qb->andWhere('p.published = :published')
+                   ->setParameter('published', true);
+            } elseif ($status === 'draft') {
+                $qb->andWhere('p.published = :published')
+                   ->setParameter('published', false);
+            }
+            
+            $qb->orderBy('p.createdAt', 'DESC');
+            $programs = $qb->getQuery()->getResult();
+        } else {
+            $programs = $programRepository->findBy([], ['createdAt' => 'DESC']);
+        }
         
         return $this->render('Gestion_Program/programme/programs.html.twig', [
-            'programs' => $programs
+            'programs' => $programs,
+            'filters' => [
+                'name' => $name,
+                'status' => $status,
+            ]
         ]);
     }
 
@@ -278,12 +312,32 @@ class ProgrammeController extends AbstractController
     // ============ CONTENUS ============
 
     #[Route('/programme/contenus', name: 'app_programme_contenus')]
-    public function contenus(ContenuRepository $contenuRepository): Response
+    public function contenus(Request $request, ContenuRepository $contenuRepository): Response
     {
-        $contenus = $contenuRepository->findAll();
+        $title = $request->query->get('title', '');
+        $type = $request->query->get('type', '');
+        
+        $qb = $contenuRepository->createQueryBuilder('c');
+        
+        if ($title) {
+            $qb->andWhere('c.title LIKE :title')
+               ->setParameter('title', '%' . $title . '%');
+        }
+        
+        if ($type) {
+            $qb->andWhere('c.type = :type')
+               ->setParameter('type', $type);
+        }
+        
+        $qb->orderBy('c.createdAt', 'DESC');
+        $contenus = $qb->getQuery()->getResult();
         
         return $this->render('Gestion_Program/programme/contenus.html.twig', [
-            'contenus' => $contenus
+            'contenus' => $contenus,
+            'filters' => [
+                'title' => $title,
+                'type' => $type,
+            ]
         ]);
     }
 

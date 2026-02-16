@@ -262,10 +262,45 @@ select option {
 a {
     color: var(--primary-500);
     text-decoration: none;
+    transition: color var(--transition-fast);
 }
 
 a:hover {
     color: var(--primary-600);
+}
+
+a:focus {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+[data-theme="light"] a {
+    color: var(--primary-600);
+}
+
+[data-theme="light"] a:hover {
+    color: var(--primary-700);
+}
+
+[data-theme="light"] a:focus {
+    outline-color: var(--primary-600);
+}
+
+/* Links in muted text */
+a.text-muted {
+    color: var(--text-muted) !important;
+}
+
+a.text-muted:hover {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] a.text-muted {
+    color: var(--gray-500) !important;
+}
+
+[data-theme="light"] a.text-muted:hover {
+    color: var(--gray-700) !important;
 }
 
 strong, b {
@@ -278,16 +313,32 @@ strong, b {
     color: var(--text-primary) !important;
 }
 
+[data-theme="light"] .text-dark {
+    color: var(--gray-900) !important;
+}
+
 .text-muted {
     color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .text-muted {
+    color: var(--gray-500) !important;
 }
 
 .text-secondary {
     color: var(--text-secondary) !important;
 }
 
+[data-theme="light"] .text-secondary {
+    color: var(--gray-600) !important;
+}
+
 .text-body {
     color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .text-body {
+    color: var(--gray-900) !important;
 }
 
 .text-black-50 {
@@ -325,6 +376,29 @@ small, .small {
     color: var(--text-secondary);
 }
 
+[data-theme="light"] small,
+[data-theme="light"] .small {
+    color: var(--gray-600);
+}
+
+/* Ensure p tags are always visible */
+p {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] p {
+    color: var(--gray-900);
+}
+
+/* Specific fix for p tags with text-muted */
+p.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] p.text-muted {
+    color: var(--gray-600) !important;
+}
+
 /* Breadcrumb override */
 .breadcrumb {
     background-color: transparent;
@@ -340,6 +414,35 @@ small, .small {
 
 .breadcrumb-item + .breadcrumb-item::before {
     color: var(--text-muted);
+}
+
+.breadcrumb-item a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--primary-500);
+}
+
+[data-theme="light"] .breadcrumb-item {
+    color: var(--gray-600);
+}
+
+[data-theme="light"] .breadcrumb-item.active {
+    color: var(--gray-900);
+}
+
+[data-theme="light"] .breadcrumb-item + .breadcrumb-item::before {
+    color: var(--gray-400);
+}
+
+[data-theme="light"] .breadcrumb-item a {
+    color: var(--gray-600);
+}
+
+[data-theme="light"] .breadcrumb-item a:hover {
+    color: var(--primary-600);
 }
 
 /* List groups */
@@ -426,8 +529,25 @@ small, .small {
 
 /* Tooltips & Popovers */
 .tooltip-inner {
-    background-color: var(--gray-800);
-    color: var(--text-primary);
+    background-color: var(--gray-200);
+    color: var(--text-primary) !important;
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.tooltip {
+    pointer-events: none;
+    opacity: 1 !important;
+}
+
+.tooltip .tooltip-arrow::before {
+    border-top-color: var(--gray-200) !important;
+    border-right-color: var(--gray-200) !important;
+    border-bottom-color: var(--gray-200) !important;
+    border-left-color: var(--gray-200) !important;
 }
 
 .popover {
@@ -487,7 +607,16 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     line-height: 1.25;
     margin-bottom: 0.5em;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6 {
+    color: var(--gray-900) !important;
 }
 
 .page-title {
@@ -505,6 +634,46 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 1rem;
     font-weight: 400;
     margin-bottom: var(--space-6);
+}
+
+[data-theme="light"] .page-subtitle {
+    color: var(--gray-600);
+}
+
+/* Information display labels and values */
+label.text-muted,
+.text-muted.small,
+small.text-muted {
+    color: var(--text-secondary) !important;
+    opacity: 1;
+}
+
+[data-theme="light"] label.text-muted,
+[data-theme="light"] .text-muted.small,
+[data-theme="light"] small.text-muted {
+    color: var(--gray-600) !important;
+}
+
+/* Values in card bodies */
+.fw-medium,
+.fw-semibold {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .fw-medium,
+[data-theme="light"] .fw-semibold {
+    color: var(--gray-900);
+}
+
+/* Card body default text */
+.card-body div,
+.card-body p {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .card-body div,
+[data-theme="light"] .card-body p {
+    color: var(--gray-900);
 }
 
 .section-title {
@@ -658,6 +827,15 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar-brand:hover {
     opacity: 0.9;
     transform: translateX(4px);
+    color: white;
+}
+
+.sidebar-brand i {
+    color: white;
+}
+
+.brand-text {
+    color: white;
 }
 
 /* Sidebar Menu */
@@ -844,6 +1022,14 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    transition: var(--transition-fast);
+    cursor: pointer;
+}
+
+.topbar-title:hover {
+    color: var(--text-primary);
+    opacity: 0.8;
+    transform: translateY(-1px);
 }
 
 /* Topbar User Menu */
@@ -875,12 +1061,14 @@ h1, h2, h3, h4, h5, h6 {
 .topbar-user .user-name {
     font-size: 0.9rem;
     line-height: 1.2;
+    color: var(--text-primary);
 }
 
 .topbar-user .user-role {
     font-size: 0.75rem;
     display: block;
     line-height: 1;
+    color: var(--text-muted);
 }
 
 .topbar-user .dropdown-menu {
@@ -972,10 +1160,96 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
 }
 
+.card-header h5,
+.card-header h6 {
+    color: var(--text-primary) !important;
+    margin-bottom: 0;
+}
+
+[data-theme="light"] .card-header {
+    color: var(--gray-900);
+}
+
+[data-theme="light"] .card-header h5,
+[data-theme="light"] .card-header h6 {
+    color: var(--gray-900) !important;
+}
+
 .card-header.bg-primary {
     background: var(--accent-gradient) !important;
     border-bottom: none;
     color: white;
+}
+
+/* Card body default text */
+.card-body div,
+.card-body p {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .card-body div,
+[data-theme="light"] .card-body p {
+    color: var(--gray-900);
+}
+
+/* Ensure all direct text in card body is visible */
+.card-body {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .card-body {
+    color: var(--gray-900);
+}
+
+/* Labels and small text in cards specifically */
+.card-body label,
+.card-body .small,
+.card-body small {
+    display: block;
+}
+
+.card-body label.text-muted,
+.card-body .text-muted.small,
+.card-body small.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .card-body label.text-muted,
+[data-theme="light"] .card-body .text-muted.small,
+[data-theme="light"] .card-body small.text-muted {
+    color: var(--gray-600) !important;
+}
+
+/* Values with fw-medium class */
+.card-body .fw-medium,
+.card-body .fw-semibold,
+.card-body .fw-bold {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .card-body .fw-medium,
+[data-theme="light"] .card-body .fw-semibold,
+[data-theme="light"] .card-body .fw-bold {
+    color: var(--gray-900) !important;
+}
+
+/* Em tags (italic) should be visible */
+em {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+[data-theme="light"] em {
+    color: var(--gray-600);
+}
+
+/* Strong emphasis in cards */
+.card-body strong {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .card-body strong {
+    color: var(--gray-900);
 }
 
 .card-body {
@@ -1054,6 +1328,7 @@ h1, h2, h3, h4, h5, h6 {
 /* --------------------------------------------------------------------------
    Buttons - Material Design Ripple Effect
    -------------------------------------------------------------------------- */
+/* Ensure button text is always visible */
 .btn {
     border-radius: var(--radius-md);
     padding: var(--space-3) var(--space-5);
@@ -1066,6 +1341,26 @@ h1, h2, h3, h4, h5, h6 {
     gap: var(--space-2);
     position: relative;
     overflow: hidden;
+    color: inherit;
+}
+
+.btn span,
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info {
+    color: white !important;
+}
+
+.btn-light,
+.btn-secondary {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .btn-light,
+[data-theme="light"] .btn-secondary {
+    color: var(--gray-900) !important;
 }
 
 .btn::after {
@@ -1097,15 +1392,19 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-secondary {
     background: var(--surface-elevated);
-    color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .btn-secondary:hover {
     background: var(--gray-300);
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     transform: translateY(-1px);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary i {
+    color: var(--text-primary) !important;
 }
 
 .btn-success {
@@ -1158,28 +1457,36 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-outline-primary {
     border: 2px solid var(--primary-500);
-    color: var(--primary-500);
+    color: var(--primary-500) !important;
     background: transparent;
 }
 
 .btn-outline-primary:hover {
     background: var(--primary-500);
-    color: white;
+    color: white !important;
+}
+
+.btn-outline-primary:hover i {
+    color: white !important;
 }
 
 .btn-light {
     background: var(--surface-elevated);
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .btn-light:hover {
     background: var(--gray-300);
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-light i {
+    color: var(--text-primary) !important;
 }
 
 .btn-sm {
@@ -1202,9 +1509,51 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: var(--radius-md);
 }
 
+.btn-icon i {
+    font-size: 1.1rem;
+    color: inherit;
+}
+
 .btn-icon-sm {
     width: 32px;
     height: 32px;
+}
+
+.btn-icon-sm i {
+    font-size: 1rem;
+}
+
+/* Bootstrap icon button colors - ensure visibility */
+i.bi {
+    line-height: 1;
+}
+
+.btn i.bi,
+.btn-primary i.bi,
+.btn-success i.bi,
+.btn-danger i.bi,
+.btn-warning i.bi,
+.btn-info i.bi {
+    color: white !important;
+    opacity: 1;
+}
+
+.btn-light i.bi {
+    color: var(--text-primary) !important;
+    opacity: 1;
+}
+
+[data-theme="light"] .btn-light i.bi {
+    color: var(--gray-900) !important;
+}
+
+.btn-secondary i.bi {
+    color: var(--text-primary) !important;
+    opacity: 1;
+}
+
+[data-theme="light"] .btn-secondary i.bi {
+    color: var(--gray-900) !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -1217,7 +1566,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.9375rem;
     transition: var(--transition-normal);
     background: var(--surface-elevated);
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
 }
 
 .form-control:focus, .form-select:focus {
@@ -1225,15 +1574,37 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
     outline: none;
     background: var(--surface-elevated);
+    color: var(--text-primary) !important;
+}
+
+/* Ensure input text is always visible */
+input.form-control,
+textarea.form-control,
+select.form-select {
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+input.form-control:focus,
+textarea.form-control:focus,
+select.form-select:focus {
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
 }
 
 .form-control::placeholder {
-    color: var(--text-muted);
+    color: var(--text-muted) !important;
+    opacity: 0.6;
+}
+
+.form-select::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.6;
 }
 
 .form-label {
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     margin-bottom: var(--space-2);
     font-size: 0.875rem;
 }
@@ -1267,17 +1638,79 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-secondary);
 }
 
+/* Fix browser autocomplete styles */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--text-primary) !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--surface-elevated) inset !important;
+    box-shadow: 0 0 0 1000px var(--surface-elevated) inset !important;
+    background-color: var(--surface-elevated) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+[data-theme="light"] input:-webkit-autofill,
+[data-theme="light"] input:-webkit-autofill:hover,
+[data-theme="light"] input:-webkit-autofill:focus,
+[data-theme="light"] input:-webkit-autofill:active,
+[data-theme="light"] textarea:-webkit-autofill,
+[data-theme="light"] textarea:-webkit-autofill:hover,
+[data-theme="light"] textarea:-webkit-autofill:focus,
+[data-theme="light"] textarea:-webkit-autofill:active,
+[data-theme="light"] select:-webkit-autofill,
+[data-theme="light"] select:-webkit-autofill:hover,
+[data-theme="light"] select:-webkit-autofill:focus,
+[data-theme="light"] select:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--gray-900) !important;
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    box-shadow: 0 0 0 1000px #ffffff inset !important;
+    background-color: #ffffff !important;
+}
+
 /* Disabled & Read-only States */
 .form-control:disabled,
 .form-select:disabled {
     background-color: var(--gray-200);
     opacity: 0.6;
     color: var(--text-muted);
+    cursor: not-allowed;
 }
 
 .form-control[readonly] {
     background-color: var(--surface-elevated);
     color: var(--text-secondary);
+}
+
+[data-theme="light"] .form-control:disabled,
+[data-theme="light"] .form-select:disabled {
+    background-color: var(--gray-100);
+    color: var(--gray-500);
+}
+
+[data-theme="light"] .form-control[readonly] {
+    background-color: var(--gray-50);
+    color: var(--text-primary);
+}
+
+/* Disabled buttons should remain readable */
+.btn:disabled,
+.btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+[data-theme="light"] .btn:disabled,
+[data-theme="light"] .btn.disabled {
+    opacity: 0.6;
 }
 
 /* Floating Labels */
@@ -1328,6 +1761,25 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--danger-500);
     font-size: 0.8125rem;
     display: block;
+}
+
+[data-theme="light"] .valid-feedback {
+    color: var(--success-600);
+}
+
+[data-theme="light"] .invalid-feedback {
+    color: var(--danger-600);
+}
+
+/* Form validation text should always be visible */
+.form-text,
+.form-text.text-muted {
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .form-text,
+[data-theme="light"] .form-text.text-muted {
+    color: var(--gray-600);
 }
 
 /* --------------------------------------------------------------------------
@@ -1425,9 +1877,28 @@ h1, h2, h3, h4, h5, h6 {
     padding: var(--space-2);
     min-width: 32px;
     height: 32px;
+    font-size: 0.875rem;
 }
 
-/* Responsive Table Card */
+.table .actions .btn i {
+    font-size: 1rem;
+    color: inherit;
+}
+
+.table .actions .btn-primary i,
+.table .actions .btn-info i {
+    color: white !important;
+}
+
+.table .actions .btn-danger i {
+    color: white !important;
+}
+
+.table .actions .btn-warning i {
+    color: white !important;
+}
+
+/* Responsive Table Card *//* Responsive Table Card */
 .table-responsive {
     border-radius: var(--radius-lg);
     overflow: hidden;
@@ -1779,6 +2250,30 @@ h1, h2, h3, h4, h5, h6 {
     height: 1px;
     background: var(--gray-200);
     margin: var(--space-6) 0;
+}
+
+[data-theme="light"] .divider {
+    background: var(--gray-300);
+}
+
+/* Dropdown divider */
+.dropdown-divider {
+    margin: var(--space-2) 0;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .dropdown-divider {
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Horizontal rules */
+hr {
+    border-color: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+}
+
+[data-theme="light"] hr {
+    border-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Icon containers */
@@ -2211,6 +2706,7 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme="light"] .form-select {
     border: 1px solid rgba(0, 0, 0, 0.15);
     background: #ffffff;
+    color: var(--text-primary) !important;
 }
 
 [data-theme="light"] .form-control:focus,
@@ -2218,6 +2714,20 @@ h1, h2, h3, h4, h5, h6 {
     background: #ffffff;
     border-color: var(--primary-500);
     box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.1);
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] input.form-control,
+[data-theme="light"] textarea.form-control,
+[data-theme="light"] select.form-select {
+    color: var(--gray-900) !important;
+    -webkit-text-fill-color: var(--gray-900) !important;
+}
+
+[data-theme="light"] .form-control::placeholder,
+[data-theme="light"] .form-select::placeholder {
+    color: var(--gray-400) !important;
+    opacity: 1;
 }
 
 [data-theme="light"] .form-check-input {
@@ -2367,8 +2877,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 [data-theme="light"] .tooltip-inner {
-    background-color: var(--gray-900);
-    color: #ffffff;
+    background-color: var(--gray-800);
+    color: #ffffff !important;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .tooltip {
+    opacity: 1 !important;
+}
+
+[data-theme="light"] .tooltip .tooltip-arrow::before {
+    border-top-color: var(--gray-800) !important;
+    border-right-color: var(--gray-800) !important;
+    border-bottom-color: var(--gray-800) !important;
+    border-left-color: var(--gray-800) !important;
 }
 
 /* --- Code --- */
@@ -2391,6 +2914,57 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--gray-100) !important;
     color: var(--text-primary) !important;
     border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .badge.bg-warning {
+    background: var(--warning-500) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .badge.bg-light {
+    background: var(--gray-200) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Fix text-dark utility in badges for better visibility */
+[data-theme="light"] .badge.text-dark {
+    color: var(--gray-900) !important;
+}
+
+.badge.bg-warning.text-dark {
+    color: #78350f !important;
+}
+
+[data-theme="light"] .badge.bg-warning.text-dark {
+    color: #ffffff !important;
+}
+
+.badge.bg-light.text-dark {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .badge.bg-light.text-dark {
+    color: var(--gray-900) !important;
+}
+
+/* --- Card Header Text --- */
+[data-theme="light"] .card-header.bg-warning {
+    background: var(--warning-gradient) !important;
+    color: #ffffff !important;
+}
+
+.card-header.bg-warning {
+    background: var(--warning-gradient) !important;
+    color: #ffffff !important;
+}
+
+.card-header.bg-warning * {
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .card-header.bg-warning * {
+    color: #ffffff !important;
 }
 
 /* --- Alerts --- */
@@ -2460,6 +3034,165 @@ h1, h2, h3, h4, h5, h6 {
 /* --- Info Items --- */
 [data-theme="light"] .info-item {
     background: var(--gray-100);
+}
+
+/* Ensure button icons are always visible */
+.btn i,
+.btn i.bi {
+    color: inherit;
+}
+
+.btn-primary i,
+.btn-success i,
+.btn-danger i,
+.btn-warning i,
+.btn-info i {
+    color: white !important;
+}
+
+.btn-light i,
+.btn-secondary i,
+.btn-outline-primary i {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .btn-light i,
+[data-theme="light"] .btn-secondary i {
+    color: var(--gray-900) !important;
+}
+
+/* --- General Text Utilities for Dark Mode --- */
+/* Ensure text utilities always have proper contrast */
+.text-dark {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .text-dark {
+    color: var(--gray-900) !important;
+}
+
+/* Fix for buttons with text-dark inside colored backgrounds */
+.btn-warning .text-dark,
+.bg-warning .text-dark,
+.badge.bg-warning .text-dark {
+    color: #78350f !important;
+}
+
+[data-theme="light"] .btn-warning .text-dark,
+[data-theme="light"] .bg-warning .text-dark,
+[data-theme="light"] .badge.bg-warning .text-dark {
+    color: #ffffff !important;
+}
+
+/* Ensure proper visibility for form elements */
+[data-theme="light"] .form-control::placeholder,
+[data-theme="light"] .form-select::placeholder {
+    color: var(--gray-400);
+    opacity: 1;
+}
+
+.form-control::placeholder,
+.form-select::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+/* Ensure small text and muted text are always visible */
+small.text-muted,
+.small.text-muted,
+.text-muted.small {
+    color: var(--text-muted) !important;
+    opacity: 1;
+}
+
+[data-theme="light"] small.text-muted,
+[data-theme="light"] .small.text-muted,
+[data-theme="light"] .text-muted.small {
+    color: var(--gray-500) !important;
+}
+
+/* Fix dropdown text visibility */
+.dropdown-item .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .dropdown-item .text-muted {
+    color: var(--gray-500) !important;
+}
+
+/* Ensure icons with text-muted/text-secondary are visible */
+.text-muted i,
+i.text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .text-muted i,
+[data-theme="light"] i.text-muted {
+    color: var(--gray-500) !important;
+}
+
+.text-secondary i,
+i.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .text-secondary i,
+[data-theme="light"] i.text-secondary {
+    color: var(--gray-600) !important;
+}
+
+/* Icons in card bodies should be visible */
+.card-body i.bi {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .card-body i.bi {
+    color: var(--gray-700);
+}
+
+/* Icons in fw-medium text should match text color */
+.fw-medium i,
+.fw-semibold i,
+.fw-bold i {
+    color: inherit;
+}
+
+/* Fix table text visibility */
+.table small,
+.table .small {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .table small,
+[data-theme="light"] .table .small {
+    color: var(--gray-600);
+}
+
+/* Fix card text in gradient backgrounds */
+.card-body[style*="background"] h5,
+.card-body[style*="background"] p,
+.card[style*="background"] h5,
+.card[style*="background"] p {
+    color: inherit;
+}
+
+/* Ensure proper contrast for empty states */
+.empty-state-text,
+.empty-state p {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .empty-state-text,
+[data-theme="light"] .empty-state p {
+    color: var(--gray-600);
+}
+
+.empty-state-icon i {
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .empty-state-icon i {
+    color: var(--gray-400);
 }
 
 /* --- Skeleton Loading --- */

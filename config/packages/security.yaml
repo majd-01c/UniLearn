@@ -43,7 +43,9 @@ security:
             # switch_user: true
 
     role_hierarchy:
-        ROLE_ADMIN: [ROLE_USER]
+        ROLE_ADMIN: [ROLE_TEACHER, ROLE_TRAINER, ROLE_STUDENT, ROLE_BUSINESS_PARTNER, ROLE_USER]
+        ROLE_TEACHER: [ROLE_USER]
+        ROLE_TRAINER: [ROLE_USER]
         ROLE_BUSINESS_PARTNER: [ROLE_USER]
         ROLE_STUDENT: [ROLE_USER]
 

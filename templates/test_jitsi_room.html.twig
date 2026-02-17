@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meeting — {{ room }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .header {
+            background: #1d1d1d;
+            color: white;
+            padding: 12px 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header strong {
+            color: #4a9eff;
+        }
+        #meet {
+            width: 100%;
+            height: calc(100vh - 44px);
+            background: #202124;
+        }
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #fff;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #4a9eff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            padding: 40px;
+            color: #ff6b6b;
+            background: #2d2d2d;
+            border-radius: 8px;
+            margin: 40px;
+            max-width: 600px;
+        }
+        .error-message h3 {
+            margin-bottom: 15px;
+        }
+        .error-message ul {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+        .error-message li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <span>Meeting Room: <strong>{{ room }}</strong></span>
+        </div>
+        <div>
+            <span style="font-size: 12px; opacity: 0.8;">{{ username }}</span>
+        </div>
+    </div>
+
+    <div id="meet">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Connecting to meeting...</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('Starting Jitsi meeting initialization...');
+        console.log('Jitsi Host:', "{{ jitsi_host }}");
+        console.log('Room:', "{{ room }}");
+        console.log('Username:', "{{ username }}");
+
+        // Load external API dynamically
+        const script = document.createElement('script');
+        script.src = "https://{{ jitsi_host }}/external_api.js";
+        script.async = true;
+        
+        script.onerror = function() {
+            console.error('Failed to load Jitsi external API');
+            document.getElementById('meet').innerHTML = `
+                <div class="error-message">
+                    <h3>⚠️ Cannot Connect to Jitsi Server</h3>
+                    <p>Unable to load the video meeting interface.</p>
+                    <ul>
+                        <li>Make sure your Jitsi server is running at: <strong>{{ jitsi_host }}</strong></li>
+                        <li>Check if you can access: <a href="https://{{ jitsi_host }}" target="_blank" style="color: #4a9eff;">https://{{ jitsi_host }}</a></li>
+                        <li>Accept the SSL certificate if prompted (self-signed certificate)</li>
+                        <li>Ensure WSL2 is running and Jitsi is started</li>
+                    </ul>
+                </div>
+            `;
+        };
+        
+        script.onload = function() {
+            console.log('Jitsi external API loaded successfully');
+            
+            // Wait a bit to ensure API is fully initialized
+            setTimeout(() => {
+                try {
+                    if (typeof JitsiMeetExternalAPI === 'undefined') {
+                        throw new Error('JitsiMeetExternalAPI is not defined');
+                    }
+
+                    const domain = "{{ jitsi_host }}";
+                    const options = {
+                        roomName: "{{ room }}",
+                        width: "100%",
+                        height: "100%",
+                        parentNode: document.querySelector('#meet'),
+                        configOverwrite: {
+                            startWithAudioMuted: false,
+                            startWithVideoMuted: false,
+                            enableWelcomePage: false,
+                            prejoinPageEnabled: false
+                        },
+                        interfaceConfigOverwrite: {
+                            SHOW_JITSI_WATERMARK: false,
+                            SHOW_WATERMARK_FOR_GUESTS: false,
+                            DEFAULT_BACKGROUND: '#474747',
+                            DISABLE_VIDEO_BACKGROUND: false,
+                            FILM_STRIP_MAX_HEIGHT: 120
+                        },
+                        userInfo: {
+                            displayName: "{{ username }}"
+                        }
+                    };
+
+                    console.log('Creating Jitsi API instance...');
+                    const api = new JitsiMeetExternalAPI(domain, options);
+
+                    api.addListener('videoConferenceJoined', () => {
+                        console.log('Successfully joined Jitsi meeting!');
+                    });
+
+                    api.addListener('participantJoined', (participant) => {
+                        console.log('Participant joined:', participant);
+                    });
+
+                    api.addListener('readyToClose', () => {
+                        console.log('Meeting ended');
+                    });
+
+                    console.log('Jitsi meeting initialized successfully');
+                } catch (e) {
+                    console.error('Error initializing Jitsi:', e);
+                    document.getElementById('meet').innerHTML = `
+                        <div class="error-message">
+                            <h3>⚠️ Error Starting Meeting</h3>
+                            <p><strong>Error:</strong> ${e.message}</p>
+                            <ul>
+                                <li>Check browser console (F12) for detailed errors</li>
+                                <li>Your Jitsi host: <strong>{{ jitsi_host }}</strong></li>
+                                <li>Try accessing Jitsi directly first to accept SSL certificate</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+            }, 500);
+        };
+        
+        document.head.appendChild(script);
+    </script>
+
+</body>
+</html>

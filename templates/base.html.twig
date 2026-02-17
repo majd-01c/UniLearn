@@ -166,6 +166,11 @@
                     <span>Community</span>
                 </a>
 
+                <a class="sidebar-link {% if 'meeting' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_meeting_index') }}">
+                    <i class="bi bi-camera-video-fill"></i>
+                    <span>Video Meeting</span>
+                </a>
+
                 {% if is_granted('ROLE_BUSINESS_PARTNER') %}
                 <div class="sidebar-dropdown">
                     <a class="sidebar-link {% if 'partner_job' in app.request.attributes.get('_route') %}active{% endif %}" href="#partnerJobSubmenu" data-bs-toggle="collapse">

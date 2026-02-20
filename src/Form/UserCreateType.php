@@ -79,7 +79,11 @@ class UserCreateType extends AbstractType
                 'required' => false,
                 'mapped' => false,
                 'constraints' => [
-                    new Assert\Length(['max' => 20]),
+                    new Assert\Length(['max' => 20, 'maxMessage' => 'Phone number cannot exceed {{ limit }} characters.']),
+                    new Assert\Regex([
+                        'pattern' => '/^[\d\s\+\-\(\)\.]*$/',
+                        'message' => 'Please enter a valid phone number (digits, spaces, +, -, () allowed).',
+                    ]),
                 ],
                 'attr' => [
                     'class' => 'form-control',

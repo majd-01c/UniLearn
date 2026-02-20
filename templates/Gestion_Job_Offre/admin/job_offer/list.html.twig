@@ -105,6 +105,11 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
+                                        {# View Details #}
+                                        <a href="{{ path('admin_job_offer_show', {id: offer.id}) }}" class="btn btn-outline-primary" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
                                         {# Approve #}
                                         {% if offer.status.value == 'PENDING' %}
                                             <form method="post" action="{{ path('admin_job_offer_approve', {id: offer.id}) }}" class="d-inline">
@@ -119,18 +124,18 @@
                                         {% if offer.status.value == 'PENDING' or offer.status.value == 'ACTIVE' %}
                                             <form method="post" action="{{ path('admin_job_offer_reject', {id: offer.id}) }}" class="d-inline">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('reject-' ~ offer.id) }}">
-                                                <button type="submit" class="btn btn-outline-warning" title="Reject" onclick="return confirm('Reject this job offer?')">
+                                                <button type="submit" class="btn btn-outline-danger" title="Reject" onclick="return confirm('Reject this job offer?')">
                                                     <i class="bi bi-x-circle"></i>
                                                 </button>
                                             </form>
                                         {% endif %}
 
-                                        {# Close #}
-                                        {% if offer.status.value == 'ACTIVE' %}
-                                            <form method="post" action="{{ path('admin_job_offer_close', {id: offer.id}) }}" class="d-inline">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('close-' ~ offer.id) }}">
-                                                <button type="submit" class="btn btn-outline-secondary" title="Close" onclick="return confirm('Close this job offer?')">
-                                                    <i class="bi bi-lock"></i>
+                                        {# Unreject #}
+                                        {% if offer.status.value == 'REJECTED' %}
+                                            <form method="post" action="{{ path('admin_job_offer_unreject', {id: offer.id}) }}" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('unreject-' ~ offer.id) }}">
+                                                <button type="submit" class="btn btn-outline-warning" title="Unreject" onclick="return confirm('Move back to pending?')">
+                                                    <i class="bi bi-arrow-counterclockwise"></i>
                                                 </button>
                                             </form>
                                         {% endif %}

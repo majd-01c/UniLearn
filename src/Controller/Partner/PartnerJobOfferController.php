@@ -125,7 +125,7 @@ class PartnerJobOfferController extends AbstractController
     }
 
     /**
-     * Reopen job offer
+     * Reopen a closed job offer (sets back to PENDING for admin re-approval)
      */
     #[Route('/{id}/reopen', name: 'app_partner_job_offer_reopen', methods: ['POST'])]
     public function reopen(Request $request, JobOffer $offer): Response
@@ -134,8 +134,8 @@ class PartnerJobOfferController extends AbstractController
 
         if ($this->isCsrfTokenValid('reopen-' . $offer->getId(), $request->request->get('_token'))) {
             try {
-                $this->jobOfferService->changeStatus($offer, JobOfferStatus::ACTIVE);
-                $this->addFlash('success', 'Job offer reopened successfully!');
+                $this->jobOfferService->changeStatus($offer, JobOfferStatus::PENDING);
+                $this->addFlash('success', 'Job offer reopened and sent for admin approval!');
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Error reopening job offer: ' . $e->getMessage());
             }

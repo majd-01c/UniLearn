@@ -117,4 +117,17 @@ class JobOfferRepository extends ServiceEntityRepository
 
         return new Paginator($qb->getQuery(), fetchJoinCollection: true);
     }
+
+    /**
+     * Count job offers by status
+     */
+    public function countByStatus(JobOfferStatus $status): int
+    {
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->andWhere('o.status = :status')
+            ->setParameter('status', $status)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

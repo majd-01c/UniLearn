@@ -22,11 +22,7 @@ final class JobOfferService
     public function createForPartner(JobOffer $offer, User $partner): void
     {
         $offer->setPartner($partner);
-        $offer->setStatus(JobOfferStatus::ACTIVE);
-
-        if ($offer->getPublishedAt() === null) {
-            $offer->setPublishedAt(new \DateTimeImmutable());
-        }
+        $offer->setStatus(JobOfferStatus::PENDING);
 
         $this->em->persist($offer);
         $this->em->flush();

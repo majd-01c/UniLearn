@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class ForumReplyType extends AbstractType
 {
@@ -19,7 +20,16 @@ class ForumReplyType extends AbstractType
                     'placeholder' => 'Write your reply here...',
                     'class' => 'form-control',
                     'rows' => 5
-                ]
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Your reply cannot be empty.']),
+                    new Assert\Length([
+                        'min' => 3,
+                        'max' => 5000,
+                        'minMessage' => 'Your reply must be at least {{ limit }} characters long.',
+                        'maxMessage' => 'Your reply cannot exceed {{ limit }} characters.',
+                    ]),
+                ],
             ])
         ;
     }

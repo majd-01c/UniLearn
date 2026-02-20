@@ -34,15 +34,61 @@
                         {% endfor %}
                     {% endfor %}
 
-                    {# Current Photo #}
-                    {% if profile.photo %}
-                        <div class="text-center mb-4">
-                            <img src="{{ vich_uploader_asset(profile, 'photoFile') }}" 
-                                 alt="Profile Photo" 
-                                 class="rounded-circle" 
-                                 style="width: 150px; height: 150px; object-fit: cover;">
+                    {# Current Photo & Avatar Section #}
+                    <div class="row mb-4">
+                        {# Profile Photo #}
+                        <div class="col-md-6 text-center">
+                            <h6 class="text-muted mb-2">Profile Photo</h6>
+                            {% if profile.photo %}
+                                <img src="{{ vich_uploader_asset(profile, 'photoFile') }}" 
+                                     alt="Profile Photo" 
+                                     class="rounded-circle shadow-sm" 
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" 
+                                     style="width: 150px; height: 150px;">
+                                    <i class="bi bi-person-fill text-muted" style="font-size: 3rem;"></i>
+                                </div>
+                                <small class="text-muted d-block mt-2">No photo uploaded</small>
+                            {% endif %}
                         </div>
-                    {% endif %}
+
+                        {# Generated Avatar #}
+                        <div class="col-md-6 text-center">
+                            <h6 class="text-muted mb-2">Generated Avatar</h6>
+                            {% if profile.avatarFilename %}
+                                <img src="{{ asset(profile.avatarFilename) }}" 
+                                     alt="Generated Avatar" 
+                                     class="rounded-circle shadow-sm" 
+                                     style="width: 150px; height: 150px; object-fit: cover;"
+                                     id="avatar-preview">
+                                {% if profile.avatarUpdatedAt %}
+                                    <small class="text-muted d-block mt-1">
+                                        Generated {{ profile.avatarUpdatedAt|date('M d, Y H:i') }}
+                                    </small>
+                                {% endif %}
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" 
+                                     style="width: 150px; height: 150px;" id="avatar-preview">
+                                    <i class="bi bi-stars text-muted" style="font-size: 3rem;"></i>
+                                </div>
+                                <small class="text-muted d-block mt-2">No avatar generated yet</small>
+                            {% endif %}
+                            
+                            {# Generate Avatar Button #}
+                            <form action="{{ path('profile_avatar_generate') }}" method="post" class="mt-2" id="avatar-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('avatar_generate') }}">
+                                <button type="submit" 
+                                        class="btn btn-sm {{ profile.photo ? 'btn-outline-success' : 'btn-outline-secondary' }}"
+                                        id="generate-avatar-btn"
+                                        {{ profile.photo ? '' : 'disabled' }}
+                                        title="{{ profile.photo ? 'Generate a cartoon avatar from your photo' : 'Upload a profile photo first' }}">
+                                    <i class="bi bi-stars"></i> 
+                                    {{ profile.avatarFilename ? 'Regenerate Avatar' : 'Generate Avatar' }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
 
                     {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
                         <div class="row">
@@ -91,4 +137,18 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const avatarForm = document.getElementById('avatar-form');
+        const generateBtn = document.getElementById('generate-avatar-btn');
+
+        if (avatarForm && generateBtn) {
+            avatarForm.addEventListener('submit', function() {
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Generating… this may take a minute';
+            });
+        }
+    });
+</script>
 {% endblock %}

@@ -94,18 +94,8 @@
                                                 <i class="bi bi-pencil"></i>
                                             </a>
 
-                                            {# Close/Reopen Button #}
-                                            {% if offer.status.value == 'CLOSED' %}
-                                                <form method="post" action="{{ path('app_partner_job_offer_reopen', {id: offer.id}) }}" class="d-inline">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('reopen-' ~ offer.id) }}">
-                                                    <button type="submit" 
-                                                            class="btn btn-outline-success" 
-                                                            title="Reopen"
-                                                            onclick="return confirm('Reopen this job offer?')">
-                                                        <i class="bi bi-arrow-clockwise"></i>
-                                                    </button>
-                                                </form>
-                                            {% else %}
+                                            {# Close Button - for PENDING or ACTIVE offers #}
+                                            {% if offer.status.value == 'ACTIVE' or offer.status.value == 'PENDING' %}
                                                 <form method="post" action="{{ path('app_partner_job_offer_close', {id: offer.id}) }}" class="d-inline">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('close-' ~ offer.id) }}">
                                                     <button type="submit" 
@@ -117,7 +107,20 @@
                                                 </form>
                                             {% endif %}
 
-                                            {# Applications Link Button #}
+                                            {# Reopen Button - for CLOSED offers #}
+                                            {% if offer.status.value == 'CLOSED' %}
+                                                <form method="post" action="{{ path('app_partner_job_offer_reopen', {id: offer.id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('reopen-' ~ offer.id) }}">
+                                                    <button type="submit" 
+                                                            class="btn btn-outline-success" 
+                                                            title="Reopen"
+                                                            onclick="return confirm('Reopen this job offer? It will be sent for admin approval.')">
+                                                        <i class="bi bi-unlock"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+
+                                            {# View Applications #}
                                             <a href="{{ path('app_partner_job_offer_applications', {id: offer.id}) }}" 
                                                class="btn btn-outline-info" 
                                                title="View Applications">

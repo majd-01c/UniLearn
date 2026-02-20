@@ -26,3 +26,6 @@ compose.override.yaml
 
 # Custom scripts
 start.bat
+#Uploaded files
+/public/uploads/*
+!/public/uploads/**/.gitkeep

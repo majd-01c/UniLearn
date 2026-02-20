@@ -27,7 +27,10 @@ class JobApplicationFormType extends AbstractType
                     'rows' => 6,
                 ],
                 'constraints' => [
-                    new Assert\Length(['max' => 5000]),
+                    new Assert\Length([
+                        'max' => 5000,
+                        'maxMessage' => 'Your cover letter cannot exceed {{ limit }} characters.',
+                    ]),
                 ],
             ])
             ->add('cvFile', VichFileType::class, [

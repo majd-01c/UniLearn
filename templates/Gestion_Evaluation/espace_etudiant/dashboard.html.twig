@@ -3,150 +3,171 @@
 {% block title %}Espace Étudiant - Tableau de Bord{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">Bienvenue dans votre Espace Étudiant</h1>
-    
-    <div class="row">
-        <!-- Quick Stats -->
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title">Moyenne Générale</h5>
-                    <h2>{{ semesterResults.overallAverage }}/20</h2>
+<div class="container-fluid mt-4 px-4 animate-in">
+    {# Page Header #}
+    <div class="uni-page-header">
+        <div class="uni-page-header-info">
+            <h1 class="uni-page-header-title">
+                <i class="bi bi-mortarboard-fill"></i> Espace Étudiant
+            </h1>
+            <p class="uni-page-header-subtitle">Bienvenue dans votre tableau de bord académique</p>
+        </div>
+    </div>
+
+    {# Stat Cards #}
+    <div class="row g-4 mb-4 stagger-in">
+        <div class="col-6 col-lg-3">
+            <div class="uni-stat-card bg-gradient-purple">
+                <div class="uni-stat-card-content">
+                    <div class="uni-stat-card-icon"><i class="bi bi-graph-up"></i></div>
+                    <div class="uni-stat-card-value">{{ semesterResults.overallAverage }}/20</div>
+                    <div class="uni-stat-card-label">Moyenne Générale</div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Cours Réussis</h5>
-                    <h2>{{ semesterResults.passedCourses }}</h2>
+        <div class="col-6 col-lg-3">
+            <div class="uni-stat-card bg-gradient-emerald">
+                <div class="uni-stat-card-content">
+                    <div class="uni-stat-card-icon"><i class="bi bi-check-circle-fill"></i></div>
+                    <div class="uni-stat-card-value">{{ semesterResults.passedCourses }}</div>
+                    <div class="uni-stat-card-label">Cours Réussis</div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-danger">
-                <div class="card-body">
-                    <h5 class="card-title">Cours à Améliorer</h5>
-                    <h2>{{ recommendations|length }}</h2>
+        <div class="col-6 col-lg-3">
+            <div class="uni-stat-card bg-gradient-rose">
+                <div class="uni-stat-card-content">
+                    <div class="uni-stat-card-icon"><i class="bi bi-arrow-up-circle-fill"></i></div>
+                    <div class="uni-stat-card-value">{{ recommendations|length }}</div>
+                    <div class="uni-stat-card-label">Cours à Améliorer</div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h5 class="card-title">Total Cours</h5>
-                    <h2>{{ semesterResults.courses|length }}</h2>
+        <div class="col-6 col-lg-3">
+            <div class="uni-stat-card bg-gradient-sky">
+                <div class="uni-stat-card-content">
+                    <div class="uni-stat-card-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+                    <div class="uni-stat-card-value">{{ semesterResults.courses|length }}</div>
+                    <div class="uni-stat-card-label">Total Cours</div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Quick Links -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Accès Rapide</h5>
+
+    {# Quick Access Grid #}
+    <div class="row g-4 mb-4 stagger-in">
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_espace_etudiant_grades') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-primary text-white">
+                    <i class="bi bi-graph-up-arrow"></i>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-2">
-                            <a href="{{ path('app_espace_etudiant_grades') }}" class="btn btn-outline-primary btn-block w-100">
-                                <i class="fas fa-chart-line"></i> Mes Notes
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <a href="{{ path('app_espace_etudiant_schedule') }}" class="btn btn-outline-info btn-block w-100">
-                                <i class="fas fa-calendar"></i> Emploi du Temps
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <a href="{{ path('app_espace_etudiant_recommendations') }}" class="btn btn-outline-warning btn-block w-100">
-                                <i class="fas fa-lightbulb"></i> Recommandations IA
-                            </a>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-md-4 mb-2">
-                            <a href="{{ path('app_espace_etudiant_reclamations') }}" class="btn btn-outline-secondary btn-block w-100">
-                                <i class="fas fa-exclamation-circle"></i> Réclamations
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <a href="{{ path('app_espace_etudiant_documents') }}" class="btn btn-outline-success btn-block w-100">
-                                <i class="fas fa-file-alt"></i> Demandes de Documents
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <a href="{{ path('app_espace_etudiant_results') }}" class="btn btn-outline-danger btn-block w-100">
-                                <i class="fas fa-trophy"></i> Résultats du Semestre
-                            </a>
-                        </div>
-                    </div>
+                <span class="uni-quick-link-title">Mes Notes</span>
+                <p class="uni-quick-link-desc">Consulter les notes</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_espace_etudiant_schedule') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-info text-white">
+                    <i class="bi bi-calendar-week-fill"></i>
                 </div>
-            </div>
+                <span class="uni-quick-link-title">Emploi du Temps</span>
+                <p class="uni-quick-link-desc">Planning hebdomadaire</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_espace_etudiant_recommendations') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-warning text-white">
+                    <i class="bi bi-lightbulb-fill"></i>
+                </div>
+                <span class="uni-quick-link-title">IA Recommandations</span>
+                <p class="uni-quick-link-desc">Suggestions personnalisées</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_espace_etudiant_reclamations') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-danger text-white">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <span class="uni-quick-link-title">Réclamations</span>
+                <p class="uni-quick-link-desc">Soumettre une demande</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_espace_etudiant_documents') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-success text-white">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+                <span class="uni-quick-link-title">Documents</span>
+                <p class="uni-quick-link-desc">Demander un document</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_espace_etudiant_results') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-amber text-white">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <span class="uni-quick-link-title">Résultats</span>
+                <p class="uni-quick-link-desc">Résultats du semestre</p>
+            </a>
         </div>
     </div>
-    
-    <!-- AI Recommendations Alert -->
+
+    {# AI Recommendations Alert #}
     {% if recommendations|length > 0 %}
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="alert alert-warning" role="alert">
-                <h5 class="alert-heading"><i class="fas fa-robot"></i> Recommandations IA</h5>
-                <p>Notre système d'intelligence artificielle a détecté {{ recommendations|length }} cours où vous pourriez améliorer vos performances.</p>
-                <hr>
-                <a href="{{ path('app_espace_etudiant_recommendations') }}" class="btn btn-warning">Voir les recommandations</a>
-            </div>
+    <div class="alert alert-warning mb-4">
+        <div>
+            <i class="bi bi-robot" style="font-size:1.5rem"></i>
+        </div>
+        <div class="flex-grow-1">
+            <h6 class="alert-heading mb-1">Recommandations IA</h6>
+            <p class="mb-2">Notre système d'intelligence artificielle a détecté {{ recommendations|length }} cours où vous pourriez améliorer vos performances.</p>
+            <a href="{{ path('app_espace_etudiant_recommendations') }}" class="btn btn-warning btn-sm">
+                <i class="bi bi-arrow-right"></i> Voir les recommandations
+            </a>
         </div>
     </div>
     {% endif %}
-    
-    <!-- Recent Grades -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Notes Récentes</h5>
-                </div>
-                <div class="card-body">
-                    {% if recentGrades|length > 0 %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Cours</th>
-                                    <th>Évaluation</th>
-                                    <th>Note</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for grade in recentGrades %}
-                                <tr>
-                                    <td>{{ grade.assessment.course.title }}</td>
-                                    <td>{{ grade.assessment.title }}</td>
-                                    <td>
-                                        <span class="badge {% if grade.score >= 12 %}bg-success{% elseif grade.score >= 10 %}bg-warning{% else %}bg-danger{% endif %}">
-                                            {{ grade.score }}/{{ grade.assessment.maxScore }}
-                                        </span>
-                                    </td>
-                                    <td>{{ grade.assessment.dueDate|date('d/m/Y') }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <a href="{{ path('app_espace_etudiant_grades') }}" class="btn btn-primary">Voir toutes les notes</a>
-                    {% else %}
-                    <p class="text-muted">Aucune note disponible pour le moment.</p>
-                    {% endif %}
-                </div>
+
+    {# Recent Grades #}
+    <div class="card card-static">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Notes Récentes</h5>
+            <a href="{{ path('app_espace_etudiant_grades') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+        </div>
+        <div class="card-body p-0">
+            {% if recentGrades|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="uni-thead">
+                        <tr>
+                            <th>Cours</th>
+                            <th>Évaluation</th>
+                            <th>Note</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grade in recentGrades %}
+                        <tr>
+                            <td><strong>{{ grade.assessment.course.title }}</strong></td>
+                            <td>{{ grade.assessment.title }}</td>
+                            <td>
+                                <span class="badge {% if grade.score >= 12 %}bg-success{% elseif grade.score >= 10 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ grade.score }}/{{ grade.assessment.maxScore }}
+                                </span>
+                            </td>
+                            <td><small class="text-muted">{{ grade.assessment.dueDate|date('d/m/Y') }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted" style="font-size:2.5rem"></i>
+                <p class="text-muted mt-2">Aucune note disponible pour le moment.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

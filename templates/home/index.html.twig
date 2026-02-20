@@ -1,169 +1,465 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dashboard - UniLearn{% endblock %}
+{% block title %}{% if is_granted('ROLE_ADMIN') %}Admin Dashboard{% else %}Dashboard{% endif %} - UniLearn{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="content-wrapper">
-        {# Page Header #}
-        <div class="row mb-4">
-            <div class="col-12">
-                <h1 class="page-title">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+{% if is_granted('ROLE_ADMIN') %}
+{# ================================================================
+   ADMIN DASHBOARD — distinct layout from front office
+   ================================================================ #}
+<div class="container-fluid mt-4 px-4">
+    {# Admin Header with greeting #}
+    <div class="admin-dashboard-header mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1 class="admin-page-title mb-1">
+                    <i class="bi bi-grid-1x2-fill me-2"></i>Admin Dashboard
                 </h1>
-                <p class="page-subtitle">Welcome back! Here's your UniLearn overview.</p>
+                <p class="admin-page-subtitle mb-0">
+                    Welcome back, <strong>{{ app.user.profile ? app.user.profile.firstName : app.user.email }}</strong> — here's what's happening today.
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_user_new') }}" class="btn btn-admin-primary btn-sm">
+                    <i class="bi bi-person-plus-fill me-1"></i> New User
+                </a>
             </div>
         </div>
+    </div>
 
-        {# Stats Cards #}
-        <div class="row g-4 stagger-animation">
-            {% if is_granted('ROLE_ADMIN') %}
-            <div class="col-md-6 col-lg-3">
-                <div class="card dashboard-card bg-gradient-primary">
-                    <div class="card-body">
-                        <div class="card-icon">
-                            <i class="bi bi-people-fill"></i>
-                        </div>
-                        <h5>Users</h5>
-                        <p>Manage system users and permissions</p>
-                        <a href="{{ path('app_user_index') }}" class="btn btn-light btn-sm">
-                            <i class="bi bi-arrow-right"></i> View Users
-                        </a>
-                    </div>
+    {# Quick Stats Row #}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background: rgba(99,102,241,0.12); color: #818cf8;">
+                    <i class="bi bi-people-fill"></i>
                 </div>
-            </div>
-            {% endif %}
-
-            <div class="col-md-6 col-lg-3">
-                <div class="card dashboard-card bg-gradient-success">
-                    <div class="card-body">
-                        <div class="card-icon">
-                            <i class="bi bi-book-fill"></i>
-                        </div>
-                        <h5>Programme</h5>
-                        <p>Browse and manage academic programmes</p>
-                        <a href="{{ path('app_programme') }}" class="btn btn-light btn-sm">
-                            <i class="bi bi-arrow-right"></i> View
-                        </a>
-                    </div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-label">Users</span>
+                    <span class="admin-stat-value">—</span>
                 </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="card dashboard-card bg-gradient-danger">
-                    <div class="card-body">
-                        <div class="card-icon">
-                            <i class="bi bi-door-open-fill"></i>
-                        </div>
-                        <h5>Classe</h5>
-                        <p>Manage classrooms and schedules</p>
-                        <a href="{{ path('app_classe') }}" class="btn btn-light btn-sm">
-                            <i class="bi bi-arrow-right"></i> View
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="card dashboard-card bg-gradient-warning">
-                    <div class="card-body">
-                        <div class="card-icon">
-                            <i class="bi bi-calendar-event-fill"></i>
-                        </div>
-                        <h5>Events</h5>
-                        <p>University events and activities</p>
-                        <a href="{{ path('app_event') }}" class="btn btn-light btn-sm">
-                            <i class="bi bi-arrow-right"></i> View
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-                <div class="card dashboard-card bg-gradient-info">
-                    <div class="card-body">
-                        <div class="card-icon">
-                            <i class="bi bi-briefcase-fill"></i>
-                        </div>
-                        <h5>Job Offers</h5>
-                        <p>Career opportunities and internships</p>
-                        <a href="{{ path('app_job_offer_index') }}" class="btn btn-light btn-sm">
-                            <i class="bi bi-arrow-right"></i> View
-                        </a>
-                    </div>
-                </div>
+                <a href="{{ path('app_user_index') }}" class="stretched-link"></a>
             </div>
         </div>
+        <div class="col-6 col-lg-3">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background: rgba(16,185,129,0.12); color: #34d399;">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-label">Programs</span>
+                    <span class="admin-stat-value">—</span>
+                </div>
+                <a href="{{ path('app_programme') }}" class="stretched-link"></a>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background: rgba(245,158,11,0.12); color: #fbbf24;">
+                    <i class="bi bi-door-open-fill"></i>
+                </div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-label">Classes</span>
+                    <span class="admin-stat-value">—</span>
+                </div>
+                <a href="{{ path('app_classe') }}" class="stretched-link"></a>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon" style="background: rgba(239,68,68,0.12); color: #f87171;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div class="admin-stat-info">
+                    <span class="admin-stat-label">Réclamations</span>
+                    <span class="admin-stat-value">—</span>
+                </div>
+                <a href="{{ path('app_admin_reclamations') }}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
 
-        {# Quick Info Section #}
-        {% if app.user %}
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="section-title">
-                            <i class="bi bi-person-badge"></i> Account Information
-                        </h5>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="info-item">
-                                    <div class="info-item-label">Logged in as</div>
-                                    <div class="info-item-value">{{ app.user.email }}</div>
-                                </div>
+    {# Two-column layout #}
+    <div class="row g-4">
+        {# Left Column — Quick Navigation #}
+        <div class="col-lg-8">
+            <div class="card admin-panel-card">
+                <div class="card-header admin-panel-header">
+                    <i class="bi bi-lightning-charge-fill me-2"></i>Quick Access
+                </div>
+                <div class="card-body p-0">
+                    <div class="admin-quick-grid">
+                        <a href="{{ path('app_user_index') }}" class="admin-quick-item">
+                            <div class="admin-quick-icon bg-indigo"><i class="bi bi-people-fill"></i></div>
+                            <div>
+                                <div class="admin-quick-title">All Users</div>
+                                <div class="admin-quick-desc">View & manage accounts</div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="info-item">
-                                    <div class="info-item-label">Role</div>
-                                    <div class="info-item-value">
-                                        <span class="badge bg-primary">{{ app.user.role }}</span>
-                                    </div>
-                                </div>
+                        </a>
+                        <a href="{{ path('app_programme') }}" class="admin-quick-item">
+                            <div class="admin-quick-icon bg-emerald"><i class="bi bi-journal-bookmark-fill"></i></div>
+                            <div>
+                                <div class="admin-quick-title">Programs</div>
+                                <div class="admin-quick-desc">Academic programs</div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="info-item">
-                                    <div class="info-item-label">Status</div>
-                                    <div class="info-item-value">
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> Active
-                                        </span>
-                                    </div>
-                                </div>
+                        </a>
+                        <a href="{{ path('app_classe') }}" class="admin-quick-item">
+                            <div class="admin-quick-icon bg-amber"><i class="bi bi-door-open-fill"></i></div>
+                            <div>
+                                <div class="admin-quick-title">Classes</div>
+                                <div class="admin-quick-desc">Classrooms & schedules</div>
                             </div>
-                        </div>
+                        </a>
+                        <a href="{{ path('app_event') }}" class="admin-quick-item">
+                            <div class="admin-quick-icon bg-rose"><i class="bi bi-calendar-event-fill"></i></div>
+                            <div>
+                                <div class="admin-quick-title">Events</div>
+                                <div class="admin-quick-desc">University events</div>
+                            </div>
+                        </a>
+                        <a href="{{ path('app_job_offer_index') }}" class="admin-quick-item">
+                            <div class="admin-quick-icon bg-sky"><i class="bi bi-briefcase-fill"></i></div>
+                            <div>
+                                <div class="admin-quick-title">Job Offers</div>
+                                <div class="admin-quick-desc">Career opportunities</div>
+                            </div>
+                        </a>
+                        <a href="{{ path('admin_job_offer_list') }}" class="admin-quick-item">
+                            <div class="admin-quick-icon bg-violet"><i class="bi bi-shield-fill-check"></i></div>
+                            <div>
+                                <div class="admin-quick-title">Moderate Jobs</div>
+                                <div class="admin-quick-desc">Review pending offers</div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-        {% endif %}
 
-        {# Quick Actions #}
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="section-title">
-                            <i class="bi bi-lightning-charge-fill"></i> Quick Actions
-                        </h5>
-                        <div class="d-flex flex-wrap gap-3">
-                            {% if is_granted('ROLE_ADMIN') %}
-                            <a href="{{ path('app_user_new') }}" class="btn btn-primary">
-                                <i class="bi bi-person-plus"></i> Add New User
-                            </a>
-                            {% endif %}
-                            <a href="{{ path('app_programme') }}" class="btn btn-success">
-                                <i class="bi bi-plus-circle"></i> Browse Programmes
-                            </a>
-                            <a href="{{ path('app_event') }}" class="btn btn-warning">
-                                <i class="bi bi-calendar-plus"></i> View Events
-                            </a>
-                            <a href="{{ path('app_job_offer_index') }}" class="btn btn-info">
-                                <i class="bi bi-briefcase"></i> Job Offers
-                            </a>
+        {# Right Column — Account Info + Student Services #}
+        <div class="col-lg-4">
+            {# Account card #}
+            <div class="card admin-panel-card mb-4">
+                <div class="card-header admin-panel-header">
+                    <i class="bi bi-person-badge-fill me-2"></i>Your Account
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="admin-avatar">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">{{ app.user.profile ? app.user.profile.firstName ~ ' ' ~ app.user.profile.lastName : app.user.email }}</div>
+                            <span class="badge bg-primary bg-opacity-25 text-primary">{{ app.user.role }}</span>
                         </div>
                     </div>
+                    <div class="admin-info-row">
+                        <span class="admin-info-label">Email</span>
+                        <span class="admin-info-value">{{ app.user.email }}</span>
+                    </div>
+                    <div class="admin-info-row">
+                        <span class="admin-info-label">Status</span>
+                        <span class="badge bg-success bg-opacity-25 text-success"><i class="bi bi-check-circle"></i> Active</span>
+                    </div>
+                </div>
+            </div>
+
+            {# Student Services shortcuts #}
+            <div class="card admin-panel-card">
+                <div class="card-header admin-panel-header">
+                    <i class="bi bi-mortarboard-fill me-2"></i>Student Services
+                </div>
+                <div class="card-body p-0">
+                    <a href="{{ path('app_admin_reclamations') }}" class="admin-service-link">
+                        <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                        <span>Réclamations</span>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                    <a href="{{ path('app_admin_document_requests') }}" class="admin-service-link">
+                        <i class="bi bi-file-earmark-text-fill text-info"></i>
+                        <span>Document Requests</span>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
+                    <a href="{{ path('app_admin_schedules') }}" class="admin-service-link">
+                        <i class="bi bi-calendar-week-fill text-success"></i>
+                        <span>Schedules</span>
+                        <i class="bi bi-arrow-right ms-auto"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+{% else %}
+{# ================================================================
+   FRONT OFFICE — University Portal
+   Only functional content. Professional, data-dense, desktop-first.
+   ================================================================ #}
+<div class="container-xl py-4 px-4 fo-page-wrap">
+
+    {# ── Portal Welcome Header ── #}
+    <div class="fo-portal-header fo-animate-up">
+        <div>
+            <p class="fo-portal-eyebrow">UniLearn &middot; University Portal</p>
+            <h1 class="fo-portal-title">
+                {% set hour = "now"|date("G") %}
+                {% if hour < 12 %}Good morning{% elseif hour < 18 %}Good afternoon{% else %}Good evening{% endif %}{% if app.user.profile %}, {{ app.user.profile.firstName }}{% endif %}
+            </h1>
+            <p class="fo-portal-meta">
+                {{ "now"|date("l, d F Y") }}
+                &nbsp;&middot;&nbsp;
+                <span class="fo-status-dot"></span>&nbsp;
+                <strong>{{ app.user.role }}</strong>
+            </p>
+        </div>
+        <div class="fo-portal-actions">
+            {% if is_granted('ROLE_STUDENT') %}
+            <a href="{{ path('app_student_learning_index') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-play-circle me-1"></i>My Learning
+            </a>
+            <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-sm btn-outline-primary">
+                Espace &Eacute;tudiant
+            </a>
+            {% elseif is_granted('ROLE_TEACHER') and not is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('app_teacher_my_classes') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-easel2 me-1"></i>My Classes
+            </a>
+            {% else %}
+            <a href="{{ path('app_programme') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-journal-bookmark me-1"></i>Programmes
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Two-column portal layout ── #}
+    <div class="row g-4 align-items-start">
+
+        {# ── Left: service panels ── #}
+        <div class="col-lg-8">
+
+            {# University Services — all links are real and functional #}
+            <div class="fo-panel mb-4 fo-animate-up">
+                <div class="fo-panel-header">
+                    <i class="bi bi-globe me-2"></i>University Services
+                </div>
+                <div class="fo-service-grid">
+                    <a href="{{ path('app_programme') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(8,145,178,0.1);color:#0891b2;">
+                            <i class="bi bi-journal-bookmark"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Academic Programmes</div>
+                            <div class="fo-service-desc">Browse available degree programmes</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_classe') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Classes</div>
+                            <div class="fo-service-desc">View classrooms and course groups</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_event') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(249,115,22,0.1);color:#f97316;">
+                            <i class="bi bi-calendar2-event"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Events</div>
+                            <div class="fo-service-desc">University events and activities</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_job_offer_index') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(139,92,246,0.1);color:#8b5cf6;">
+                            <i class="bi bi-briefcase"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Job Offers</div>
+                            <div class="fo-service-desc">Internships and career opportunities</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_forum') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(244,63,94,0.1);color:#f43f5e;">
+                            <i class="bi bi-chat-square-dots"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Community Forum</div>
+                            <div class="fo-service-desc">Discussions, help and resources</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('profile_edit') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(14,165,233,0.1);color:#0ea5e9;">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Profile Settings</div>
+                            <div class="fo-service-desc">Update your account information</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                </div>
+            </div>
+
+            {# STUDENT — Espace Étudiant panel #}
+            {% if is_granted('ROLE_STUDENT') %}
+            <div class="fo-panel mb-4 fo-animate-up">
+                <div class="fo-panel-header">
+                    <i class="bi bi-mortarboard me-2"></i>Espace &Eacute;tudiant
+                </div>
+                <div class="fo-service-grid">
+                    <a href="{{ path('app_espace_etudiant_dashboard') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(8,145,178,0.1);color:#0891b2;">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Tableau de Bord</div>
+                            <div class="fo-service-desc">Your academic overview</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_student_learning_index') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                            <i class="bi bi-play-circle"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">My Learning</div>
+                            <div class="fo-service-desc">Access your enrolled courses</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_espace_etudiant_grades') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(249,115,22,0.1);color:#f97316;">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Mes Notes</div>
+                            <div class="fo-service-desc">View your grades and results</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_espace_etudiant_reclamations') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(139,92,246,0.1);color:#8b5cf6;">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">R&eacute;clamations</div>
+                            <div class="fo-service-desc">Submit and track reclamations</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_espace_etudiant_documents') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(244,63,94,0.1);color:#f43f5e;">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Documents</div>
+                            <div class="fo-service-desc">Request official documents</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            {# TEACHER panel #}
+            {% if is_granted('ROLE_TEACHER') and not is_granted('ROLE_ADMIN') %}
+            <div class="fo-panel mb-4 fo-animate-up">
+                <div class="fo-panel-header">
+                    <i class="bi bi-easel2 me-2"></i>Teaching
+                </div>
+                <div class="fo-service-grid">
+                    <a href="{{ path('app_teacher_my_classes') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(8,145,178,0.1);color:#0891b2;">
+                            <i class="bi bi-easel2"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">My Classes</div>
+                            <div class="fo-service-desc">Manage your classes and materials</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            {# BUSINESS PARTNER panel #}
+            {% if is_granted('ROLE_BUSINESS_PARTNER') %}
+            <div class="fo-panel mb-4 fo-animate-up">
+                <div class="fo-panel-header">
+                    <i class="bi bi-buildings me-2"></i>Partner Portal
+                </div>
+                <div class="fo-service-grid">
+                    <a href="{{ path('app_partner_job_offer_index') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(8,145,178,0.1);color:#0891b2;">
+                            <i class="bi bi-list-ul"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">My Job Offers</div>
+                            <div class="fo-service-desc">Manage your posted offers</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                    <a href="{{ path('app_partner_job_offer_new') }}" class="fo-service-item">
+                        <div class="fo-service-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                            <i class="bi bi-plus-circle"></i>
+                        </div>
+                        <div class="fo-service-text">
+                            <div class="fo-service-title">Post New Offer</div>
+                            <div class="fo-service-desc">Create a new job listing</div>
+                        </div>
+                        <i class="bi bi-chevron-right fo-service-arrow"></i>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>{# end col-lg-8 #}
+
+        {# ── Right: Account panel ── #}
+        <div class="col-lg-4">
+            <div class="fo-panel fo-animate-up">
+                <div class="fo-panel-header">
+                    <i class="bi bi-person-badge me-2"></i>Your Account
+                </div>
+                <div class="fo-panel-body">
+                    <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--fo-sidebar-border);">
+                        <div class="fo-account-avatar-sm">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="fw-semibold text-truncate" style="font-size:0.95rem;">
+                                {{ app.user.profile ? app.user.profile.firstName ~ ' ' ~ app.user.profile.lastName : app.user.email }}
+                            </div>
+                            <span class="fo-role-badge">{{ app.user.role }}</span>
+                        </div>
+                    </div>
+                    <div class="fo-info-row">
+                        <span class="fo-info-label">Email</span>
+                        <span class="text-truncate" style="font-size:0.82rem; max-width:180px;">{{ app.user.email }}</span>
+                    </div>
+                    <div class="fo-info-row">
+                        <span class="fo-info-label">Status</span>
+                        <span class="badge bg-success bg-opacity-15 text-success small">
+                            <i class="bi bi-check-circle"></i> Active
+                        </span>
+                    </div>
+                </div>
+                <a href="{{ path('profile_edit') }}" class="fo-panel-footer-link">
+                    <i class="bi bi-pencil me-1"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+
+    </div>{# end row #}
+
+</div>
+{% endif %}
 {% endblock %}

@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Form for creating and editing job offers.
@@ -28,6 +29,15 @@ class JobOfferFormType extends AbstractType
                     'class' => 'form-control',
                     'placeholder' => 'e.g., Software Developer Intern',
                 ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'You must enter a job title.']),
+                    new Assert\Length([
+                        'min' => 3,
+                        'max' => 255,
+                        'minMessage' => 'The job title must be at least {{ limit }} characters.',
+                        'maxMessage' => 'The job title cannot exceed {{ limit }} characters.',
+                    ]),
+                ],
             ])
             ->add('type', EnumType::class, [
                 'label' => 'Job Type',
@@ -35,6 +45,9 @@ class JobOfferFormType extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-select'],
                 'choice_label' => fn($choice) => ucfirst(strtolower(str_replace('_', ' ', $choice->value))),
+                'constraints' => [
+                    new Assert\NotNull(['message' => 'You must select a job type.']),
+                ],
             ])
             ->add('location', TextType::class, [
                 'label' => 'Location',
@@ -42,6 +55,12 @@ class JobOfferFormType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'placeholder' => 'e.g., Paris, France or Remote',
+                ],
+                'constraints' => [
+                    new Assert\Length([
+                        'max' => 255,
+                        'maxMessage' => 'The location cannot exceed {{ limit }} characters.',
+                    ]),
                 ],
             ])
             ->add('description', TextareaType::class, [
@@ -52,6 +71,15 @@ class JobOfferFormType extends AbstractType
                     'placeholder' => 'Describe the job responsibilities, duties, and details...',
                     'rows' => 8,
                 ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'You must provide a job description.']),
+                    new Assert\Length([
+                        'min' => 20,
+                        'max' => 10000,
+                        'minMessage' => 'The description must be at least {{ limit }} characters.',
+                        'maxMessage' => 'The description cannot exceed {{ limit }} characters.',
+                    ]),
+                ],
             ])
             ->add('requirements', TextareaType::class, [
                 'label' => 'Requirements',
@@ -60,6 +88,12 @@ class JobOfferFormType extends AbstractType
                     'class' => 'form-control',
                     'placeholder' => 'List the qualifications, skills, and requirements...',
                     'rows' => 6,
+                ],
+                'constraints' => [
+                    new Assert\Length([
+                        'max' => 5000,
+                        'maxMessage' => 'Requirements cannot exceed {{ limit }} characters.',
+                    ]),
                 ],
             ])
             ->add('publishedAt', DateTimeType::class, [

@@ -1,0 +1,21 @@
+{#
+ * UniLearn Custom Form Validation Theme
+ * Applied globally via twig.yaml form_themes.
+ *
+ * What it does:
+ *  - Renders every field error as a red Bootstrap `invalid-feedback` block
+ *    with a Bootstrap-icon exclamation mark below the input.
+ *  - HTML5 browser native validation is disabled via a JS snippet in
+ *    base.html.twig (adding `novalidate` to every <form> on DOMContentLoaded).
+ #}
+
+{# ─── Field-level errors — red block rendered below every invalid input ────── #}
+{% block form_errors -%}
+    {%- if errors|length > 0 -%}
+        {%- for error in errors -%}
+            <div class="invalid-feedback d-block unilearn-field-error">
+                <i class="bi bi-exclamation-circle-fill me-1"></i>{{ error.message }}
+            </div>
+        {%- endfor -%}
+    {%- endif -%}
+{%- endblock form_errors %}

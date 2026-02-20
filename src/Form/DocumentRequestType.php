@@ -8,6 +8,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class DocumentRequestType extends AbstractType
 {
@@ -24,12 +25,22 @@ class DocumentRequestType extends AbstractType
                     'Certificat de Scolarité' => 'certificat_scolarite',
                     'Autre' => 'autre',
                 ],
+                'placeholder' => 'Sélectionnez un type de document',
                 'attr' => ['class' => 'form-control'],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Vous devez sélectionner un type de document.']),
+                ],
             ])
             ->add('additionalInfo', TextareaType::class, [
                 'label' => 'Informations complémentaires',
                 'required' => false,
                 'attr' => ['class' => 'form-control', 'rows' => 4, 'placeholder' => 'Ajoutez des détails si nécessaire...'],
+                'constraints' => [
+                    new Assert\Length([
+                        'max' => 1000,
+                        'maxMessage' => 'Les informations complémentaires ne peuvent pas dépasser {{ limit }} caractères.',
+                    ]),
+                ],
             ]);
     }
 

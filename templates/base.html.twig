@@ -3,7 +3,6 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        {# Prevent flash of wrong theme on page load #}
         <script>
             (function() {
                 var t = localStorage.getItem('unilearn-theme') || 'light';
@@ -12,148 +11,75 @@
         </script>
         <title>{% block title %}UniLearn - University LMS{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🎓</text></svg>">
-        
-        {# Google Fonts #}
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-        
-        {# Bootstrap 5 CSS #}
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-        
-        {# Custom CSS - Material Design Theme #}
         <link rel="stylesheet" href="{{ asset('assets/styles/app.css') }}">
-
-        {# Bootstrap 5 JS Bundle - must be in <head> so Turbo keeps it persistent #}
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
-        
-        {% block stylesheets %}
-        {% endblock %}
-
+        {# Disable HTML5 native validation on every form — server-side validation handles all feedback #}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('form').forEach(function (f) { f.setAttribute('novalidate', ''); });
+            });
+        </script>
+        {% block stylesheets %}{% endblock %}
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
     </head>
-    <body>
+    <body class="{% if app.user and is_granted('ROLE_ADMIN') %}back-office{% endif %}">
+
         {% if app.user %}
-        {# Sidebar Navigation #}
+
+        {% if is_granted('ROLE_ADMIN') %}
+        {# ================================================================
+           BACK OFFICE — Sidebar layout (admin only)
+           ================================================================ #}
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="{{ path('app_home') }}" class="sidebar-brand">
-                    <i class="bi bi-mortarboard-fill"></i>
+                    <i class="bi bi-gear-wide-connected"></i>
                     <span class="brand-text">UniLearn</span>
                 </a>
+                <span class="admin-badge"><i class="bi bi-shield-lock-fill me-1"></i>Admin Panel</span>
             </div>
-            
             <div class="sidebar-menu">
+                <span class="sidebar-section-label">Overview</span>
                 <a class="sidebar-link {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}" href="{{ path('app_home') }}">
-                    <i class="bi bi-house-fill"></i>
-                    <span>Home</span>
+                    <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
                 </a>
-                
-                {% if is_granted('ROLE_ADMIN') %}
-                <div class="sidebar-dropdown">
-                    <a class="sidebar-link {% if 'user' in app.request.attributes.get('_route') %}active{% endif %}" href="#usersSubmenu" data-bs-toggle="collapse">
-                        <i class="bi bi-people-fill"></i>
-                        <span>Users</span>
-                        <i class="bi bi-chevron-down ms-auto"></i>
-                    </a>
-                    <div class="collapse sidebar-submenu" id="usersSubmenu">
-                        <a class="sidebar-sublink" href="{{ path('app_user_new') }}">
-                            <i class="bi bi-person-plus"></i> Add User
-                        </a>
-                        <a class="sidebar-sublink" href="{{ path('app_user_index') }}">
-                            <i class="bi bi-list-ul"></i> List Users
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-                {% if is_granted('ROLE_ADMIN') %}
-<div class="sidebar-dropdown">
-    <a class="sidebar-link {% if 'admin' in app.request.attributes.get('_route') and 'reclamation' in app.request.attributes.get('_route') or 'document' in app.request.attributes.get('_route') or 'schedule' in app.request.attributes.get('_route') %}active{% endif %}" href="#adminEspaceSubmenu" data-bs-toggle="collapse">
-        <i class="bi bi-shield-check"></i>
-        <span>Admin Espace Étudiant</span>
-        <i class="bi bi-chevron-down ms-auto"></i>
-    </a>
-    <div class="collapse sidebar-submenu" id="adminEspaceSubmenu">
-        <a class="sidebar-sublink" href="{{ path('app_admin_reclamations') }}">
-            <i class="bi bi-exclamation-circle"></i> Réclamations
-        </a>
-        <a class="sidebar-sublink" href="{{ path('app_admin_document_requests') }}">
-            <i class="bi bi-file-earmark-text"></i> Demandes Documents
-        </a>
-        <a class="sidebar-sublink" href="{{ path('app_admin_schedules') }}">
-            <i class="bi bi-calendar-week"></i> Emplois du Temps
-        </a>
-    </div>
-</div>
-{% endif %}
-                
-                <!-- ADD THIS NEW SECTION HERE ↓↓↓ -->
-                {% if is_granted('ROLE_STUDENT') %}
-                {# My Learning - Direct link for easy access #}
-                <a class="sidebar-link {% if 'student_learning' in app.request.attributes.get('_route') or 'student_classe' in app.request.attributes.get('_route') or 'student_module' in app.request.attributes.get('_route') or 'student_course' in app.request.attributes.get('_route') or 'student_contenu' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_student_learning_index') }}">
-                    <i class="bi bi-book-fill"></i>
-                    <span>My Learning</span>
+                <span class="sidebar-section-label">User Management</span>
+                <a class="sidebar-link {% if app.request.attributes.get('_route') == 'app_user_index' %}active{% endif %}" href="{{ path('app_user_index') }}">
+                    <i class="bi bi-people-fill"></i><span>All Users</span>
                 </a>
-
-                <div class="sidebar-dropdown">
-                    <a class="sidebar-link {% if 'espace_etudiant' in app.request.attributes.get('_route') %}active{% endif %}" href="#espaceEtudiantSubmenu" data-bs-toggle="collapse">
-                        <i class="bi bi-mortarboard-fill"></i>
-                        <span>Espace Étudiant</span>
-                        <i class="bi bi-chevron-down ms-auto"></i>
-                    </a>
-                    <div class="collapse sidebar-submenu" id="espaceEtudiantSubmenu">
-                        <a class="sidebar-sublink" href="{{ path('app_espace_etudiant_dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Tableau de Bord
-                        </a>
-                        <a class="sidebar-sublink" href="{{ path('app_espace_etudiant_grades') }}">
-                            <i class="bi bi-graph-up"></i> Mes Notes
-                        </a>
-                        <a class="sidebar-sublink" href="{{ path('app_espace_etudiant_reclamations') }}">
-                            <i class="bi bi-exclamation-circle"></i> Réclamations
-                        </a>
-                        <a class="sidebar-sublink" href="{{ path('app_espace_etudiant_documents') }}">
-                            <i class="bi bi-file-earmark-text"></i> Documents
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-                <!-- ↑↑↑ END OF NEW SECTION -->
-
-                {# Admin Educational Management - Programs and Classes only #}
-                {% if is_granted('ROLE_ADMIN') %}
-                <div class="sidebar-dropdown">
-                    <a class="sidebar-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}" href="#eduSubmenu" data-bs-toggle="collapse">
-                        <i class="bi bi-book-fill"></i>
-                        <span>Educational Management</span>
-                        <i class="bi bi-chevron-down ms-auto"></i>
-                    </a>
-                    <div class="collapse sidebar-submenu" id="eduSubmenu">
-                        <a class="sidebar-sublink" href="{{ path('app_programme') }}">
-                            <i class="bi bi-collection"></i> Programs
-                        </a>
-                    </div>
-                </div>
-                
+                <a class="sidebar-link {% if app.request.attributes.get('_route') == 'app_user_new' %}active{% endif %}" href="{{ path('app_user_new') }}">
+                    <i class="bi bi-person-plus-fill"></i><span>Add User</span>
+                </a>
+                <span class="sidebar-section-label">Student Services</span>
+                <a class="sidebar-link {% if 'admin_reclamation' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_admin_reclamations') }}">
+                    <i class="bi bi-exclamation-triangle-fill"></i><span>Réclamations</span>
+                </a>
+                <a class="sidebar-link {% if 'admin_document' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_admin_document_requests') }}">
+                    <i class="bi bi-file-earmark-text-fill"></i><span>Document Requests</span>
+                </a>
+                <a class="sidebar-link {% if 'admin_schedule' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_admin_schedules') }}">
+                    <i class="bi bi-calendar-week-fill"></i><span>Schedules</span>
+                </a>
+                <span class="sidebar-section-label">Academics</span>
+                <a class="sidebar-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_programme') }}">
+                    <i class="bi bi-journal-bookmark-fill"></i><span>Programs</span>
+                </a>
                 <a class="sidebar-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_classe') }}">
-                    <i class="bi bi-door-open-fill"></i>
-                    <span>Classes</span>
+                    <i class="bi bi-door-open-fill"></i><span>Classes</span>
                 </a>
-                {% endif %}
-
-                {# Teacher Educational Management - My Classes only #}
-                {% if is_granted('ROLE_TEACHER') and not is_granted('ROLE_ADMIN') %}
-                <a class="sidebar-link {% if 'teacher_classe' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_teacher_my_classes') }}">
-                    <i class="bi bi-door-open-fill"></i>
-                    <span>My Classes</span>
+                <span class="sidebar-section-label">Platform</span>
+                <a class="sidebar-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_event') }}">
+                    <i class="bi bi-calendar-event-fill"></i><span>Events</span>
                 </a>
-                {% endif %}
-                
-                <a class="sidebar-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_event') }}">>
-                    <i class="bi bi-calendar-event-fill"></i>
-                    <span>Event</span>
+                <a class="sidebar-link {% if 'job' in app.request.attributes.get('_route') and 'admin' not in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_job_offer_index') }}">
+                    <i class="bi bi-briefcase-fill"></i><span>Job Offers</span>
                 </a>
                 
                 {% if is_granted('ROLE_STUDENT') and not is_granted('ROLE_ADMIN') and not is_granted('ROLE_TEACHER') and not is_granted('ROLE_TRAINER') and not is_granted('ROLE_BUSINESS_PARTNER') %}
@@ -164,8 +90,7 @@
                 {% endif %}
                 
                 <a class="sidebar-link {% if 'forum' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_forum') }}">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Community</span>
+                    <i class="bi bi-chat-dots-fill"></i><span>Community</span>
                 </a>
 
                 <a class="sidebar-link {% if 'meeting' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_meeting_index') }}">
@@ -192,9 +117,9 @@
                 {% endif %}
 
                 {% if is_granted('ROLE_ADMIN') %}
+                <span class="sidebar-section-label">Moderation</span>
                 <a class="sidebar-link {% if 'admin_job' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('admin_job_offer_list') }}">
-                    <i class="bi bi-shield-check"></i>
-                    <span>Moderate Job Offers</span>
+                    <i class="bi bi-shield-fill-check"></i><span>Moderate Jobs</span>
                     {% if pendingJobOffersCount > 0 %}
                     <span class="badge bg-warning text-dark ms-2">{{ pendingJobOffersCount }}</span>
                     {% endif %}
@@ -202,58 +127,155 @@
                 {% endif %}
             </div>
         </div>
-        
-        {# Overlay for mobile #}
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
-        
-        {# Top bar with toggle button #}
         <div class="topbar">
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="bi bi-list"></i>
-            </button>
+            <button class="sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
             <a href="{{ path('app_home') }}" class="topbar-title text-decoration-none">
-                <i class="bi bi-mortarboard-fill text-primary"></i> UniLearn 
+                <i class="bi bi-gear-wide-connected text-primary"></i> UniLearn
+                <span class="topbar-admin-tag"><i class="bi bi-shield-lock-fill me-1"></i>Admin</span>
             </a>
-            
-            {# Theme toggle button #}
-            <button class="theme-toggle ms-auto" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">
-                <i class="bi bi-sun-fill"></i>
-                <i class="bi bi-moon-stars-fill"></i>
+            <button class="theme-toggle ms-auto" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+                <i class="bi bi-sun-fill"></i><i class="bi bi-moon-stars-fill"></i>
             </button>
-
-            {# User menu in top right #}
             <div class="topbar-user">
                 <div class="dropdown">
-                    <button class="btn btn-link text-decoration-none dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="user-avatar">
-                            <i class="bi bi-person-circle fs-4"></i>
-                        </div>
+                    <button class="btn btn-link text-decoration-none dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar"><i class="bi bi-person-circle fs-4"></i></div>
                         <div class="user-info text-start d-none d-md-block">
                             <div class="user-name fw-semibold">{{ app.user.profile ? app.user.profile.firstName ~ ' ' ~ app.user.profile.lastName : app.user.email }}</div>
                             <small class="user-role text-muted">{{ app.user.role }}</small>
                         </div>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenu">
-                        <li>
-                            <a class="dropdown-item" href="{{ path('profile_edit') }}">
-                                <i class="bi bi-person-gear me-2"></i> Profile Settings
-                            </a>
-                        </li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item" href="{{ path('profile_edit') }}"><i class="bi bi-person-gear me-2"></i>Profile Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="{{ path('app_logout') }}">
-                                <i class="bi bi-box-arrow-right me-2"></i> Logout
-                            </a>
-                        </li>
+                        <li><a class="dropdown-item text-danger" href="{{ path('app_logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
                     </ul>
                 </div>
             </div>
         </div>
-        {% endif %}
 
-        {# Main content wrapper #}
+        {% else %}
+        {# ================================================================
+           FRONT OFFICE — Top Navbar (students, teachers, partners)
+           ================================================================ #}
+
+        {# Animated background canvas — sits behind everything #}
+        <canvas class="fo-bg-canvas" id="foBgCanvas" aria-hidden="true"></canvas>
+
+        <nav class="fo-navbar" id="foNavbar">
+            <div class="fo-navbar-inner">
+
+                <a href="{{ path('app_home') }}" class="fo-navbar-brand">
+                    <div class="fo-brand-icon"><i class="bi bi-mortarboard-fill"></i></div>
+                    <span class="fo-brand-text">UniLearn</span>
+                </a>
+
+                <div class="fo-navbar-links" id="foNavLinks">
+                    <a href="{{ path('app_home') }}" class="fo-nav-link {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}">Home</a>
+                    <a href="{{ path('app_programme') }}" class="fo-nav-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}">Programmes</a>
+                    <a href="{{ path('app_classe') }}" class="fo-nav-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') and 'student' not in app.request.attributes.get('_route') %}active{% endif %}">Classes</a>
+                    <a href="{{ path('app_event') }}" class="fo-nav-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}">Events</a>
+                    <a href="{{ path('app_job_offer_index') }}" class="fo-nav-link {% if 'job' in app.request.attributes.get('_route') and 'partner' not in app.request.attributes.get('_route') and 'admin' not in app.request.attributes.get('_route') %}active{% endif %}">Jobs</a>
+                    <a href="{{ path('app_forum') }}" class="fo-nav-link {% if 'forum' in app.request.attributes.get('_route') %}active{% endif %}">Forum</a>
+
+                    {% if is_granted('ROLE_STUDENT') %}
+                    <div class="fo-nav-dropdown-wrap">
+                        <button class="fo-nav-link fo-has-dropdown {% if 'espace_etudiant' in app.request.attributes.get('_route') or 'student_learning' in app.request.attributes.get('_route') %}active{% endif %}">
+                            My Space <i class="bi bi-chevron-down fo-caret"></i>
+                        </button>
+                        <div class="fo-dropdown-menu">
+                            <a href="{{ path('app_espace_etudiant_dashboard') }}" class="fo-dropdown-item"><i class="bi bi-speedometer2"></i> Tableau de Bord</a>
+                            <a href="{{ path('app_student_learning_index') }}" class="fo-dropdown-item"><i class="bi bi-play-circle"></i> My Learning</a>
+                            <a href="{{ path('app_espace_etudiant_grades') }}" class="fo-dropdown-item"><i class="bi bi-graph-up"></i> Mes Notes</a>
+                            <a href="{{ path('app_espace_etudiant_reclamations') }}" class="fo-dropdown-item"><i class="bi bi-exclamation-circle"></i> Réclamations</a>
+                            <a href="{{ path('app_espace_etudiant_documents') }}" class="fo-dropdown-item"><i class="bi bi-file-earmark-text"></i> Documents</a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_TEACHER') %}
+                    <a href="{{ path('app_teacher_my_classes') }}" class="fo-nav-link {% if 'teacher_classe' in app.request.attributes.get('_route') %}active{% endif %}">My Classes</a>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_BUSINESS_PARTNER') %}
+                    <div class="fo-nav-dropdown-wrap">
+                        <button class="fo-nav-link fo-has-dropdown {% if 'partner_job' in app.request.attributes.get('_route') %}active{% endif %}">
+                            Partner <i class="bi bi-chevron-down fo-caret"></i>
+                        </button>
+                        <div class="fo-dropdown-menu">
+                            <a href="{{ path('app_partner_job_offer_index') }}" class="fo-dropdown-item"><i class="bi bi-list-ul"></i> My Offers</a>
+                            <a href="{{ path('app_partner_job_offer_new') }}" class="fo-dropdown-item"><i class="bi bi-plus-circle"></i> Post New Offer</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="fo-navbar-right">
+                    <button class="fo-theme-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+                        <i class="bi bi-sun-fill"></i><i class="bi bi-moon-stars-fill"></i>
+                    </button>
+
+                    <div class="fo-nav-dropdown-wrap fo-user-wrap">
+                        <button class="fo-user-btn fo-has-dropdown">
+                            <div class="fo-user-avatar"><i class="bi bi-person-fill"></i></div>
+                            <div class="fo-user-meta d-none d-lg-flex">
+                                <span class="fo-user-name">{{ app.user.profile ? app.user.profile.firstName : app.user.email }}</span>
+                                <span class="fo-user-role">{{ app.user.role }}</span>
+                            </div>
+                            <i class="bi bi-chevron-down fo-caret"></i>
+                        </button>
+                        <div class="fo-dropdown-menu fo-dropdown-user">
+                            <div class="fo-dropdown-header">
+                                <strong>{{ app.user.profile ? app.user.profile.firstName ~ ' ' ~ app.user.profile.lastName : app.user.email }}</strong>
+                                <small>{{ app.user.email }}</small>
+                            </div>
+                            <a href="{{ path('profile_edit') }}" class="fo-dropdown-item"><i class="bi bi-person-gear"></i> Profile Settings</a>
+                            <div class="fo-dropdown-divider"></div>
+                            <a href="{{ path('app_logout') }}" class="fo-dropdown-item fo-dropdown-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        </div>
+                    </div>
+
+                    <button class="fo-hamburger" id="foHamburger" aria-label="Open menu">
+                        <span></span><span></span><span></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="fo-mobile-menu" id="foMobileMenu">
+                <a href="{{ path('app_home') }}" class="fo-mobile-link {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}"><i class="bi bi-house-door"></i> Home</a>
+                <a href="{{ path('app_programme') }}" class="fo-mobile-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-journal-bookmark"></i> Programmes</a>
+                <a href="{{ path('app_classe') }}" class="fo-mobile-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-grid-3x3-gap"></i> Classes</a>
+                <a href="{{ path('app_event') }}" class="fo-mobile-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-calendar2-event"></i> Events</a>
+                <a href="{{ path('app_job_offer_index') }}" class="fo-mobile-link {% if 'job' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-briefcase"></i> Job Offers</a>
+                <a href="{{ path('app_forum') }}" class="fo-mobile-link {% if 'forum' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-chat-square-dots"></i> Forum</a>
+                {% if is_granted('ROLE_STUDENT') %}
+                <div class="fo-mobile-divider"></div>
+                <a href="{{ path('app_student_learning_index') }}" class="fo-mobile-link"><i class="bi bi-play-circle"></i> My Learning</a>
+                <a href="{{ path('app_espace_etudiant_dashboard') }}" class="fo-mobile-link"><i class="bi bi-speedometer2"></i> Espace Étudiant</a>
+                <a href="{{ path('app_espace_etudiant_grades') }}" class="fo-mobile-link"><i class="bi bi-graph-up"></i> Mes Notes</a>
+                <a href="{{ path('app_espace_etudiant_reclamations') }}" class="fo-mobile-link"><i class="bi bi-exclamation-circle"></i> Réclamations</a>
+                <a href="{{ path('app_espace_etudiant_documents') }}" class="fo-mobile-link"><i class="bi bi-file-earmark-text"></i> Documents</a>
+                {% endif %}
+                {% if is_granted('ROLE_TEACHER') %}
+                <div class="fo-mobile-divider"></div>
+                <a href="{{ path('app_teacher_my_classes') }}" class="fo-mobile-link"><i class="bi bi-easel2"></i> My Classes</a>
+                {% endif %}
+                {% if is_granted('ROLE_BUSINESS_PARTNER') %}
+                <div class="fo-mobile-divider"></div>
+                <a href="{{ path('app_partner_job_offer_index') }}" class="fo-mobile-link"><i class="bi bi-buildings"></i> My Offers</a>
+                <a href="{{ path('app_partner_job_offer_new') }}" class="fo-mobile-link"><i class="bi bi-plus-circle"></i> Post Offer</a>
+                {% endif %}
+                <div class="fo-mobile-divider"></div>
+                <a href="{{ path('profile_edit') }}" class="fo-mobile-link"><i class="bi bi-person-gear"></i> Profile Settings</a>
+                <a href="{{ path('app_logout') }}" class="fo-mobile-link fo-mobile-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+            </div>
+        </nav>
+
+        {% endif %}{# end admin / FO branch #}
+        {% endif %}{# end if app.user #}
+
         <div class="main-content" id="mainContent">
-            {# Flash messages #}
             <div class="container-fluid mt-3">
                 {% for type, messages in app.flashes %}
                     {% for message in messages %}
@@ -265,182 +287,228 @@
                     {% endfor %}
                 {% endfor %}
             </div>
-
             {% block body %}{% endblock %}
         </div>
 
-        {# Bootstrap 5 JS is loaded in <head> with defer #}
-        
-        {# Sidebar toggle and animations #}
         <script>
-            // Cleanup function to remove old listeners on Turbo navigation
-            let _sidebarCleanup = null;
+            if (typeof _navCleanup === 'undefined') var _navCleanup = null;
 
             document.addEventListener('turbo:load', function() {
-                // Clean up previous listeners to avoid stacking
-                if (_sidebarCleanup) _sidebarCleanup();
+                if (_navCleanup) _navCleanup();
+                var cleanupFns = [];
 
-                const sidebar = document.getElementById('sidebar');
-                const sidebarToggle = document.getElementById('sidebarToggle');
-                const sidebarOverlay = document.getElementById('sidebarOverlay');
-                const mainContent = document.getElementById('mainContent');
-                const topbar = document.querySelector('.topbar');
+                // ── Admin sidebar ─────────────────────────────────────────
+                var sidebar        = document.getElementById('sidebar');
+                var sidebarToggle  = document.getElementById('sidebarToggle');
+                var sidebarOverlay = document.getElementById('sidebarOverlay');
+                var mainContent    = document.getElementById('mainContent');
+                var topbar         = document.querySelector('.topbar');
 
-                if (!sidebar || !mainContent) return;
-
-                // Re-initialize all Bootstrap components after Turbo navigation
-                // Dispose old instances first to avoid duplicates
-                document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(el) {
-                    var existing = bootstrap.Dropdown.getInstance(el);
-                    if (existing) existing.dispose();
-                    new bootstrap.Dropdown(el);
-                });
-                document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(el) {
-                    var existing = bootstrap.Collapse.getInstance(el);
-                    if (existing) existing.dispose();
-                });
-                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
-                    var existing = bootstrap.Tooltip.getInstance(el);
-                    if (existing) existing.dispose();
-                    new bootstrap.Tooltip(el);
-                });
-
-                // Check if sidebar should be open from localStorage (default: closed)
-                const sidebarOpen = localStorage.getItem('sidebarOpen') === 'true';
-                
-                // Only restore open state on desktop
-                if (sidebarOpen && window.innerWidth >= 992) {
-                    sidebar.classList.add('show');
-                    mainContent.classList.add('shifted');
-                    if (topbar) topbar.classList.add('shifted');
-                }
-                
-                // Toggle sidebar handler
-                function handleToggle() {
-                    const isOpen = sidebar.classList.toggle('show');
-                    
-                    if (window.innerWidth < 992) {
-                        sidebarOverlay.classList.toggle('show', isOpen);
-                    }
-                    
-                    if (window.innerWidth >= 992) {
-                        mainContent.classList.toggle('shifted', isOpen);
-                        if (topbar) topbar.classList.toggle('shifted', isOpen);
-                    }
-                    
-                    localStorage.setItem('sidebarOpen', isOpen);
-                }
-
-                if (sidebarToggle) {
-                    sidebarToggle.addEventListener('click', handleToggle);
-                }
-                
-                // Close sidebar when clicking overlay (mobile)
-                function handleOverlay() {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
-                    localStorage.setItem('sidebarOpen', 'false');
-                }
-
-                if (sidebarOverlay) {
-                    sidebarOverlay.addEventListener('click', handleOverlay);
-                }
-                
-                // Close sidebar when clicking on main content area
-                function handleMainContentClick() {
-                    if (sidebar.classList.contains('show')) {
-                        sidebar.classList.remove('show');
-                        sidebarOverlay.classList.remove('show');
-                        if (window.innerWidth >= 992) {
-                            mainContent.classList.remove('shifted');
-                            if (topbar) topbar.classList.remove('shifted');
-                        }
-                        localStorage.setItem('sidebarOpen', 'false');
-                    }
-                }
-
-                if (mainContent) {
-                    mainContent.addEventListener('click', handleMainContentClick);
-                }
-                
-                // Close sidebar on mobile when clicking any sidebar link
-                function handleLinkClick() {
-                    if (window.innerWidth < 992) {
-                        sidebar.classList.remove('show');
-                        sidebarOverlay.classList.remove('show');
-                    }
-                }
-
-                const sidebarLinks = document.querySelectorAll('.sidebar-link, .sidebar-sublink');
-                sidebarLinks.forEach(function(link) {
-                    link.addEventListener('click', handleLinkClick);
-                });
-                
-                // Handle window resize
-                function handleResize() {
-                    if (window.innerWidth < 992) {
-                        mainContent.classList.remove('shifted');
-                        if (topbar) topbar.classList.remove('shifted');
-                        sidebarOverlay.classList.remove('show');
-                    } else if (sidebar.classList.contains('show')) {
+                if (sidebar && mainContent) {
+                    document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(el) {
+                        var ex = bootstrap.Dropdown.getInstance(el);
+                        if (ex) ex.dispose();
+                        new bootstrap.Dropdown(el);
+                    });
+                    var sidebarOpen = localStorage.getItem('sidebarOpen') === 'true';
+                    if (sidebarOpen && window.innerWidth >= 992) {
+                        sidebar.classList.add('show');
                         mainContent.classList.add('shifted');
                         if (topbar) topbar.classList.add('shifted');
-                        sidebarOverlay.classList.remove('show');
                     }
+                    function handleToggle() {
+                        var isOpen = sidebar.classList.toggle('show');
+                        if (window.innerWidth < 992) sidebarOverlay.classList.toggle('show', isOpen);
+                        if (window.innerWidth >= 992) {
+                            mainContent.classList.toggle('shifted', isOpen);
+                            if (topbar) topbar.classList.toggle('shifted', isOpen);
+                        }
+                        localStorage.setItem('sidebarOpen', isOpen);
+                    }
+                    function handleOverlay() {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                        localStorage.setItem('sidebarOpen', 'false');
+                    }
+                    function handleDocumentClick(e) {
+                        if (!sidebar.classList.contains('show')) return;
+                        if (sidebar.contains(e.target)) return;
+                        if (sidebarToggle && sidebarToggle.contains(e.target)) return;
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                        mainContent.classList.remove('shifted');
+                        if (topbar) topbar.classList.remove('shifted');
+                        localStorage.setItem('sidebarOpen', 'false');
+                    }
+                    function handleResize() {
+                        if (window.innerWidth < 992) {
+                            mainContent.classList.remove('shifted');
+                            if (topbar) topbar.classList.remove('shifted');
+                            sidebarOverlay.classList.remove('show');
+                        } else if (sidebar.classList.contains('show')) {
+                            mainContent.classList.add('shifted');
+                            if (topbar) topbar.classList.add('shifted');
+                        }
+                    }
+                    if (sidebarToggle)  sidebarToggle.addEventListener('click', handleToggle);
+                    if (sidebarOverlay) sidebarOverlay.addEventListener('click', handleOverlay);
+                    document.addEventListener('click', handleDocumentClick);
+                    window.addEventListener('resize', handleResize);
+                    cleanupFns.push(function() {
+                        if (sidebarToggle)  sidebarToggle.removeEventListener('click', handleToggle);
+                        if (sidebarOverlay) sidebarOverlay.removeEventListener('click', handleOverlay);
+                        document.removeEventListener('click', handleDocumentClick);
+                        window.removeEventListener('resize', handleResize);
+                    });
                 }
 
-                window.addEventListener('resize', handleResize);
-                
-                // Add animation class to content wrapper
-                const contentWrapper = document.querySelector('.content-wrapper');
-                if (contentWrapper) {
-                    contentWrapper.classList.add('animate-fade-in-up');
+                // ── FO Navbar ─────────────────────────────────────────────
+                var hamburger  = document.getElementById('foHamburger');
+                var mobileMenu = document.getElementById('foMobileMenu');
+                var foNavbar   = document.getElementById('foNavbar');
+
+                if (hamburger && mobileMenu) {
+                    function handleHamburger() {
+                        var open = mobileMenu.classList.toggle('open');
+                        hamburger.classList.toggle('open', open);
+                        if (foNavbar) foNavbar.classList.toggle('menu-open', open);
+                    }
+                    hamburger.addEventListener('click', handleHamburger);
+                    cleanupFns.push(function() { hamburger.removeEventListener('click', handleHamburger); });
                 }
-                
-                // Auto-dismiss alerts after 5 seconds
-                document.querySelectorAll('.alert').forEach(function(alert) {
+
+                document.querySelectorAll('.fo-mobile-link').forEach(function(link) {
+                    function onMobileLink() {
+                        if (mobileMenu) mobileMenu.classList.remove('open');
+                        if (hamburger)  hamburger.classList.remove('open');
+                        if (foNavbar)   foNavbar.classList.remove('menu-open');
+                    }
+                    link.addEventListener('click', onMobileLink);
+                    cleanupFns.push(function() { link.removeEventListener('click', onMobileLink); });
+                });
+
+                // Desktop dropdowns
+                document.querySelectorAll('.fo-has-dropdown').forEach(function(btn) {
+                    function onDropClick(e) {
+                        e.stopPropagation();
+                        var wrap = btn.closest('.fo-nav-dropdown-wrap');
+                        var wasOpen = wrap.classList.contains('open');
+                        document.querySelectorAll('.fo-nav-dropdown-wrap').forEach(function(w) { w.classList.remove('open'); });
+                        if (!wasOpen) wrap.classList.add('open');
+                    }
+                    btn.addEventListener('click', onDropClick);
+                    cleanupFns.push(function() { btn.removeEventListener('click', onDropClick); });
+                });
+
+                function handleDocClick(e) {
+                    if (!e.target.closest('.fo-nav-dropdown-wrap')) {
+                        document.querySelectorAll('.fo-nav-dropdown-wrap').forEach(function(w) { w.classList.remove('open'); });
+                    }
+                }
+                document.addEventListener('click', handleDocClick);
+                cleanupFns.push(function() { document.removeEventListener('click', handleDocClick); });
+
+                // Scroll shadow on fo-navbar
+                var foNb = document.getElementById('foNavbar');
+                if (foNb) {
+                    function onScroll() { foNb.classList.toggle('scrolled', window.scrollY > 8); }
+                    window.addEventListener('scroll', onScroll, { passive: true });
+                    cleanupFns.push(function() { window.removeEventListener('scroll', onScroll); });
+                }
+
+                // Auto-dismiss alerts
+                document.querySelectorAll('.alert').forEach(function(el) {
                     setTimeout(function() {
-                        if (alert.isConnected) {
-                            var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-                            bsAlert.close();
-                        }
+                        if (!el || !el.isConnected) return;
+                        el.classList.remove('show');
+                        setTimeout(function() {
+                            if (!el || !el.isConnected) return;
+                            var b = bootstrap.Alert.getInstance(el);
+                            if (b) b.dispose();
+                            el.remove();
+                        }, 200);
                     }, 5000);
                 });
 
                 // Theme toggle
-                var themeToggleBtn = document.getElementById('themeToggle');
-                function handleThemeToggle() {
+                var themeBtn = document.getElementById('themeToggle');
+                function handleTheme() {
                     var html = document.documentElement;
                     html.classList.add('theme-transition');
-                    var current = html.getAttribute('data-theme') || 'light';
-                    var next = current === 'light' ? 'dark' : 'light';
+                    var cur  = html.getAttribute('data-theme') || 'light';
+                    var next = cur === 'light' ? 'dark' : 'light';
                     html.setAttribute('data-theme', next);
                     localStorage.setItem('unilearn-theme', next);
                     setTimeout(function() { html.classList.remove('theme-transition'); }, 400);
                 }
-                if (themeToggleBtn) {
-                    themeToggleBtn.addEventListener('click', handleThemeToggle);
+                if (themeBtn) {
+                    themeBtn.addEventListener('click', handleTheme);
+                    cleanupFns.push(function() { themeBtn.removeEventListener('click', handleTheme); });
                 }
 
-                // Store cleanup function for next navigation
-                _sidebarCleanup = function() {
-                    if (themeToggleBtn) themeToggleBtn.removeEventListener('click', handleThemeToggle);
-                    if (sidebarToggle) sidebarToggle.removeEventListener('click', handleToggle);
-                    if (sidebarOverlay) sidebarOverlay.removeEventListener('click', handleOverlay);
-                    if (mainContent) mainContent.removeEventListener('click', handleMainContentClick);
-                    sidebarLinks.forEach(function(link) {
-                        link.removeEventListener('click', handleLinkClick);
+                // ── Animated background canvas (FO only) ──────────────────
+                var canvas = document.getElementById('foBgCanvas');
+                if (canvas) {
+                    var ctx = canvas.getContext('2d');
+                    var orbs = [];
+                    var animId;
+
+                    function resizeCanvas() {
+                        canvas.width  = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                    }
+                    resizeCanvas();
+                    window.addEventListener('resize', resizeCanvas);
+
+                    var isDark   = document.documentElement.getAttribute('data-theme') === 'dark';
+                    var palette  = isDark
+                        ? ['rgba(8,145,178,0.20)','rgba(6,182,212,0.16)','rgba(14,165,233,0.14)','rgba(16,185,129,0.12)','rgba(99,102,241,0.12)','rgba(249,115,22,0.10)']
+                        : ['rgba(8,145,178,0.09)','rgba(6,182,212,0.07)','rgba(14,165,233,0.06)','rgba(16,185,129,0.06)','rgba(99,102,241,0.05)','rgba(249,115,22,0.05)'];
+
+                    for (var i = 0; i < 6; i++) {
+                        orbs.push({
+                            x:     Math.random() * window.innerWidth,
+                            y:     Math.random() * window.innerHeight,
+                            r:     200 + Math.random() * 260,
+                            dx:    (Math.random() - 0.5) * 0.45,
+                            dy:    (Math.random() - 0.5) * 0.45,
+                            color: palette[i]
+                        });
+                    }
+
+                    function draw() {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        orbs.forEach(function(o) {
+                            var g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+                            g.addColorStop(0, o.color);
+                            g.addColorStop(1, 'transparent');
+                            ctx.beginPath();
+                            ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+                            ctx.fillStyle = g;
+                            ctx.fill();
+                            o.x += o.dx; o.y += o.dy;
+                            if (o.x < -o.r) o.x = canvas.width + o.r;
+                            if (o.x > canvas.width + o.r) o.x = -o.r;
+                            if (o.y < -o.r) o.y = canvas.height + o.r;
+                            if (o.y > canvas.height + o.r) o.y = -o.r;
+                        });
+                        animId = requestAnimationFrame(draw);
+                    }
+                    draw();
+
+                    cleanupFns.push(function() {
+                        cancelAnimationFrame(animId);
+                        window.removeEventListener('resize', resizeCanvas);
                     });
-                    window.removeEventListener('resize', handleResize);
-                };
+                }
+
+                _navCleanup = function() { cleanupFns.forEach(function(fn) { fn(); }); };
             });
 
-            // Also re-init Bootstrap components on turbo:render for cached pages
             document.addEventListener('turbo:before-cache', function() {
-                // Dispose all Bootstrap instances before Turbo caches the page
                 document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(el) {
-                    var instance = bootstrap.Dropdown.getInstance(el);
-                    if (instance) instance.dispose();
+                    var inst = bootstrap.Dropdown.getInstance(el);
+                    if (inst) inst.dispose();
                 });
                 document.querySelectorAll('.tooltip').forEach(function(el) { el.remove(); });
             });

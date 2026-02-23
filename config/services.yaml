@@ -7,6 +7,7 @@ parameters:
     mailer_dsn: '%env(MAILER_DSN)%'
     openrouter_api_key: '%env(OPENROUTER_API_KEY)%'
     cv_upload_directory: '%kernel.project_dir%/public/uploads/cv'
+    avatar_service_url: '%env(AVATAR_SERVICE_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -38,3 +39,6 @@ services:
     App\Service\JobOffer\ATSScoringService:
         arguments:
             $cvUploadDirectory: '%cv_upload_directory%'
+    App\Service\AvatarGeneratorClient:
+        arguments:
+            $avatarServiceUrl: '%avatar_service_url%'

@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     mailer_dsn: '%env(MAILER_DSN)%'
+    openrouter_api_key: '%env(OPENROUTER_API_KEY)%'
+    cv_upload_directory: '%kernel.project_dir%/public/uploads/cv'
 
 services:
     # default configuration for services in *this* file
@@ -27,3 +29,12 @@ services:
     App\Service\UserMailerService:
         arguments:
             $mailerDsn: '%mailer_dsn%'
+
+    # ATS Services
+    App\Service\JobOffer\OpenRouterService:
+        arguments:
+            $apiKey: '%openrouter_api_key%'
+
+    App\Service\JobOffer\ATSScoringService:
+        arguments:
+            $cvUploadDirectory: '%cv_upload_directory%'

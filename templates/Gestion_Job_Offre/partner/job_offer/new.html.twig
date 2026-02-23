@@ -1,14 +1,37 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Create Job Offer - UniLearn{% endblock %}
+{% block title %}Créer une offre d'emploi - UniLearn{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .skills-checkboxes .form-check {
+        display: inline-block;
+        width: 180px;
+        margin-right: 10px;
+    }
+    .skills-section {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 15px;
+        background: #f8f9fa;
+    }
+    .language-checkboxes .form-check {
+        display: inline-block;
+        margin-right: 20px;
+    }
+</style>
+{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-lg-10">
             <div class="card">
-                <div class="card-header">
-                    <h2 class="mb-0"><i class="bi bi-plus-circle"></i> Create Job Offer</h2>
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="bi bi-plus-circle"></i> Créer une offre d'emploi</h2>
                 </div>
                 <div class="card-body">
                     {# Flash Messages #}
@@ -22,6 +45,9 @@
                     {% endfor %}
 
                     {{ form_start(form) }}
+                        {# Basic Information #}
+                        <h5 class="mb-3 text-primary"><i class="bi bi-info-circle"></i> Informations de base</h5>
+                        
                         <div class="mb-3">
                             {{ form_row(form.title) }}
                         </div>
@@ -43,6 +69,64 @@
                             {{ form_row(form.requirements) }}
                         </div>
 
+                        <hr class="my-4">
+
+                        {# ATS Requirements Section #}
+                        <h5 class="mb-3 text-primary">
+                            <i class="bi bi-robot"></i> Critères ATS (scoring automatique)
+                        </h5>
+                        <p class="text-muted mb-3">
+                            <small>Ces critères seront utilisés pour calculer automatiquement un score de correspondance pour chaque candidature basé sur l'analyse du CV.</small>
+                        </p>
+
+                        {# Required Skills #}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-check-circle text-success"></i> Compétences requises
+                            </label>
+                            <p class="text-muted small mb-2">Sélectionnez les compétences que le candidat DOIT posséder</p>
+                            <div class="skills-section">
+                                {{ form_widget(form.requiredSkills) }}
+                            </div>
+                            {{ form_errors(form.requiredSkills) }}
+                        </div>
+
+                        {# Preferred Skills #}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-star text-warning"></i> Compétences souhaitées (bonus)
+                            </label>
+                            <p class="text-muted small mb-2">Compétences optionnelles qui donneront des points supplémentaires</p>
+                            <div class="skills-section">
+                                {{ form_widget(form.preferredSkills) }}
+                            </div>
+                            {{ form_errors(form.preferredSkills) }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.minExperienceYears) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.minEducation) }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-translate text-info"></i> Langues requises
+                            </label>
+                            <div class="language-checkboxes">
+                                {{ form_widget(form.requiredLanguages) }}
+                            </div>
+                            {{ form_errors(form.requiredLanguages) }}
+                        </div>
+
+                        <hr class="my-4">
+
+                        {# Publication Settings #}
+                        <h5 class="mb-3 text-primary"><i class="bi bi-calendar"></i> Publication</h5>
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 {{ form_row(form.publishedAt) }}
@@ -54,15 +138,15 @@
 
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle"></i>
-                            Your job offer will be set to <strong>Active</strong> status and will be visible to students immediately.
+                            Votre offre sera en statut <strong>En attente</strong> jusqu'à validation par un administrateur.
                         </div>
 
                         <div class="d-flex justify-content-between">
                             <a href="{{ path('app_partner_job_offer_index') }}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Cancel
+                                <i class="bi bi-arrow-left"></i> Annuler
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Create Job Offer
+                                <i class="bi bi-save"></i> Créer l'offre
                             </button>
                         </div>
                     {{ form_end(form) }}

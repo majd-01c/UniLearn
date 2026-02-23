@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Applications - UniLearn{% endblock %}
+{% block title %}Candidatures - UniLearn{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
@@ -15,34 +15,55 @@
     {% endfor %}
 
     {# Back Button #}
-    <div class="mb-3">
+    <div class="mb-3 d-flex justify-content-between align-items-center">
         <a href="{{ path('app_partner_job_offer_index') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to My Job Offers
+            <i class="bi bi-arrow-left"></i> Retour aux offres
         </a>
+        
+        {% if applications|length > 0 %}
+        {# Bulk Score Button #}
+        <form method="post" action="{{ path('app_partner_job_offer_calculate_all_scores', {id: offer.id}) }}" class="d-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('calculate-all-' ~ offer.id) }}">
+            <button type="submit" class="btn btn-info" onclick="return confirm('Calculer les scores ATS pour toutes les candidatures ?')">
+                <i class="bi bi-calculator"></i> Calculer tous les scores ATS
+            </button>
+        </form>
+        {% endif %}
     </div>
 
     {# Offer Information #}
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
             <h2 class="mb-0">
-                <i class="bi bi-file-earmark-text-fill"></i> Applications for: {{ offer.title }}
+                <i class="bi bi-file-earmark-text-fill"></i> Candidatures: {{ offer.title }}
             </h2>
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <strong>Type:</strong> 
                     <span class="badge bg-info">{{ offer.type.value|replace({'_': ' '})|title }}</span>
                 </div>
-                <div class="col-md-4">
-                    <strong>Status:</strong> 
+                <div class="col-md-3">
+                    <strong>Statut:</strong> 
                     {% include 'Gestion_Job_Offre/job_offer/_offer_status_badge.html.twig' with {status: offer.status} only %}
                 </div>
-                <div class="col-md-4">
-                    <strong>Total Applications:</strong> 
+                <div class="col-md-3">
+                    <strong>Candidatures:</strong> 
                     <span class="badge bg-primary">{{ applications|length }}</span>
                 </div>
+                <div class="col-md-3">
+                    <strong>Compétences requises:</strong>
+                    <span class="badge bg-secondary">{{ offer.requiredSkills|length }}</span>
+                </div>
             </div>
+            {% if offer.requiredSkills|length > 0 %}
+            <div class="mt-2">
+                <small class="text-muted">
+                    <strong>Skills requis:</strong> {{ offer.requiredSkills|join(', ') }}
+                </small>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -51,11 +72,19 @@
         <div class="card text-center py-5">
             <div class="card-body">
                 <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                <h3 class="mt-3">No applications yet</h3>
-                <p class="text-muted">This job offer hasn't received any applications yet.</p>
+                <h3 class="mt-3">Aucune candidature</h3>
+                <p class="text-muted">Cette offre n'a pas encore reçu de candidatures.</p>
             </div>
         </div>
     {% else %}
+        {# Score Legend #}
+        <div class="mb-3">
+            <span class="badge bg-success">75+ Excellent</span>
+            <span class="badge bg-warning text-dark">50-74 Moyen</span>
+            <span class="badge bg-danger">0-49 Faible</span>
+            <span class="badge bg-secondary">- Non calculé</span>
+        </div>
+
         {# Applications Table #}
         <div class="card">
             <div class="card-body">
@@ -63,21 +92,48 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Student</th>
-                                <th>Message</th>
+                                <th style="width: 80px;">
+                                    <a href="{{ path('app_partner_job_offer_applications', {id: offer.id, sort: 'score'}) }}" 
+                                       class="text-decoration-none {{ currentSort|default('score') == 'score' ? 'fw-bold' : '' }}">
+                                        Score <i class="bi bi-sort-down"></i>
+                                    </a>
+                                </th>
+                                <th>Candidat</th>
+                                <th>Compétences détectées</th>
                                 <th>CV</th>
-                                <th>Applied On</th>
-                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Statut</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for application in applications %}
                                 <tr>
+                                    {# Score Column #}
                                     <td>
-                                        <span class="badge bg-secondary">#{{ application.id }}</span>
+                                        {% if application.score is not null %}
+                                            {% set scoreClass = application.score >= 75 ? 'success' : (application.score >= 50 ? 'warning' : 'danger') %}
+                                            <span class="badge bg-{{ scoreClass }} fs-6" style="min-width: 50px;">
+                                                {{ application.score }}
+                                            </span>
+                                            <br>
+                                            <a href="{{ path('app_partner_job_application_score_details', {id: application.id}) }}" 
+                                               class="btn btn-sm btn-link p-0" title="Voir détails">
+                                                <small>Détails</small>
+                                            </a>
+                                        {% else %}
+                                            <span class="badge bg-secondary">-</span>
+                                            <br>
+                                            <form method="post" action="{{ path('app_partner_job_application_calculate_score', {id: application.id}) }}" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('score-' ~ application.id) }}">
+                                                <button type="submit" class="btn btn-sm btn-link p-0" title="Calculer score">
+                                                    <small><i class="bi bi-calculator"></i> Calculer</small>
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </td>
+                                    
+                                    {# Student Info #}
                                     <td>
                                         {% if application.student.profile %}
                                             <strong>{{ application.student.profile.fullName }}</strong><br>
@@ -88,47 +144,64 @@
                                             <strong>{{ application.student.email }}</strong>
                                         {% endif %}
                                     </td>
+                                    
+                                    {# Extracted Skills #}
                                     <td>
-                                        {% if application.message %}
-                                            <div style="max-width: 300px; white-space: pre-wrap; overflow: hidden; text-overflow: ellipsis;">
-                                                {{ application.message|length > 150 ? application.message|slice(0, 150) ~ '...' : application.message }}
-                                            </div>
+                                        {% if application.extractedData and application.extractedData.skills|default([])|length > 0 %}
+                                            {% for skill in application.extractedData.skills|slice(0, 5) %}
+                                                {% set isMatched = skill in offer.requiredSkills %}
+                                                <span class="badge bg-{{ isMatched ? 'success' : 'light text-dark' }} me-1 mb-1">
+                                                    {{ skill }}
+                                                </span>
+                                            {% endfor %}
+                                            {% if application.extractedData.skills|length > 5 %}
+                                                <span class="badge bg-secondary">+{{ application.extractedData.skills|length - 5 }}</span>
+                                            {% endif %}
                                         {% else %}
-                                            <span class="text-muted">No message</span>
+                                            <span class="text-muted">
+                                                <small><i class="bi bi-question-circle"></i> Non analysé</small>
+                                            </span>
                                         {% endif %}
                                     </td>
+                                    
+                                    {# CV Download #}
                                     <td>
                                         {% if application.cvFileName %}
                                             <a href="{{ vich_uploader_asset(application, 'cvFile') }}" 
                                                target="_blank" 
                                                class="btn btn-sm btn-outline-primary"
                                                download>
-                                                <i class="bi bi-file-earmark-arrow-down"></i> Download CV
+                                                <i class="bi bi-file-earmark-arrow-down"></i>
                                             </a>
                                         {% else %}
-                                            <span class="text-muted">No CV</span>
+                                            <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
+                                    
+                                    {# Date #}
                                     <td>
                                         <small class="text-muted">
-                                            {{ application.createdAt|date('Y-m-d H:i') }}
+                                            {{ application.createdAt|date('d/m/Y') }}
                                         </small>
                                     </td>
+                                    
+                                    {# Status #}
                                     <td>
                                         {% include 'Gestion_Job_Offre/job_offer/_application_status_badge.html.twig' with {status: application.status} only %}
                                     </td>
+                                    
+                                    {# Actions #}
                                     <td>
-                                        {# Status Update Form #}
                                         <form method="post" action="{{ path('app_partner_job_application_status', {id: application.id}) }}" class="d-inline">
                                             <input type="hidden" name="_token" value="{{ csrf_token('status-' ~ application.id) }}">
-                                            <div class="input-group input-group-sm" style="min-width: 200px;">
+                                            <div class="input-group input-group-sm" style="min-width: 150px;">
                                                 <select name="status" class="form-select form-select-sm" required>
-                                                    <option value="">Change status...</option>
-                                                    <option value="REVIEWED" {{ application.status.value == 'REVIEWED' ? 'selected' : '' }}>Reviewed</option>
-                                                    <option value="ACCEPTED" {{ application.status.value == 'ACCEPTED' ? 'selected' : '' }}>Accepted</option>
-                                                    <option value="REJECTED" {{ application.status.value == 'REJECTED' ? 'selected' : '' }}>Rejected</option>
+                                                    <option value="">Statut...</option>
+                                                    <option value="REVIEWED" {{ application.status.value == 'REVIEWED' ? 'selected' : '' }}>Examiné</option>
+                                                    <option value="ACCEPTED" {{ application.status.value == 'ACCEPTED' ? 'selected' : '' }}>Accepté</option>
+                                                    <option value="REJECTED" {{ application.status.value == 'REJECTED' ? 'selected' : '' }}>Rejeté</option>
                                                 </select>
-                                                <button type="submit" class="btn btn-sm btn-primary" title="Update Status">
+                                                <button type="submit" class="btn btn-sm btn-primary" title="Mettre à jour">
                                                     <i class="bi bi-check-lg"></i>
                                                 </button>
                                             </div>
@@ -143,7 +216,7 @@
         </div>
 
         <div class="mt-3 text-muted">
-            <i class="bi bi-info-circle"></i> Total: {{ applications|length }} application(s)
+            <i class="bi bi-info-circle"></i> Total: {{ applications|length }} candidature(s)
         </div>
     {% endif %}
 </div>

@@ -45,6 +45,22 @@ class JobOffer
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $requirements = null;
 
+    // ATS Requirements Fields
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $requiredSkills = [];
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $preferredSkills = [];
+
+    #[ORM\Column(nullable: true)]
+    private ?int $minExperienceYears = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $minEducation = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $requiredLanguages = [];
+
     #[ORM\Column(type: 'string', enumType: JobOfferStatus::class)]
     private ?JobOfferStatus $status = JobOfferStatus::PENDING;
 
@@ -244,6 +260,63 @@ class JobOffer
             }
         }
 
+        return $this;
+    }
+
+    // ATS Getters and Setters
+
+    public function getRequiredSkills(): array
+    {
+        return $this->requiredSkills ?? [];
+    }
+
+    public function setRequiredSkills(?array $requiredSkills): static
+    {
+        $this->requiredSkills = $requiredSkills;
+        return $this;
+    }
+
+    public function getPreferredSkills(): array
+    {
+        return $this->preferredSkills ?? [];
+    }
+
+    public function setPreferredSkills(?array $preferredSkills): static
+    {
+        $this->preferredSkills = $preferredSkills;
+        return $this;
+    }
+
+    public function getMinExperienceYears(): ?int
+    {
+        return $this->minExperienceYears;
+    }
+
+    public function setMinExperienceYears(?int $minExperienceYears): static
+    {
+        $this->minExperienceYears = $minExperienceYears;
+        return $this;
+    }
+
+    public function getMinEducation(): ?string
+    {
+        return $this->minEducation;
+    }
+
+    public function setMinEducation(?string $minEducation): static
+    {
+        $this->minEducation = $minEducation;
+        return $this;
+    }
+
+    public function getRequiredLanguages(): array
+    {
+        return $this->requiredLanguages ?? [];
+    }
+
+    public function setRequiredLanguages(?array $requiredLanguages): static
+    {
+        $this->requiredLanguages = $requiredLanguages;
         return $this;
     }
 }

@@ -57,6 +57,19 @@ class JobApplication
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    // ATS Scoring Fields
+    #[ORM\Column(nullable: true)]
+    private ?int $score = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $scoreBreakdown = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $scoredAt = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $extractedData = null;
+
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
@@ -158,6 +171,52 @@ class JobApplication
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    // ATS Getters and Setters
+
+    public function getScore(): ?int
+    {
+        return $this->score;
+    }
+
+    public function setScore(?int $score): static
+    {
+        $this->score = $score;
+        return $this;
+    }
+
+    public function getScoreBreakdown(): ?array
+    {
+        return $this->scoreBreakdown;
+    }
+
+    public function setScoreBreakdown(?array $scoreBreakdown): static
+    {
+        $this->scoreBreakdown = $scoreBreakdown;
+        return $this;
+    }
+
+    public function getScoredAt(): ?\DateTimeImmutable
+    {
+        return $this->scoredAt;
+    }
+
+    public function setScoredAt(?\DateTimeImmutable $scoredAt): static
+    {
+        $this->scoredAt = $scoredAt;
+        return $this;
+    }
+
+    public function getExtractedData(): ?array
+    {
+        return $this->extractedData;
+    }
+
+    public function setExtractedData(?array $extractedData): static
+    {
+        $this->extractedData = $extractedData;
         return $this;
     }
 }

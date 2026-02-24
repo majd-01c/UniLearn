@@ -83,10 +83,21 @@
                 </a>
                 
                 {% if is_granted('ROLE_STUDENT') and not is_granted('ROLE_ADMIN') and not is_granted('ROLE_TEACHER') and not is_granted('ROLE_TRAINER') and not is_granted('ROLE_BUSINESS_PARTNER') %}
-                <a class="sidebar-link {% if 'job' in app.request.attributes.get('_route') and 'partner' not in app.request.attributes.get('_route') and 'admin' not in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_job_offer_index') }}">
-                    <i class="bi bi-briefcase-fill"></i>
-                    <span>Job Offers</span>
-                </a>
+                <div class="sidebar-dropdown">
+                    <a class="sidebar-link {% if 'job' in app.request.attributes.get('_route') and 'partner' not in app.request.attributes.get('_route') and 'admin' not in app.request.attributes.get('_route') %}active{% endif %}" href="#studentJobSubmenu" data-bs-toggle="collapse">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <span>Job Offers</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse sidebar-submenu" id="studentJobSubmenu">
+                        <a class="sidebar-sublink" href="{{ path('app_job_offer_index') }}">
+                            <i class="bi bi-search"></i> Browse Jobs
+                        </a>
+                        <a class="sidebar-sublink" href="{{ path('app_student_job_applications') }}">
+                            <i class="bi bi-file-text"></i> My Applications
+                        </a>
+                    </div>
+                </div>
                 {% endif %}
                 
                 <a class="sidebar-link {% if 'forum' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_forum') }}">

@@ -73,6 +73,49 @@
                         </div>
                     {% endif %}
 
+                    {# ATS Detailed Requirements #}
+                    {% if offer.minExperienceYears or offer.minEducation or offer.requiredLanguages|length > 0 %}
+                        <div class="mb-3">
+                            <h5 class="text-muted mb-2">
+                                <i class="bi bi-person-workspace"></i> Detailed Requirements
+                            </h5>
+                            <div class="row">
+                                {% if offer.minExperienceYears %}
+                                    <div class="col-md-4 mb-2">
+                                        <div class="p-3 bg-light rounded h-100">
+                                            <h6 class="fw-bold mb-2">
+                                                <i class="bi bi-briefcase text-primary"></i> Expérience minimum
+                                            </h6>
+                                            <p class="mb-0">{{ offer.minExperienceYears }} {{ offer.minExperienceYears > 1 ? 'années' : 'année' }}</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if offer.minEducation %}
+                                    <div class="col-md-4 mb-2">
+                                        <div class="p-3 bg-light rounded h-100">
+                                            <h6 class="fw-bold mb-2">
+                                                <i class="bi bi-mortarboard text-success"></i> Niveau d'études minimum
+                                            </h6>
+                                            <p class="mb-0">{{ offer.minEducation }}</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if offer.requiredLanguages|length > 0 %}
+                                    <div class="col-md-4 mb-2">
+                                        <div class="p-3 bg-light rounded h-100">
+                                            <h6 class="fw-bold mb-2">
+                                                <i class="bi bi-translate text-info"></i> Langues requises
+                                            </h6>
+                                            {% for language in offer.requiredLanguages %}
+                                                <span class="badge bg-secondary me-1 mb-1">{{ language }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+
                     <hr class="my-4">
 
                     <div class="row">

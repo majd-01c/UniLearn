@@ -166,6 +166,10 @@
                                                            class="btn btn-outline-success" title="Add Content">
                                                             <i class="bi bi-plus-lg"></i> Add Content
                                                         </a>
+                                                        <a href="{{ path('app_teacher_quiz_create', {teacherClasseId: teacherClasse.id, courseId: classeCourse.id}) }}" 
+                                                           class="btn btn-outline-info" title="Add Quiz">
+                                                            <i class="bi bi-patch-question"></i> Add Quiz
+                                                        </a>
                                                         <form action="{{ path('app_teacher_toggle_course_visibility', {id: teacherClasse.id, courseId: classeCourse.id}) }}" 
                                                               method="post" class="d-inline">
                                                             <input type="hidden" name="_token" value="{{ csrf_token('toggle_course_visibility' ~ teacherClasse.id) }}">
@@ -198,6 +202,9 @@
                                                                     {% endif %}
                                                                     <div>
                                                                         <span class="{{ classeContenu.isHidden ? 'text-muted' : '' }}">
+                                                                            {% if classeContenu.contenu.type.value == 'QUIZ' %}
+                                                                                <i class="bi bi-patch-question-fill text-info"></i>
+                                                                            {% endif %}
                                                                             {{ classeContenu.contenu.title }}
                                                                         </span>
                                                                         <br>
@@ -210,10 +217,25 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="btn-group btn-group-sm">
-                                                                    <a href="{{ path('app_teacher_contenu_edit', {id: teacherClasse.id, contenuId: classeContenu.contenu.id}) }}" 
-                                                                       class="btn btn-outline-primary" title="Edit">
-                                                                        <i class="bi bi-pencil"></i>
-                                                                    </a>
+                                                                    {% if classeContenu.contenu.type.value == 'QUIZ' %}
+                                                                        {# Get the quiz for this contenu #}
+                                                                        {% set quiz = classeContenu.contenu.quiz %}
+                                                                        {% if quiz %}
+                                                                            <a href="{{ path('app_teacher_quiz_edit', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}" 
+                                                                               class="btn btn-outline-info" title="Edit Quiz">
+                                                                                <i class="bi bi-patch-question"></i> Manage
+                                                                            </a>
+                                                                            <a href="{{ path('app_teacher_quiz_results', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}" 
+                                                                               class="btn btn-outline-primary" title="View Results">
+                                                                                <i class="bi bi-bar-chart"></i>
+                                                                            </a>
+                                                                        {% endif %}
+                                                                    {% else %}
+                                                                        <a href="{{ path('app_teacher_contenu_edit', {id: teacherClasse.id, contenuId: classeContenu.contenu.id}) }}" 
+                                                                           class="btn btn-outline-primary" title="Edit">
+                                                                            <i class="bi bi-pencil"></i>
+                                                                        </a>
+                                                                    {% endif %}
                                                                     <form action="{{ path('app_teacher_toggle_contenu_visibility', {id: teacherClasse.id, contenuId: classeContenu.id}) }}" 
                                                                           method="post" class="d-inline">
                                                                         <input type="hidden" name="_token" value="{{ csrf_token('toggle_contenu_visibility' ~ teacherClasse.id) }}">

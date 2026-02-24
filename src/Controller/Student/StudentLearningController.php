@@ -2,14 +2,22 @@
 
 namespace App\Controller\Student;
 
+use App\Entity\Answer;
+use App\Entity\Choice;
 use App\Entity\ClasseContenu;
 use App\Entity\ClasseCourse;
 use App\Entity\ClasseModule;
+use App\Entity\Question;
+use App\Entity\Quiz;
 use App\Entity\StudentClasse;
 use App\Entity\User;
+use App\Entity\UserAnswer;
+use App\Repository\QuizRepository;
 use App\Repository\StudentClasseRepository;
+use App\Repository\UserAnswerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -20,7 +28,9 @@ class StudentLearningController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private StudentClasseRepository $studentClasseRepository
+        private StudentClasseRepository $studentClasseRepository,
+        private QuizRepository $quizRepository,
+        private UserAnswerRepository $userAnswerRepository
     ) {}
 
     #[Route('', name: 'app_student_learning_index')]
@@ -237,6 +247,178 @@ class StudentLearningController extends AbstractController
             'nextContenu' => $nextContenu,
             'currentIndex' => $currentIndex + 1,
             'totalContenus' => count($visibleContenus),
+        ]);
+    }
+
+    #[Route('/classe/{classeId}/quiz/{quizId}', name: 'app_student_quiz_view', requirements: ['classeId' => '\d+', 'quizId' => '\d+'])]
+    public function viewQuiz(int $classeId, int $quizId): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        
+        // Verify enrollment
+        $enrollment = $this->studentClasseRepository->findOneBy([
+            'student' => $user,
+            'classe' => $classeId,
+            'isActive' => true
+        ]);
+
+        if (!$enrollment) {
+            $this->addFlash('error', 'You are not enrolled in this class.');
+            return $this->redirectToRoute('app_student_learning_index');
+        }
+
+        $quiz = $this->quizRepository->find($quizId);
+        if (!$quiz) {
+            $this->addFlash('error', 'Quiz not found.');
+            return $this->redirectToRoute('app_student_classe_view', ['id' => $classeId]);
+        }
+
+        // Check if student has already completed this quiz
+        $existingAnswer = $this->userAnswerRepository->findOneBy([
+            'user' => $user,
+            'quiz' => $quiz
+        ]);
+
+        if ($existingAnswer && $existingAnswer->getCompletedAt()) {
+            // Show results instead
+            return $this->render('Gestion_Program/student_learning/quiz_result.html.twig', [
+                'classe' => $enrollment->getClasse(),
+                'quiz' => $quiz,
+                'userAnswer' => $existingAnswer,
+            ]);
+        }
+
+        // Get questions (shuffle if enabled)
+        $questions = $quiz->getQuestions()->toArray();
+        if ($quiz->isShuffleQuestions()) {
+            shuffle($questions);
+        }
+
+        // Shuffle choices if enabled
+        if ($quiz->isShuffleChoices()) {
+            foreach ($questions as $question) {
+                $choices = $question->getChoices()->toArray();
+                shuffle($choices);
+                // Store shuffled order in session or just pass as is for now
+            }
+        }
+
+        return $this->render('Gestion_Program/student_learning/quiz_take.html.twig', [
+            'classe' => $enrollment->getClasse(),
+            'quiz' => $quiz,
+            'questions' => $questions,
+            'existingAnswer' => $existingAnswer,
+        ]);
+    }
+
+    #[Route('/classe/{classeId}/quiz/{quizId}/submit', name: 'app_student_quiz_submit', requirements: ['classeId' => '\d+', 'quizId' => '\d+'], methods: ['POST'])]
+    public function submitQuiz(Request $request, int $classeId, int $quizId): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        
+        // Verify enrollment
+        $enrollment = $this->studentClasseRepository->findOneBy([
+            'student' => $user,
+            'classe' => $classeId,
+            'isActive' => true
+        ]);
+
+        if (!$enrollment) {
+            $this->addFlash('error', 'You are not enrolled in this class.');
+            return $this->redirectToRoute('app_student_learning_index');
+        }
+
+        $quiz = $this->quizRepository->find($quizId);
+        if (!$quiz) {
+            $this->addFlash('error', 'Quiz not found.');
+            return $this->redirectToRoute('app_student_classe_view', ['id' => $classeId]);
+        }
+
+        if (!$this->isCsrfTokenValid('submit_quiz'.$quizId, $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+            return $this->redirectToRoute('app_student_quiz_view', [
+                'classeId' => $classeId,
+                'quizId' => $quizId
+            ]);
+        }
+
+        // Check if already completed
+        $existingAnswer = $this->userAnswerRepository->findOneBy([
+            'user' => $user,
+            'quiz' => $quiz
+        ]);
+
+        if ($existingAnswer && $existingAnswer->getCompletedAt()) {
+            $this->addFlash('info', 'You have already completed this quiz.');
+            return $this->redirectToRoute('app_student_quiz_view', [
+                'classeId' => $classeId,
+                'quizId' => $quizId
+            ]);
+        }
+
+        // Create or get UserAnswer
+        $userAnswer = $existingAnswer ?? new UserAnswer();
+        if (!$existingAnswer) {
+            $userAnswer->setUser($user);
+            $userAnswer->setQuiz($quiz);
+            $this->entityManager->persist($userAnswer);
+        }
+
+        // Process answers
+        $totalScore = 0;
+        $totalPoints = 0;
+        $answers = $request->request->all('answers');
+
+        foreach ($quiz->getQuestions() as $question) {
+            $totalPoints += $question->getPoints();
+            $questionId = $question->getId();
+            $selectedChoiceId = $answers[$questionId] ?? null;
+
+            // Create Answer record
+            $answer = new Answer();
+            $answer->setUserAnswer($userAnswer);
+            $answer->setQuestion($question);
+
+            if ($selectedChoiceId) {
+                $choice = $this->entityManager->getRepository(Choice::class)->find($selectedChoiceId);
+                if ($choice && $choice->getQuestion()->getId() === $question->getId()) {
+                    $answer->setSelectedChoice($choice);
+                    
+                    if ($choice->isCorrect()) {
+                        $answer->setIsCorrect(true);
+                        $answer->setPointsEarned($question->getPoints());
+                        $totalScore += $question->getPoints();
+                    } else {
+                        $answer->setIsCorrect(false);
+                        $answer->setPointsEarned(0);
+                    }
+                }
+            } else {
+                $answer->setIsCorrect(false);
+                $answer->setPointsEarned(0);
+            }
+
+            $this->entityManager->persist($answer);
+        }
+
+        // Update UserAnswer
+        $userAnswer->setScore($totalScore);
+        $userAnswer->setTotalPoints($totalPoints);
+        $userAnswer->setCompletedAt(new \DateTime());
+        
+        // Check if passed
+        $percentage = $totalPoints > 0 ? ($totalScore / $totalPoints * 100) : 0;
+        $userAnswer->setIsPassed($percentage >= ($quiz->getPassingScore() ?? 50));
+
+        $this->entityManager->flush();
+
+        $this->addFlash('success', sprintf('Quiz submitted! Your score: %d/%d (%.0f%%)', $totalScore, $totalPoints, $percentage));
+        
+        return $this->redirectToRoute('app_student_quiz_view', [
+            'classeId' => $classeId,
+            'quizId' => $quizId
         ]);
     }
 }

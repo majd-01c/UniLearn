@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Quiz Results - {{ quiz.title }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ path('app_teacher_quiz_edit', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-bar-chart-fill text-info"></i> Quiz Results
+                </h1>
+                <p class="text-muted mb-0">{{ quiz.title }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {# Statistics Cards #}
+        <div class="col-12">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card card-elevated text-center">
+                        <div class="card-body">
+                            <h2 class="text-primary mb-0">{{ userAnswers|length }}</h2>
+                            <small class="text-muted">Total Submissions</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-elevated text-center">
+                        <div class="card-body">
+                            {% set passedCount = 0 %}
+                            {% for ua in userAnswers %}
+                                {% if ua.isPassed %}{% set passedCount = passedCount + 1 %}{% endif %}
+                            {% endfor %}
+                            <h2 class="text-success mb-0">{{ passedCount }}</h2>
+                            <small class="text-muted">Passed</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-elevated text-center">
+                        <div class="card-body">
+                            <h2 class="text-danger mb-0">{{ userAnswers|length - passedCount }}</h2>
+                            <small class="text-muted">Failed</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-elevated text-center">
+                        <div class="card-body">
+                            {% set avgScore = 0 %}
+                            {% if userAnswers|length > 0 %}
+                                {% set totalScore = 0 %}
+                                {% for ua in userAnswers %}
+                                    {% if ua.totalPoints > 0 %}
+                                        {% set totalScore = totalScore + (ua.score / ua.totalPoints * 100) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% set avgScore = (totalScore / userAnswers|length)|round %}
+                            {% endif %}
+                            <h2 class="text-info mb-0">{{ avgScore }}%</h2>
+                            <small class="text-muted">Average Score</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Results Table #}
+        <div class="col-12">
+            <div class="card card-elevated">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Student Submissions</h5>
+                </div>
+                <div class="card-body">
+                    {% if userAnswers|length == 0 %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p class="mt-3">No submissions yet.</p>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Score</th>
+                                        <th>Percentage</th>
+                                        <th>Status</th>
+                                        <th>Started</th>
+                                        <th>Completed</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for userAnswer in userAnswers %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if userAnswer.user.profile and userAnswer.user.profile.avatarFilename %}
+                                                        <img src="{{ vich_uploader_asset(userAnswer.user.profile, 'avatarFile') }}" 
+                                                             class="rounded-circle me-2" width="32" height="32" alt="">
+                                                    {% else %}
+                                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2"
+                                                             style="width: 32px; height: 32px;">
+                                                            <i class="bi bi-person-fill text-white"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <strong>{{ userAnswer.user.name }}</strong>
+                                                        <br><small class="text-muted">{{ userAnswer.user.email }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ userAnswer.score ?? 0 }} / {{ userAnswer.totalPoints ?? quiz.totalPoints }}</td>
+                                            <td>
+                                                {% set percentage = 0 %}
+                                                {% if userAnswer.totalPoints > 0 %}
+                                                    {% set percentage = ((userAnswer.score / userAnswer.totalPoints) * 100)|round %}
+                                                {% endif %}
+                                                <div class="progress" style="height: 20px; min-width: 100px;">
+                                                    <div class="progress-bar {{ percentage >= quiz.passingScore ? 'bg-success' : 'bg-danger' }}" 
+                                                         style="width: {{ percentage }}%">
+                                                        {{ percentage }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if userAnswer.isPassed %}
+                                                    <span class="badge bg-success">Passed</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Failed</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ userAnswer.startedAt ? userAnswer.startedAt|date('M d, H:i') : '-' }}</td>
+                                            <td>{{ userAnswer.completedAt ? userAnswer.completedAt|date('M d, H:i') : 'In Progress' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

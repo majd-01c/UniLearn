@@ -50,6 +50,12 @@
                         <i class="bi bi-clock-history me-2"></i>
                         Enrolled: {{ enrollment.enrolledAt|date('M d, Y') }}
                     </p>
+
+                    <div class="mt-3">
+                        <a href="{{ path('app_student_meetings', {classeId: classe.id}) }}" class="btn btn-success">
+                            <i class="bi bi-camera-video me-2"></i> Join Class Meeting
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -7,11 +7,13 @@ use App\Entity\Choice;
 use App\Entity\ClasseContenu;
 use App\Entity\ClasseCourse;
 use App\Entity\ClasseModule;
+use App\Entity\ClassMeeting;
 use App\Entity\Question;
 use App\Entity\Quiz;
 use App\Entity\StudentClasse;
 use App\Entity\User;
 use App\Entity\UserAnswer;
+use App\Repository\ClassMeetingRepository;
 use App\Repository\QuizRepository;
 use App\Repository\StudentClasseRepository;
 use App\Repository\UserAnswerRepository;
@@ -30,7 +32,8 @@ class StudentLearningController extends AbstractController
         private EntityManagerInterface $entityManager,
         private StudentClasseRepository $studentClasseRepository,
         private QuizRepository $quizRepository,
-        private UserAnswerRepository $userAnswerRepository
+        private UserAnswerRepository $userAnswerRepository,
+        private ClassMeetingRepository $classMeetingRepository
     ) {}
 
     #[Route('', name: 'app_student_learning_index')]
@@ -419,6 +422,73 @@ class StudentLearningController extends AbstractController
         return $this->redirectToRoute('app_student_quiz_view', [
             'classeId' => $classeId,
             'quizId' => $quizId
+        ]);
+    }
+
+    #[Route('/classe/{classeId}/meetings', name: 'app_student_meetings', requirements: ['classeId' => '\d+'])]
+    public function viewMeetings(int $classeId): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        
+        $enrollment = $this->studentClasseRepository->findOneBy([
+            'student' => $user,
+            'classe' => $classeId,
+            'isActive' => true
+        ]);
+
+        if (!$enrollment) {
+            $this->addFlash('error', 'You are not enrolled in this class.');
+            return $this->redirectToRoute('app_student_learning_index');
+        }
+
+        $classe = $enrollment->getClasse();
+        $meetings = $this->classMeetingRepository->findUpcomingMeetingsForClasse($classeId);
+        $liveMeetings = $this->classMeetingRepository->findLiveMeetingsForClasse($classeId);
+
+        return $this->render('Gestion_Program/student_learning/meetings.html.twig', [
+            'classe' => $classe,
+            'enrollment' => $enrollment,
+            'meetings' => $meetings,
+            'liveMeetings' => $liveMeetings,
+        ]);
+    }
+
+    #[Route('/meeting/{meetingId}/join', name: 'app_student_meeting_join', requirements: ['meetingId' => '\d+'])]
+    public function joinMeeting(int $meetingId): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        
+        $meeting = $this->classMeetingRepository->find($meetingId);
+        if (!$meeting) {
+            $this->addFlash('error', 'Meeting not found.');
+            return $this->redirectToRoute('app_student_learning_index');
+        }
+
+        // Verify student is enrolled in the class
+        $classeId = $meeting->getTeacherClasse()->getClasse()->getId();
+        $enrollment = $this->studentClasseRepository->findOneBy([
+            'student' => $user,
+            'classe' => $classeId,
+            'isActive' => true
+        ]);
+
+        if (!$enrollment) {
+            $this->addFlash('error', 'You are not enrolled in this class.');
+            return $this->redirectToRoute('app_student_learning_index');
+        }
+
+        if (!$meeting->isLive()) {
+            $this->addFlash('warning', 'This meeting is not currently active.');
+            return $this->redirectToRoute('app_student_meetings', ['classeId' => $classeId]);
+        }
+
+        return $this->render('Gestion_Program/student_learning/meeting_room.html.twig', [
+            'meeting' => $meeting,
+            'classe' => $enrollment->getClasse(),
+            'jitsi_host' => $_ENV['JITSI_HOST'] ?? 'meet.jit.si',
+            'username' => $user->getName(),
         ]);
     }
 }

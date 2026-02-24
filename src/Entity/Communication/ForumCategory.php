@@ -154,11 +154,11 @@ class ForumCategory
         return $this->topics->count();
     }
 
-    public function getRepliesCount(): int
+    public function getCommentsCount(): int
     {
         $count = 0;
         foreach ($this->topics as $topic) {
-            $count += $topic->getReplies()->count();
+            $count += $topic->getCommentsCount();
         }
         return $count;
     }

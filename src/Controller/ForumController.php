@@ -3,14 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\ForumCategory;
-use App\Entity\ForumReply;
+use App\Entity\ForumComment;
 use App\Entity\ForumTopic;
 use App\Enum\TopicStatus;
 use App\Form\ForumCategoryType;
-use App\Form\ForumReplyType;
+use App\Form\ForumCommentType;
 use App\Form\ForumTopicType;
 use App\Repository\ForumCategoryRepository;
-use App\Repository\ForumReplyRepository;
+use App\Repository\ForumCommentRepository;
 use App\Repository\ForumTopicRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,7 +28,7 @@ class ForumController extends AbstractController
         private EntityManagerInterface $em,
         private ForumCategoryRepository $categoryRepository,
         private ForumTopicRepository $topicRepository,
-        private ForumReplyRepository $replyRepository,
+        private ForumCommentRepository $commentRepository,
         private RequestStack $requestStack
     ) {}
 
@@ -73,7 +73,7 @@ class ForumController extends AbstractController
     }
 
     /**
-     * View a topic and its replies
+     * View a topic and its comments
      */
     #[Route('/topic/{id}', name: 'app_forum_topic')]
     public function topic(ForumTopic $topic, Request $request): Response
@@ -89,44 +89,44 @@ class ForumController extends AbstractController
             $session->set('viewed_forum_topics', $viewedTopics);
         }
 
-        // Handle reply form
-        $reply = new ForumReply();
-        $form = $this->createForm(ForumReplyType::class, $reply);
+        // Handle comment form
+        $comment = new ForumComment();
+        $form = $this->createForm(ForumCommentType::class, $comment);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid() && !$topic->isLocked()) {
             $user = $this->getUser();
-            $reply->setAuthor($user);
-            $reply->setTopic($topic);
+            $comment->setAuthor($user);
+            $comment->setTopic($topic);
             
             // Mark as teacher response if user is teacher/admin/trainer
             if ($this->isGranted('ROLE_TEACHER') || $this->isGranted('ROLE_TRAINER') || $this->isGranted('ROLE_ADMIN')) {
-                $reply->setIsTeacherResponse(true);
+                $comment->setIsTeacherResponse(true);
             }
 
             $topic->updateLastActivity();
             
-            $this->em->persist($reply);
+            $this->em->persist($comment);
             $this->em->flush();
 
-            $this->addFlash('success', 'Reply posted successfully!');
-            // Redirect to the new reply with anchor for scroll
+            $this->addFlash('success', 'Comment posted successfully!');
+            // Redirect to the new comment with anchor for scroll
             return $this->redirectToRoute('app_forum_topic', [
                 'id' => $topic->getId(),
-                '_fragment' => 'reply-' . $reply->getId()
+                '_fragment' => 'comment-' . $comment->getId()
             ]);
         }
 
-        // Paginate replies
+        // Paginate comments (top-level only)
         $page = max(1, $request->query->getInt('page', 1));
-        $replies = $this->replyRepository->findByTopicPaginated($topic, $page, 20);
+        $comments = $this->commentRepository->findByTopicPaginated($topic, $page, 20);
 
         return $this->render('Gestion_Communication/forum/topic.html.twig', [
             'topic' => $topic,
-            'replies' => $replies,
+            'comments' => $comments,
             'form' => $form,
             'page' => $page,
-            'totalPages' => ceil(count($replies) / 20),
+            'totalPages' => ceil(count($comments) / 20),
         ]);
     }
 
@@ -207,16 +207,16 @@ class ForumController extends AbstractController
     }
 
     /**
-     * Toggle a reply as accepted answer
+     * Toggle a comment as accepted answer
      * Rules:
-     * - Topic author: Can accept/unaccept any reply (except their own)
+     * - Topic author: Can accept/unaccept any comment (except their own)
      * - Teacher/Trainer: Can ONLY accept (to help students), but NOT unaccept
      * - Admin: CANNOT accept/unaccept (only moderate via delete)
      */
-    #[Route('/reply/{id}/accept', name: 'app_forum_reply_accept', methods: ['POST'])]
-    public function acceptReply(ForumReply $reply, Request $request): Response
+    #[Route('/comment/{id}/accept', name: 'app_forum_comment_accept', methods: ['POST'])]
+    public function acceptComment(ForumComment $comment, Request $request): Response
     {
-        $topic = $reply->getTopic();
+        $topic = $comment->getTopic();
         $user = $this->getUser();
         $isTopicAuthor = $topic->getAuthor() === $user;
         $isTeacherOrTrainer = $this->isGranted('ROLE_TEACHER') || $this->isGranted('ROLE_TRAINER');
@@ -228,14 +228,14 @@ class ForumController extends AbstractController
             return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
         }
         
-        // Cannot accept your own reply
-        if ($reply->getAuthor() === $user) {
-            $this->addFlash('warning', 'You cannot accept your own reply as an answer.');
+        // Cannot accept your own comment
+        if ($comment->getAuthor() === $user) {
+            $this->addFlash('warning', 'You cannot accept your own comment as an answer.');
             return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
         }
         
         // Check if trying to unaccept
-        if ($reply->isAccepted()) {
+        if ($comment->isAccepted()) {
             // Only topic author can unaccept
             if (!$isTopicAuthor) {
                 $this->addFlash('warning', 'Only the topic author can remove accepted status from an answer.');
@@ -248,13 +248,13 @@ class ForumController extends AbstractController
             throw $this->createAccessDeniedException('You cannot accept answers on this topic.');
         }
 
-        if ($this->isCsrfTokenValid('accept-reply-' . $reply->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('accept-comment-' . $comment->getId(), $request->request->get('_token'))) {
             // Toggle the accepted status
-            if ($reply->isAccepted()) {
-                $reply->setIsAccepted(false);
+            if ($comment->isAccepted()) {
+                $comment->setIsAccepted(false);
                 $this->addFlash('success', 'Answer unmarked as accepted.');
             } else {
-                $reply->setIsAccepted(true);
+                $comment->setIsAccepted(true);
                 $this->addFlash('success', 'Answer marked as accepted!');
             }
             
@@ -314,59 +314,124 @@ class ForumController extends AbstractController
     }
 
     /**
-     * Edit a reply (author only or admin)
+     * Edit a comment (author only or admin)
      */
-    #[Route('/reply/{id}/edit', name: 'app_forum_reply_edit')]
-    public function editReply(ForumReply $reply, Request $request): Response
+    #[Route('/comment/{id}/edit', name: 'app_forum_comment_edit')]
+    public function editComment(ForumComment $comment, Request $request): Response
     {
         // Check permission: author or admin can edit
-        if (!$this->canEditReply($reply)) {
-            throw $this->createAccessDeniedException('You cannot edit this reply.');
+        if (!$this->canEditComment($comment)) {
+            throw $this->createAccessDeniedException('You cannot edit this comment.');
         }
 
-        $form = $this->createForm(ForumReplyType::class, $reply);
+        $form = $this->createForm(ForumCommentType::class, $comment, ['is_reply' => $comment->isReply()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $reply->setUpdatedAt(new \DateTimeImmutable());
+            $comment->setUpdatedAt(new \DateTimeImmutable());
             $this->em->flush();
 
-            $this->addFlash('success', 'Reply updated successfully!');
-            return $this->redirectToRoute('app_forum_topic', ['id' => $reply->getTopic()->getId()]);
+            $this->addFlash('success', 'Comment updated successfully!');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $comment->getTopic()->getId()]);
         }
 
-        return $this->render('Gestion_Communication/forum/edit_reply.html.twig', [
-            'reply' => $reply,
+        return $this->render('Gestion_Communication/forum/edit_comment.html.twig', [
+            'comment' => $comment,
             'form' => $form,
         ]);
     }
 
     /**
-     * Delete a reply (admin only)
+     * Delete a comment (admin only)
      */
-    #[Route('/reply/{id}/delete', name: 'app_forum_reply_delete', methods: ['POST'])]
-    public function deleteReply(ForumReply $reply, Request $request): Response
+    #[Route('/comment/{id}/delete', name: 'app_forum_comment_delete', methods: ['POST'])]
+    public function deleteComment(ForumComment $comment, Request $request): Response
     {
-        // Check permission: only admin can delete replies
-        if (!$this->canDeleteReply($reply)) {
-            throw $this->createAccessDeniedException('Only administrators can delete replies.');
+        // Check permission: only admin can delete comments
+        if (!$this->canDeleteComment($comment)) {
+            throw $this->createAccessDeniedException('Only administrators can delete comments.');
         }
 
-        if ($this->isCsrfTokenValid('delete-reply-' . $reply->getId(), $request->request->get('_token'))) {
-            $topic = $reply->getTopic();
+        if ($this->isCsrfTokenValid('delete-comment-' . $comment->getId(), $request->request->get('_token'))) {
+            $topic = $comment->getTopic();
             $topicId = $topic->getId();
             
-            $this->em->remove($reply);
+            $this->em->remove($comment);
             
-            // Update topic solved status after reply removal
+            // Update topic solved status after comment removal
             $topic->updateSolvedStatus();
             $this->em->flush();
 
-            $this->addFlash('success', 'Reply deleted successfully!');
+            $this->addFlash('success', 'Comment deleted successfully!');
             return $this->redirectToRoute('app_forum_topic', ['id' => $topicId]);
         }
 
-        return $this->redirectToRoute('app_forum_topic', ['id' => $reply->getTopic()->getId()]);
+        return $this->redirectToRoute('app_forum_topic', ['id' => $comment->getTopic()->getId()]);
+    }
+
+    /**
+     * Reply to a comment
+     */
+    #[Route('/comment/{id}/reply', name: 'app_forum_comment_reply', methods: ['POST'])]
+    public function replyToComment(ForumComment $parentComment, Request $request): Response
+    {
+        $topic = $parentComment->getTopic();
+        
+        if ($topic->isLocked()) {
+            $this->addFlash('warning', 'This topic is locked. No new replies can be added.');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+        }
+
+        // Get content from the manual form
+        $formData = $request->request->all('forum_comment_type');
+        $content = $formData['content'] ?? '';
+        $submittedToken = $formData['_token'] ?? '';
+
+        // Validate CSRF token
+        if (!$this->isCsrfTokenValid('forum_comment_type', $submittedToken)) {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+        }
+
+        // Validate content
+        $content = trim($content);
+        if (empty($content)) {
+            $this->addFlash('error', 'Reply content cannot be empty.');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+        }
+
+        if (strlen($content) < 3) {
+            $this->addFlash('error', 'Reply must be at least 3 characters long.');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+        }
+
+        if (strlen($content) > 5000) {
+            $this->addFlash('error', 'Reply cannot exceed 5000 characters.');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $topic->getId()]);
+        }
+
+        // Create the reply
+        $reply = new ForumComment();
+        $reply->setContent($content);
+        $reply->setAuthor($this->getUser());
+        $reply->setTopic($topic);
+        $reply->setParent($parentComment);
+        
+        // Mark as teacher response if user is teacher/admin/trainer
+        if ($this->isGranted('ROLE_TEACHER') || $this->isGranted('ROLE_TRAINER') || $this->isGranted('ROLE_ADMIN')) {
+            $reply->setIsTeacherResponse(true);
+        }
+
+        $topic->updateLastActivity();
+        
+        $this->em->persist($reply);
+        $this->em->flush();
+
+        $this->addFlash('success', 'Reply posted successfully!');
+        return $this->redirectToRoute('app_forum_topic', [
+            'id' => $topic->getId(),
+            '_fragment' => 'comment-' . $reply->getId()
+        ]);
     }
 
     // ================================
@@ -477,20 +542,20 @@ class ForumController extends AbstractController
     }
 
     /**
-     * Check if current user can edit a reply
-     * (reply author only)
+     * Check if current user can edit a comment
+     * (comment author only)
      */
-    private function canEditReply(ForumReply $reply): bool
+    private function canEditComment(ForumComment $comment): bool
     {
         $user = $this->getUser();
-        return $reply->getAuthor() === $user;
+        return $comment->getAuthor() === $user;
     }
 
     /**
-     * Check if current user can delete a reply
+     * Check if current user can delete a comment
      * (admin only)
      */
-    private function canDeleteReply(ForumReply $reply): bool
+    private function canDeleteComment(ForumComment $comment): bool
     {
         return $this->isGranted('ROLE_ADMIN');
     }

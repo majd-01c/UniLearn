@@ -66,6 +66,15 @@
             </a>
         </div>
         <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_student_learning_index') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-success text-white">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <span class="uni-quick-link-title">My Learning</span>
+                <p class="uni-quick-link-desc">Accéder à vos cours</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
             <a href="{{ path('app_espace_etudiant_schedule') }}" class="uni-quick-link">
                 <div class="uni-quick-link-icon bg-gradient-info text-white">
                     <i class="bi bi-calendar-week-fill"></i>
@@ -110,6 +119,33 @@
                 <p class="uni-quick-link-desc">Résultats du semestre</p>
             </a>
         </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_student_classes') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-purple text-white">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <span class="uni-quick-link-title">Mes Classes</span>
+                <p class="uni-quick-link-desc">Voir vos inscriptions</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_job_offer_index') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-danger text-white">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <span class="uni-quick-link-title">Offres d'emploi</span>
+                <p class="uni-quick-link-desc">Stages et opportunités</p>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-2">
+            <a href="{{ path('app_forum') }}" class="uni-quick-link">
+                <div class="uni-quick-link-icon bg-gradient-warning text-white">
+                    <i class="bi bi-chat-square-text-fill"></i>
+                </div>
+                <span class="uni-quick-link-title">Forum</span>
+                <p class="uni-quick-link-desc">Échanger avec la communauté</p>
+            </a>
+        </div>
     </div>
 
     {# AI Recommendations Alert #}
@@ -148,15 +184,16 @@
                     </thead>
                     <tbody>
                         {% for grade in recentGrades %}
+                        {% set maxScore = 20 %}
                         <tr>
                             <td><strong>{{ grade.assessment.course.title }}</strong></td>
                             <td>{{ grade.assessment.title }}</td>
                             <td>
                                 <span class="badge {% if grade.score >= 12 %}bg-success{% elseif grade.score >= 10 %}bg-warning{% else %}bg-danger{% endif %}">
-                                    {{ grade.score }}/{{ grade.assessment.maxScore }}
+                                    {{ grade.score }}/{{ maxScore }}
                                 </span>
                             </td>
-                            <td><small class="text-muted">{{ grade.assessment.dueDate|date('d/m/Y') }}</small></td>
+                            <td><small class="text-muted">{{ grade.assessment.date ? grade.assessment.date|date('d/m/Y') : 'N/A' }}</small></td>
                         </tr>
                         {% endfor %}
                     </tbody>

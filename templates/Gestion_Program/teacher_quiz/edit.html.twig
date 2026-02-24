@@ -1,0 +1,306 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Quiz - {{ quiz.title }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ path('app_teacher_classe_show', {id: teacherClasse.id}) }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-patch-question-fill text-primary"></i> {{ quiz.title }}
+                </h1>
+                <p class="text-muted mb-0">
+                    {{ quiz.questions|length }} question(s) • {{ quiz.totalPoints }} total points
+                </p>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_teacher_quiz_results', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}" 
+               class="btn btn-info">
+                <i class="bi bi-bar-chart"></i> View Results
+            </a>
+            <form method="post" action="{{ path('app_teacher_quiz_delete', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}"
+                  onsubmit="return confirm('Are you sure you want to delete this quiz? All questions and student answers will be lost.');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_quiz' ~ quiz.id) }}">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Delete Quiz
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {# Left Column - Quiz Settings #}
+        <div class="col-lg-4">
+            <div class="card card-elevated mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Quiz Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('edit_quiz' ~ teacherClasse.id) }}">
+
+                        <div class="mb-3">
+                            <label for="quiz_title" class="form-label">Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quiz_title" name="quiz_title" 
+                                   value="{{ quiz.title }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="quiz_description" class="form-label">Description</label>
+                            <textarea class="form-control" id="quiz_description" name="quiz_description" 
+                                      rows="2">{{ quiz.description }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label for="passing_score" class="form-label">Pass %</label>
+                                <input type="number" class="form-control" id="passing_score" name="passing_score"
+                                       value="{{ quiz.passingScore ?? 50 }}" min="0" max="100">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label for="time_limit" class="form-label">Time (min)</label>
+                                <input type="number" class="form-control" id="time_limit" name="time_limit"
+                                       value="{{ quiz.timeLimit }}" min="1" placeholder="No limit">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="shuffle_questions" 
+                                       name="shuffle_questions" {{ quiz.shuffleQuestions ? 'checked' : '' }}>
+                                <label class="form-check-label" for="shuffle_questions">Shuffle questions</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="shuffle_choices" 
+                                       name="shuffle_choices" {{ quiz.shuffleChoices ? 'checked' : '' }}>
+                                <label class="form-check-label" for="shuffle_choices">Shuffle choices</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="show_correct_answers" 
+                                       name="show_correct_answers" {{ quiz.showCorrectAnswers ? 'checked' : '' }}>
+                                <label class="form-check-label" for="show_correct_answers">Show answers after</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-check-lg"></i> Save Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {# Right Column - Questions #}
+        <div class="col-lg-8">
+            {# Add Question Form #}
+            <div class="card card-elevated mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Add New Question</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ path('app_teacher_quiz_question_add', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('add_question' ~ quiz.id) }}">
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="question_text" class="form-label">Question Text <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="question_text" name="question_text" rows="2" 
+                                          required placeholder="Enter your question here..."></textarea>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="question_type" class="form-label">Type</label>
+                                <select class="form-select" id="question_type" name="question_type" onchange="toggleChoicesSection()">
+                                    {% for type in questionTypes %}
+                                        <option value="{{ type.value }}">{{ type.value|replace({'_': ' '}) }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="points" class="form-label">Points</label>
+                                <input type="number" class="form-control" id="points" name="points" value="1" min="1">
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label for="explanation" class="form-label">Explanation (shown after)</label>
+                                <input type="text" class="form-control" id="explanation" name="explanation"
+                                       placeholder="Optional explanation of the correct answer">
+                            </div>
+                        </div>
+
+                        <div id="choices-section">
+                            <label class="form-label">Answer Choices</label>
+                            <small class="text-muted d-block mb-2">Check the box next to correct answer(s)</small>
+                            
+                            <div id="choices-container">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-text">
+                                        <input type="checkbox" name="correct_choices[]" value="0" class="form-check-input mt-0">
+                                    </div>
+                                    <input type="text" class="form-control" name="choices[]" placeholder="Choice 1">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <div class="input-group-text">
+                                        <input type="checkbox" name="correct_choices[]" value="1" class="form-check-input mt-0">
+                                    </div>
+                                    <input type="text" class="form-control" name="choices[]" placeholder="Choice 2">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <div class="input-group-text">
+                                        <input type="checkbox" name="correct_choices[]" value="2" class="form-check-input mt-0">
+                                    </div>
+                                    <input type="text" class="form-control" name="choices[]" placeholder="Choice 3">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <div class="input-group-text">
+                                        <input type="checkbox" name="correct_choices[]" value="3" class="form-check-input mt-0">
+                                    </div>
+                                    <input type="text" class="form-control" name="choices[]" placeholder="Choice 4">
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addChoice()">
+                                <i class="bi bi-plus"></i> Add Choice
+                            </button>
+                        </div>
+
+                        <hr>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Add Question
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {# Existing Questions #}
+            <div class="card card-elevated">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-ol"></i> Questions ({{ quiz.questions|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if quiz.questions|length == 0 %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p class="mt-3">No questions yet. Add your first question above!</p>
+                        </div>
+                    {% else %}
+                        <div class="list-group">
+                            {% for question in quiz.questions %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="badge bg-secondary me-2">Q{{ loop.index }}</span>
+                                                <span class="badge bg-info me-2">{{ question.type.value }}</span>
+                                                <span class="badge bg-primary">{{ question.points }} pt{{ question.points > 1 ? 's' : '' }}</span>
+                                            </div>
+                                            <p class="mb-2 fw-medium">{{ question.questionText }}</p>
+                                            
+                                            {% if question.choices|length > 0 %}
+                                                <ul class="list-unstyled mb-0 small">
+                                                    {% for choice in question.choices %}
+                                                        <li class="{{ choice.isCorrect ? 'text-success fw-bold' : 'text-muted' }}">
+                                                            {% if choice.isCorrect %}
+                                                                <i class="bi bi-check-circle-fill"></i>
+                                                            {% else %}
+                                                                <i class="bi bi-circle"></i>
+                                                            {% endif %}
+                                                            {{ choice.choiceText }}
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% elseif question.type.value != 'TEXT' %}
+                                                <div class="alert alert-warning py-1 px-2 mb-0 small">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                                    Missing answer choices - <a href="{{ path('app_teacher_quiz_question_edit', {teacherClasseId: teacherClasse.id, quizId: quiz.id, questionId: question.id}) }}">Edit to add</a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ path('app_teacher_quiz_question_edit', {teacherClasseId: teacherClasse.id, quizId: quiz.id, questionId: question.id}) }}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form method="post" 
+                                                  action="{{ path('app_teacher_quiz_question_delete', {teacherClasseId: teacherClasse.id, quizId: quiz.id, questionId: question.id}) }}"
+                                                  onsubmit="return confirm('Delete this question?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete_question' ~ question.id) }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let choiceIndex = 4;
+
+function addChoice() {
+    const container = document.getElementById('choices-container');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+        <div class="input-group-text">
+            <input type="checkbox" name="correct_choices[]" value="${choiceIndex}" class="form-check-input mt-0">
+        </div>
+        <input type="text" class="form-control" name="choices[]" placeholder="Choice ${choiceIndex + 1}">
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+    container.appendChild(div);
+    choiceIndex++;
+}
+
+function toggleChoicesSection() {
+    const type = document.getElementById('question_type').value;
+    const section = document.getElementById('choices-section');
+    if (type === 'TEXT') {
+        section.style.display = 'none';
+    } else {
+        section.style.display = 'block';
+    }
+}
+
+// Add form validation
+document.querySelector('form[action*="question_add"]').addEventListener('submit', function(e) {
+    const questionType = document.getElementById('question_type').value;
+    
+    if (questionType !== 'TEXT') {
+        // Check for at least 2 filled choices
+        const choiceInputs = document.querySelectorAll('#choices-container input[name="choices[]"]');
+        const filledChoices = Array.from(choiceInputs).filter(input => input.value.trim() !== '');
+        
+        if (filledChoices.length < 2) {
+            e.preventDefault();
+            alert('Please add at least 2 answer choices for this question type.');
+            return false;
+        }
+        
+        // Check for at least one correct answer
+        const correctChecked = document.querySelectorAll('#choices-container input[name="correct_choices[]"]:checked');
+        if (correctChecked.length === 0) {
+            e.preventDefault();
+            alert('Please mark at least one correct answer.');
+            return false;
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -81,6 +81,9 @@ class Contenu
     #[ORM\OneToMany(targetEntity: CourseContenu::class, mappedBy: 'contenu', orphanRemoval: true)]
     private Collection $courses;
 
+    #[ORM\OneToOne(targetEntity: Quiz::class, mappedBy: 'contenu')]
+    private ?Quiz $quiz = null;
+
     public function __construct()
     {
         $this->courses = new ArrayCollection();
@@ -219,6 +222,28 @@ class Contenu
                 $course->setContenu(null);
             }
         }
+        return $this;
+    }
+
+    public function getQuiz(): ?Quiz
+    {
+        return $this->quiz;
+    }
+
+    public function setQuiz(?Quiz $quiz): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($quiz === null && $this->quiz !== null) {
+            $this->quiz->setContenu(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($quiz !== null && $quiz->getContenu() !== $this) {
+            $quiz->setContenu($this);
+        }
+
+        $this->quiz = $quiz;
+
         return $this;
     }
 }

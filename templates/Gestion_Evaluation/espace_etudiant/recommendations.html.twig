@@ -3,55 +3,98 @@
 {% block title %}Recommandations IA{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4"><i class="fas fa-robot"></i> Recommandations Personnalisées par IA</h1>
+<div class="container-fluid mt-4 px-4 animate-in">
+    <div class="uni-page-header">
+        <div class="uni-page-header-info">
+            <h1 class="uni-page-header-title">
+                <i class="bi bi-robot"></i> Assistant IA - Recommandations Personnalisées
+            </h1>
+            <p class="uni-page-header-subtitle">Améliorez vos performances grâce à l'intelligence artificielle</p>
+        </div>
+        <div class="uni-page-header-actions">
+            <a href="{{ path('app_espace_etudiant_results') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-bar-chart-fill"></i> Mes Résultats
+            </a>
+        </div>
+    </div>
     
-    <div class="alert alert-info mb-4">
-        <h5 class="alert-heading"><i class="fas fa-info-circle"></i> À propos de ces recommandations</h5>
-        <p>Notre système d'intelligence artificielle analyse vos performances académiques et vous propose des cours en ligne adaptés pour améliorer vos compétences dans les modules où vous rencontrez des difficultés.</p>
+    <div class="alert alert-info border-primary mb-4" style="border-left: 5px solid #0d6efd;">
+        <div class="d-flex align-items-start">
+            <i class="bi bi-info-circle-fill me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <h5 class="alert-heading">Comment fonctionne l'IA ?</h5>
+                <p class="mb-0">Notre système d'intelligence artificielle analyse en temps réel vos performances académiques et identifie les domaines nécessitant une amélioration. Elle vous propose ensuite des cours en ligne de qualité, sélectionnés spécifiquement pour vous aider à progresser.</p>
+            </div>
+        </div>
     </div>
     
     {% if recommendations|length > 0 %}
-    <div class="row">
+    <div class="row g-4 stagger-in">
         {% for recommendation in recommendations %}
-        <div class="col-md-12 mb-4">
-            <div class="card border-{% if recommendation.priority == 'HIGH' %}danger{% elseif recommendation.priority == 'MEDIUM' %}warning{% else %}info{% endif %}">
-                <div class="card-header bg-{% if recommendation.priority == 'HIGH' %}danger{% elseif recommendation.priority == 'MEDIUM' %}warning{% else %}info{% endif %} text-white">
+        <div class="col-12">
+            <div class="card shadow-sm border-{% if recommendation.priority == 'HIGH' %}danger{% elseif recommendation.priority == 'MEDIUM' %}warning{% else %}info{% endif %}" style="border-left: 5px solid;">
+                <div class="card-header bg-{% if recommendation.priority == 'HIGH' %}danger{% elseif recommendation.priority == 'MEDIUM' %}warning{% else %}info{% endif %} bg-opacity-10">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">{{ recommendation.courseName }}</h5>
-                        <span class="badge bg-light text-dark">Priorité: {{ recommendation.priority }}</span>
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-book-fill"></i> {{ recommendation.courseName }}
+                        </h5>
+                        <span class="badge bg-{% if recommendation.priority == 'HIGH' %}danger{% elseif recommendation.priority == 'MEDIUM' %}warning{% else %}info{% endif %}">
+                            <i class="bi bi-{% if recommendation.priority == 'HIGH' %}exclamation-triangle-fill{% elseif recommendation.priority == 'MEDIUM' %}dash-circle-fill{% else %}info-circle-fill{% endif %}"></i>
+                            Priorité {{ recommendation.priority }}
+                        </span>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4">
-                            <h6>Performance Actuelle</h6>
+                        <div class="col-md-4 border-end">
+                            <h6 class="text-muted mb-3">
+                                <i class="bi bi-graph-down"></i> Performance Actuelle
+                            </h6>
                             <div class="text-center mb-3">
-                                <div class="display-4 text-{% if recommendation.average < 8 %}danger{% elseif recommendation.average < 10 %}warning{% else %}info{% endif %}">
+                                <div class="display-3 fw-bold text-{% if recommendation.average < 8 %}danger{% elseif recommendation.average < 10 %}warning{% else %}info{% endif %}">
                                     {{ recommendation.average }}/20
                                 </div>
-                                <p class="text-muted">{{ recommendation.status }}</p>
+                                <p class="text-muted fw-semibold">{{ recommendation.status }}</p>
                             </div>
+                            
+                            {% if recommendation.aiInsight %}
+                            <div class="alert alert-light border mt-3">
+                                <small class="d-flex align-items-start">
+                                    <i class="bi bi-lightbulb-fill text-warning me-2 mt-1"></i>
+                                    <span><strong>IA:</strong> {{ recommendation.aiInsight }}</span>
+                                </small>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="col-md-8">
-                            <h6><i class="fas fa-graduation-cap"></i> Cours Recommandés</h6>
+                            <h6 class="text-muted mb-3">
+                                <i class="bi bi-stars"></i> Cours en Ligne Recommandés par l'IA
+                            </h6>
                             <div class="list-group">
                                 {% for courseName, courseUrl in recommendation.recommendedCourses %}
-                                <a href="{{ courseUrl }}" target="_blank" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">{{ courseName }}</h6>
-                                        <small><i class="fas fa-external-link-alt"></i></small>
+                                <a href="{{ courseUrl }}" target="_blank" class="list-group-item list-group-item-action hover-lift">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 fw-semibold">
+                                                <i class="bi bi-play-circle-fill text-primary"></i> {{ courseName }}
+                                            </h6>
+                                            <small class="text-muted">{{ courseUrl }}</small>
+                                        </div>
+                                        <i class="bi bi-box-arrow-up-right text-primary"></i>
                                     </div>
-                                    <small class="text-muted">{{ courseUrl }}</small>
                                 </a>
                                 {% endfor %}
                             </div>
+                            
+                            <div class="mt-4 p-3 bg-light rounded">
+                                <h6 class="mb-2">
+                                    <i class="bi bi-bullseye text-success"></i> Objectif Recommandé
+                                </h6>
+                                <p class="text-muted mb-0 small">
+                                    Améliorer votre moyenne à au moins <strong>12/20</strong> dans ce module en suivant les cours recommandés et en pratiquant régulièrement. L'IA adaptera ses recommandations selon vos progrès.
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mt-3">
-                        <h6><i class="fas fa-bullseye"></i> Objectif</h6>
-                        <p class="text-muted">Améliorer votre moyenne à au moins 12/20 dans ce module en suivant les cours recommandés et en pratiquant régulièrement.</p>
                     </div>
                 </div>
             </div>
@@ -59,36 +102,86 @@
         {% endfor %}
     </div>
     
-    <!-- Additional Tips -->
-    <div class="card bg-light mt-4">
+    <!-- AI-Powered Learning Tips -->
+    <div class="card mt-4 border-success" style="border-left: 5px solid #198754;">
+        <div class="card-header bg-success bg-opacity-10">
+            <h5 class="mb-0">
+                <i class="bi bi-robot text-success"></i> Conseils IA pour Maximiser vos Résultats
+            </h5>
+        </div>
         <div class="card-body">
-            <h5><i class="fas fa-lightbulb"></i> Conseils pour Améliorer vos Résultats</h5>
-            <ul>
-                <li>Suivez les cours recommandés de manière régulière et constante</li>
-                <li>Pratiquez avec des exercices supplémentaires</li>
-                <li>N'hésitez pas à demander de l'aide à vos professeurs</li>
-                <li>Rejoignez des groupes d'étude avec vos camarades</li>
-                <li>Fixez-vous des objectifs hebdomadaires réalisables</li>
-            </ul>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-calendar-check-fill text-primary me-3 fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold">Régularité</h6>
+                            <small class="text-muted">Consacrez 30-60 minutes par jour aux cours recommandés plutôt que des longues sessions espacées.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-journal-text text-success me-3 fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold">Pratique Active</h6>
+                            <small class="text-muted">Faites des exercices supplémentaires et testez vos connaissances régulièrement.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-people-fill text-info me-3 fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold">Collaboration</h6>
+                            <small class="text-muted">Rejoignez des groupes d'étude et discutez avec vos professeurs.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-graph-up-arrow text-warning me-3 fs-4"></i>
+                        <div>
+                            <h6 class="fw-bold">Suivi des Progrès</h6>
+                            <small class="text-muted">Consultez régulièrement vos résultats pour mesurer l'efficacité de votre apprentissage.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
     {% else %}
-    <div class="alert alert-success" role="alert">
-        <h4 class="alert-heading"><i class="fas fa-check-circle"></i> Félicitations!</h4>
-        <p>Vous n'avez actuellement aucun cours nécessitant une amélioration. Continuez vos excellents efforts!</p>
-        <hr>
-        <p class="mb-0">Maintenez votre niveau en révisant régulièrement et en restant engagé dans vos études.</p>
+    <div class="card border-success" style="border-left: 5px solid #198754;">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-trophy-fill text-success" style="font-size: 4rem;"></i>
+            <h3 class="mt-4 fw-bold">Félicitations ! 🎉</h3>
+            <p class="lead text-muted">Vous n'avez actuellement aucun cours nécessitant une amélioration.</p>
+            <hr class="my-4" style="width: 100px; margin: auto;">
+            <p class="text-muted">
+                Continuez vos excellents efforts ! L'IA continuera de surveiller vos performances et vous alertera si des domaines nécessitent votre attention.
+            </p>
+            <a href="{{ path('app_espace_etudiant_results') }}" class="btn btn-success mt-3">
+                <i class="bi bi-bar-chart-fill"></i> Voir tous mes résultats
+            </a>
+        </div>
     </div>
     {% endif %}
     
     <div class="mt-4">
-        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
-        </a>
-        <a href="{{ path('app_espace_etudiant_results') }}" class="btn btn-primary">
-            <i class="fas fa-chart-bar"></i> Voir mes résultats
+        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour au tableau de bord
         </a>
     </div>
 </div>
+
+<style>
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
 {% endblock %}

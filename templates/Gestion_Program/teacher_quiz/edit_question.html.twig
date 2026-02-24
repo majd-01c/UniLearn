@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Question - {{ quiz.title }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ path('app_teacher_quiz_edit', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-pencil-square text-primary"></i> Edit Question
+                </h1>
+                <p class="text-muted mb-0">Quiz: {{ quiz.title }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-elevated">
+                <div class="card-body p-4">
+                    <form method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('edit_question' ~ question.id) }}">
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="question_text" class="form-label">Question Text <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="question_text" name="question_text" rows="3" 
+                                          required>{{ question.questionText }}</textarea>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="question_type" class="form-label">Type</label>
+                                <select class="form-select" id="question_type" name="question_type" onchange="toggleChoicesSection()">
+                                    {% for type in questionTypes %}
+                                        <option value="{{ type.value }}" {{ question.type.value == type.value ? 'selected' : '' }}>
+                                            {{ type.value|replace({'_': ' '}) }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="points" class="form-label">Points</label>
+                                <input type="number" class="form-control" id="points" name="points" 
+                                       value="{{ question.points }}" min="1">
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label for="explanation" class="form-label">Explanation</label>
+                                <input type="text" class="form-control" id="explanation" name="explanation"
+                                       value="{{ question.explanation }}" placeholder="Optional explanation">
+                            </div>
+                        </div>
+
+                        <div id="choices-section" style="{{ question.type.value == 'TEXT' ? 'display:none;' : '' }}">
+                            <label class="form-label">Answer Choices</label>
+                            <small class="text-muted d-block mb-2">Check the box next to correct answer(s)</small>
+                            
+                            <div id="choices-container">
+                                {% if question.choices|length > 0 %}
+                                    {% for choice in question.choices %}
+                                        <div class="input-group mb-2">
+                                            <div class="input-group-text">
+                                                <input type="checkbox" name="correct_choices[]" value="{{ loop.index0 }}" 
+                                                       class="form-check-input mt-0" {{ choice.isCorrect ? 'checked' : '' }}>
+                                            </div>
+                                            <input type="text" class="form-control" name="choices[]" value="{{ choice.choiceText }}">
+                                            <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-text">
+                                            <input type="checkbox" name="correct_choices[]" value="0" class="form-check-input mt-0">
+                                        </div>
+                                        <input type="text" class="form-control" name="choices[]" placeholder="Choice 1">
+                                    </div>
+                                    <div class="input-group mb-2">
+                                        <div class="input-group-text">
+                                            <input type="checkbox" name="correct_choices[]" value="1" class="form-check-input mt-0">
+                                        </div>
+                                        <input type="text" class="form-control" name="choices[]" placeholder="Choice 2">
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addChoice()">
+                                <i class="bi bi-plus"></i> Add Choice
+                            </button>
+                        </div>
+
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> Save Changes
+                            </button>
+                            <a href="{{ path('app_teacher_quiz_edit', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}" 
+                               class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let choiceIndex = {{ question.choices|length > 0 ? question.choices|length : 2 }};
+
+function addChoice() {
+    const container = document.getElementById('choices-container');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+        <div class="input-group-text">
+            <input type="checkbox" name="correct_choices[]" value="${choiceIndex}" class="form-check-input mt-0">
+        </div>
+        <input type="text" class="form-control" name="choices[]" placeholder="Choice ${choiceIndex + 1}">
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+    container.appendChild(div);
+    choiceIndex++;
+}
+
+function toggleChoicesSection() {
+    const type = document.getElementById('question_type').value;
+    const section = document.getElementById('choices-section');
+    if (type === 'TEXT') {
+        section.style.display = 'none';
+    } else {
+        section.style.display = 'block';
+    }
+}
+
+// Add form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const questionType = document.getElementById('question_type').value;
+    
+    if (questionType !== 'TEXT') {
+        // Check for at least 2 filled choices
+        const choiceInputs = document.querySelectorAll('#choices-container input[name="choices[]"]');
+        const filledChoices = Array.from(choiceInputs).filter(input => input.value.trim() !== '');
+        
+        if (filledChoices.length < 2) {
+            e.preventDefault();
+            alert('Please add at least 2 answer choices for this question type.');
+            return false;
+        }
+        
+        // Check for at least one correct answer
+        const correctChecked = document.querySelectorAll('#choices-container input[name="correct_choices[]"]:checked');
+        if (correctChecked.length === 0) {
+            e.preventDefault();
+            alert('Please mark at least one correct answer.');
+            return false;
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -57,15 +57,15 @@ class ForumTopic
     private ?User $author = null;
 
     /**
-     * @var Collection<int, ForumReply>
+     * @var Collection<int, ForumComment>
      */
-    #[ORM\OneToMany(targetEntity: ForumReply::class, mappedBy: 'topic', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: ForumComment::class, mappedBy: 'topic', orphanRemoval: true)]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
-    private Collection $replies;
+    private Collection $comments;
 
     public function __construct()
     {
-        $this->replies = new ArrayCollection();
+        $this->comments = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->lastActivityAt = new \DateTimeImmutable();
@@ -193,47 +193,56 @@ class ForumTopic
     }
 
     /**
-     * @return Collection<int, ForumReply>
+     * @return Collection<int, ForumComment>
      */
-    public function getReplies(): Collection
+    public function getComments(): Collection
     {
-        return $this->replies;
+        return $this->comments;
     }
 
-    public function addReply(ForumReply $reply): static
+    /**
+     * Get only top-level comments (not replies to other comments)
+     * @return Collection<int, ForumComment>
+     */
+    public function getTopLevelComments(): Collection
     {
-        if (!$this->replies->contains($reply)) {
-            $this->replies->add($reply);
-            $reply->setTopic($this);
+        return $this->comments->filter(fn(ForumComment $comment) => $comment->getParent() === null);
+    }
+
+    public function addComment(ForumComment $comment): static
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setTopic($this);
             $this->updateLastActivity();
         }
         return $this;
     }
 
-    public function removeReply(ForumReply $reply): static
+    public function removeComment(ForumComment $comment): static
     {
-        if ($this->replies->removeElement($reply)) {
-            if ($reply->getTopic() === $this) {
-                $reply->setTopic(null);
+        if ($this->comments->removeElement($comment)) {
+            if ($comment->getTopic() === $this) {
+                $comment->setTopic(null);
             }
         }
         return $this;
     }
 
-    public function getAcceptedAnswer(): ?ForumReply
+    public function getAcceptedAnswer(): ?ForumComment
     {
-        // Return first accepted answer from replies
+        // Return first accepted answer from comments
         $accepted = $this->getAcceptedAnswers()->first();
         return $accepted ?: null;
     }
 
     /**
      * Get all accepted answers for this topic
-     * @return Collection<int, ForumReply>
+     * @return Collection<int, ForumComment>
      */
     public function getAcceptedAnswers(): Collection
     {
-        return $this->replies->filter(fn(ForumReply $reply) => $reply->isAccepted());
+        return $this->comments->filter(fn(ForumComment $comment) => $comment->isAccepted());
     }
 
     /**
@@ -264,9 +273,9 @@ class ForumTopic
         }
     }
 
-    public function getRepliesCount(): int
+    public function getCommentsCount(): int
     {
-        return $this->replies->count();
+        return $this->comments->count();
     }
 
     public function isOpen(): bool

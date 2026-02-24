@@ -10,6 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/my-classes')]
+#[IsGranted('ROLE_STUDENT')]
 class StudentClasseController extends AbstractController
 {
     public function __construct(
@@ -20,7 +21,6 @@ class StudentClasseController extends AbstractController
      * List all classes the current student is enrolled in
      */
     #[Route('', name: 'app_student_classes', methods: ['GET'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function index(): Response
     {
         $user = $this->getUser();
@@ -35,7 +35,6 @@ class StudentClasseController extends AbstractController
      * View a specific class the student is enrolled in
      */
     #[Route('/{id}', name: 'app_student_classe_show', requirements: ['id' => '\d+'], methods: ['GET'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function show(Classe $classe): Response
     {
         $user = $this->getUser();

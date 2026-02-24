@@ -34,12 +34,13 @@
                     </thead>
                     <tbody>
                         {% for grade in grades %}
-                        {% set percentage = (grade.score / grade.assessment.maxScore) * 100 %}
+                        {% set maxScore = 20 %}
+                        {% set percentage = (grade.score / maxScore) * 100 %}
                         <tr>
                             <td><strong>{{ grade.assessment.course.title }}</strong></td>
-                            <td><span class="badge bg-info">{{ grade.assessment.type }}</span></td>
+                            <td><span class="badge bg-info">{{ grade.assessment.type.value }}</span></td>
                             <td>{{ grade.assessment.title }}</td>
-                            <td><strong>{{ grade.score }}/{{ grade.assessment.maxScore }}</strong></td>
+                            <td><strong>{{ grade.score }}/{{ maxScore }}</strong></td>
                             <td>
                                 <div class="progress progress-labeled">
                                     <div class="progress-bar {% if percentage >= 60 %}bg-success{% elseif percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
@@ -48,7 +49,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td><small class="text-muted">{{ grade.assessment.dueDate|date('d/m/Y') }}</small></td>
+                            <td><small class="text-muted">{{ grade.assessment.date ? grade.assessment.date|date('d/m/Y') : 'N/A' }}</small></td>
                             <td>
                                 {% if percentage >= 50 %}
                                     <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Réussi</span>

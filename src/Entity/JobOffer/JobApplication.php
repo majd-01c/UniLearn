@@ -57,6 +57,29 @@ class JobApplication
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    // ATS Scoring Fields
+    #[ORM\Column(nullable: true)]
+    private ?int $score = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $scoreBreakdown = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $scoredAt = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $extractedData = null;
+
+    // Notification fields
+    #[ORM\Column(nullable: true)]
+    private ?bool $statusNotified = false;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $statusNotifiedAt = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $statusMessage = null;
+
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
@@ -159,5 +182,102 @@ class JobApplication
     {
         $this->createdAt = $createdAt;
         return $this;
+    }
+
+    // ATS Getters and Setters
+
+    public function getScore(): ?int
+    {
+        return $this->score;
+    }
+
+    public function setScore(?int $score): static
+    {
+        $this->score = $score;
+        return $this;
+    }
+
+    public function getScoreBreakdown(): ?array
+    {
+        return $this->scoreBreakdown;
+    }
+
+    public function setScoreBreakdown(?array $scoreBreakdown): static
+    {
+        $this->scoreBreakdown = $scoreBreakdown;
+        return $this;
+    }
+
+    public function getScoredAt(): ?\DateTimeImmutable
+    {
+        return $this->scoredAt;
+    }
+
+    public function setScoredAt(?\DateTimeImmutable $scoredAt): static
+    {
+        $this->scoredAt = $scoredAt;
+        return $this;
+    }
+
+    public function getExtractedData(): ?array
+    {
+        return $this->extractedData;
+    }
+
+    public function setExtractedData(?array $extractedData): static
+    {
+        $this->extractedData = $extractedData;
+        return $this;
+    }
+
+    // Notification getters and setters
+
+    public function isStatusNotified(): ?bool
+    {
+        return $this->statusNotified;
+    }
+
+    public function setStatusNotified(?bool $statusNotified): static
+    {
+        $this->statusNotified = $statusNotified;
+        return $this;
+    }
+
+    public function getStatusNotifiedAt(): ?\DateTimeImmutable
+    {
+        return $this->statusNotifiedAt;
+    }
+
+    public function setStatusNotifiedAt(?\DateTimeImmutable $statusNotifiedAt): static
+    {
+        $this->statusNotifiedAt = $statusNotifiedAt;
+        return $this;
+    }
+
+    public function getStatusMessage(): ?string
+    {
+        return $this->statusMessage;
+    }
+
+    public function setStatusMessage(?string $statusMessage): static
+    {
+        $this->statusMessage = $statusMessage;
+        return $this;
+    }
+
+    /**
+     * Check if this application has a decision (accepted or rejected)
+     */
+    public function hasDecision(): bool
+    {
+        return in_array($this->status, [JobApplicationStatus::ACCEPTED, JobApplicationStatus::REJECTED], true);
+    }
+
+    /**
+     * Check if status change needs notification
+     */
+    public function needsStatusNotification(): bool
+    {
+        return $this->hasDecision() && !$this->statusNotified;
     }
 }

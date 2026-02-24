@@ -6,6 +6,7 @@ use App\Entity\JobOffer;
 use App\Enum\JobOfferStatus;
 use App\Form\JobOfferFormType;
 use App\Security\Voter\JobOfferVoter;
+use App\Service\JobOffer\ATSScoringService;
 use App\Service\JobOffer\JobOfferService;
 use App\Service\JobOffer\JobApplicationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +22,7 @@ class PartnerJobOfferController extends AbstractController
     public function __construct(
         private readonly JobOfferService $jobOfferService,
         private readonly JobApplicationService $applicationService,
+        private readonly ATSScoringService $scoringService,
     ) {
     }
 
@@ -57,7 +59,9 @@ class PartnerJobOfferController extends AbstractController
         $user = $this->getUser();
 
         $offer = new JobOffer();
-        $form = $this->createForm(JobOfferFormType::class, $offer);
+        $form = $this->createForm(JobOfferFormType::class, $offer, [
+            'partner' => $user,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -83,7 +87,12 @@ class PartnerJobOfferController extends AbstractController
     {
         $this->denyAccessUnlessGranted(JobOfferVoter::EDIT, $offer);
 
-        $form = $this->createForm(JobOfferFormType::class, $offer);
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        $form = $this->createForm(JobOfferFormType::class, $offer, [
+            'partner' => $user,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -172,16 +181,54 @@ class PartnerJobOfferController extends AbstractController
      * View applications for a job offer
      */
     #[Route('/{id}/applications', name: 'app_partner_job_offer_applications', methods: ['GET'])]
-    public function applications(JobOffer $offer): Response
+    public function applications(Request $request, JobOffer $offer): Response
     {
         $this->denyAccessUnlessGranted(JobOfferVoter::VIEW_APPLICATIONS, $offer);
 
         $applications = $this->applicationService->getApplicationsForOffer($offer);
+        
+        // Sort by score (descending) if sort parameter is set
+        $sort = $request->query->get('sort', 'score');
+        if ($sort === 'score') {
+            usort($applications, function($a, $b) {
+                $scoreA = $a->getScore() ?? -1;
+                $scoreB = $b->getScore() ?? -1;
+                return $scoreB <=> $scoreA; // Descending
+            });
+        }
 
         return $this->render('Gestion_Job_Offre/partner/job_offer/applications.html.twig', [
             'offer' => $offer,
             'applications' => $applications,
+            'currentSort' => $sort,
         ]);
+    }
+
+    /**
+     * Calculate ATS scores for all applications of an offer
+     */
+    #[Route('/{id}/calculate-all-scores', name: 'app_partner_job_offer_calculate_all_scores', methods: ['POST'])]
+    public function calculateAllScores(Request $request, JobOffer $offer): Response
+    {
+        $this->denyAccessUnlessGranted(JobOfferVoter::VIEW_APPLICATIONS, $offer);
+
+        if (!$this->isCsrfTokenValid('calculate-all-' . $offer->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_partner_job_offer_applications', ['id' => $offer->getId()]);
+        }
+
+        try {
+            $results = $this->scoringService->calculateScoresForOffer($offer);
+            $count = count($results);
+            $this->addFlash('success', sprintf(
+                'Scores ATS calculés pour %d candidature(s).',
+                $count
+            ));
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors du calcul des scores: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partner_job_offer_applications', ['id' => $offer->getId()]);
     }
 
 }

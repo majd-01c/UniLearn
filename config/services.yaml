@@ -5,7 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     mailer_dsn: '%env(MAILER_DSN)%'
-    openrouter_api_key: '%env(OPENROUTER_API_KEY)%'
+    gemini_api_key: '%env(GEMINI_API_KEY)%'
     cv_upload_directory: '%kernel.project_dir%/public/uploads/cv'
     avatar_service_url: '%env(AVATAR_SERVICE_URL)%'
 
@@ -31,10 +31,10 @@ services:
         arguments:
             $mailerDsn: '%mailer_dsn%'
 
-    # ATS Services
+    # ATS Services (Google Gemini API - free tier)
     App\Service\JobOffer\OpenRouterService:
         arguments:
-            $apiKey: '%openrouter_api_key%'
+            $apiKey: '%gemini_api_key%'
 
     App\Service\JobOffer\ATSScoringService:
         arguments:

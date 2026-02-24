@@ -2,12 +2,19 @@
 
 namespace App\Service\JobOffer;
 
+use App\Entity\User;
+use App\Repository\CustomSkillRepository;
+
 /**
  * Provides predefined lists of skills, education levels, and languages
- * for the ATS system.
+ * for the ATS system, plus partner-specific custom skills.
  */
 class SkillsProvider
 {
+    public function __construct(
+        private readonly CustomSkillRepository $customSkillRepository,
+    ) {
+    }
     /**
      * Get all skills organized by category
      */
@@ -131,5 +138,75 @@ class SkillsProvider
             4 => '4 ans',
             5 => '5+ ans',
         ];
+    }
+
+    /**
+     * Get all skills for a specific partner (predefined + custom)
+     */
+    public function getAllSkillsForPartner(?User $partner = null): array
+    {
+        $predefinedSkills = $this->getAllSkills();
+        
+        if (!$partner || !in_array('ROLE_BUSINESS_PARTNER', $partner->getRoles(), true)) {
+            return $predefinedSkills;
+        }
+
+        $customSkills = $this->customSkillRepository->findByPartner($partner);
+        $customSkillNames = array_map(fn($skill) => $skill->getName(), $customSkills);
+
+        return array_merge($predefinedSkills, $customSkillNames);
+    }
+
+    /**
+     * Get skills organized by category for a specific partner
+     */
+    public function getSkillsByCategoryForPartner(?User $partner = null): array
+    {
+        $predefinedSkillsByCategory = $this->getSkillsByCategory();
+        
+        if (!$partner || !in_array('ROLE_BUSINESS_PARTNER', $partner->getRoles(), true)) {
+            return $predefinedSkillsByCategory;
+        }
+
+        // Get custom skills for the partner
+        $customSkills = $this->customSkillRepository->getSkillsByCategoryForPartner($partner);
+        
+        // Merge custom skills into the predefined categories
+        $mergedSkills = $predefinedSkillsByCategory;
+        
+        foreach ($customSkills as $category => $skills) {
+            if (isset($mergedSkills[$category])) {
+                $mergedSkills[$category] = array_merge($mergedSkills[$category], $skills);
+            } else {
+                $mergedSkills[$category] = $skills;
+            }
+        }
+
+        return $mergedSkills;
+    }
+
+    /**
+     * Check if a skill is a custom skill for a partner
+     */
+    public function isCustomSkillForPartner(string $skillName, User $partner): bool
+    {
+        if (!in_array('ROLE_BUSINESS_PARTNER', $partner->getRoles(), true)) {
+            return false;
+        }
+
+        return $this->customSkillRepository->existsForPartner($partner, $skillName);
+    }
+
+    /**
+     * Get partner custom skills only
+     */
+    public function getCustomSkillsForPartner(User $partner): array
+    {
+        if (!in_array('ROLE_BUSINESS_PARTNER', $partner->getRoles(), true)) {
+            return [];
+        }
+
+        $customSkills = $this->customSkillRepository->findByPartner($partner);
+        return array_map(fn($skill) => $skill->getName(), $customSkills);
     }
 }

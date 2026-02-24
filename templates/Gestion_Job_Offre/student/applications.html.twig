@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Applications - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="bi bi-file-text-fill text-primary"></i> My Applications</h1>
+            <p class="text-muted mb-0">View the status of your job applications</p>
+        </div>
+        <a href="{{ path('app_job_offer_index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-briefcase"></i> Browse Jobs
+        </a>
+    </div>
+
+    {# Flash Messages #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% if applications|length > 0 %}
+        <div class="row">
+            {% for application in applications %}
+                <div class="col-12 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <h5 class="card-title">
+                                        <a href="{{ path('app_job_offer_show', {'id': application.offer.id}) }}" 
+                                           class="text-decoration-none">
+                                            {{ application.offer.title }}
+                                        </a>
+                                    </h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ application.offer.partner.name }}</h6>
+                                    
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            <i class="bi bi-geo-alt"></i> {{ application.offer.location ?? 'Location not specified' }}
+                                            &nbsp;&nbsp;
+                                            <i class="bi bi-tags"></i> {{ application.offer.type.value|replace({'_': ' '})|title }}
+                                        </small>
+                                    </p>
+
+                                    {% if application.statusMessage %}
+                                        <div class="mt-3">
+                                            <div class="alert {{ application.status.value == 'ACCEPTED' ? 'alert-success' : 'alert-info' }} mb-0" role="alert">
+                                                <i class="bi bi-{{ application.status.value == 'ACCEPTED' ? 'check-circle' : 'info-circle' }}"></i>
+                                                {{ application.statusMessage }}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-lg-4 text-lg-end">
+                                    <div class="mb-2">
+                                        {% set statusClass = 'secondary' %}
+                                        {% set statusIcon = 'hourglass-split' %}
+                                        
+                                        {% if application.status.value == 'SUBMITTED' %}
+                                            {% set statusClass = 'primary' %}
+                                            {% set statusIcon = 'clock' %}
+                                        {% elseif application.status.value == 'REVIEWED' %}
+                                            {% set statusClass = 'info' %}
+                                            {% set statusIcon = 'eye' %}
+                                        {% elseif application.status.value == 'ACCEPTED' %}
+                                            {% set statusClass = 'success' %}
+                                            {% set statusIcon = 'check-circle' %}
+                                        {% elseif application.status.value == 'REJECTED' %}
+                                            {% set statusClass = 'danger' %}
+                                            {% set statusIcon = 'x-circle' %}
+                                        {% endif %}
+                                        
+                                        <span class="badge bg-{{ statusClass }} fs-6">
+                                            <i class="bi bi-{{ statusIcon }}"></i> 
+                                            {{ application.status.value|title }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="text-muted">
+                                        <small>Applied: {{ application.createdAt|date('M d, Y') }}</small>
+                                        {% if application.updatedAt and application.updatedAt != application.createdAt %}
+                                            <br><small>Updated: {{ application.updatedAt|date('M d, Y') }}</small>
+                                        {% endif %}
+                                        {% if application.statusNotifiedAt %}
+                                            <br><small class="text-success">Notification viewed</small>
+                                        {% elseif application.hasDecision and not application.isStatusNotified %}
+                                            <br><small class="text-warning fw-bold">New status!</small>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if application.message %}
+                                        <div class="mt-2">
+                                            <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#message-{{ application.id }}" 
+                                                    aria-expanded="false">
+                                                <i class="bi bi-chat-left-text"></i> View Message
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if application.message %}
+                                <div class="collapse mt-3" id="message-{{ application.id }}">
+                                    <div class="card card-body bg-light">
+                                        <h6>Your Application Message:</h6>
+                                        <p class="mb-0">{{ application.message|nl2br }}</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox display-1 text-muted"></i>
+            <h3 class="mt-3">No Applications Yet</h3>
+            <p class="text-muted">You haven't applied to any job offers yet.</p>
+            <a href="{{ path('app_job_offer_index') }}" class="btn btn-primary">
+                <i class="bi bi-briefcase"></i> Browse Available Jobs
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

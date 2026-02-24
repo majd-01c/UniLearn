@@ -2,29 +2,6 @@
 
 {% block title %}Modifier l'offre - UniLearn{% endblock %}
 
-{% block stylesheets %}
-{{ parent() }}
-<style>
-    .skills-checkboxes .form-check {
-        display: inline-block;
-        width: 180px;
-        margin-right: 10px;
-    }
-    .skills-section {
-        max-height: 300px;
-        overflow-y: auto;
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-        padding: 15px;
-        background: #f8f9fa;
-    }
-    .language-checkboxes .form-check {
-        display: inline-block;
-        margin-right: 20px;
-    }
-</style>
-{% endblock %}
-
 {% block body %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -104,8 +81,68 @@
                                 <i class="bi bi-check-circle text-success"></i> Compétences requises
                             </label>
                             <p class="text-muted small mb-2">Sélectionnez les compétences que le candidat DOIT posséder</p>
-                            <div class="skills-section">
-                                {{ form_widget(form.requiredSkills) }}
+                            
+                            {# Hidden form field for storing selected skills #}
+                            {{ form_widget(form.requiredSkills) }}
+                            
+                            {# My Skills Quick Selection #}
+                            <div class="my-skills-section mb-3" data-field-type="required">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 text-primary">
+                                        <i class="bi bi-bookmark-fill"></i> Mes compétences sauvegardées
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary toggle-my-skills" data-field-type="required">
+                                        <i class="bi bi-chevron-down"></i> <span class="toggle-text">Afficher</span>
+                                    </button>
+                                </div>
+                                <div class="my-skills-container collapse" data-field-type="required">
+                                    <input type="text" class="form-control form-control-sm my-skills-search" data-field-type="required" placeholder="Rechercher dans mes compétences...">
+                                    <div class="my-skills-checkboxes" data-field-type="required">
+                                        <!-- Will be populated by JavaScript -->
+                                        <div class="text-center text-muted p-3">
+                                            <i class="bi bi-hourglass-split"></i> Chargement de vos compétences...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {# Search and Add New Skills #}
+                            <div class="skills-manager" data-field-type="required">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 text-primary">
+                                        <i class="bi bi-search"></i> Rechercher et ajouter des compétences
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary toggle-search-skills" data-field-type="required">
+                                        <i class="bi bi-chevron-down"></i> <span class="toggle-text">Afficher</span>
+                                    </button>
+                                </div>
+                                <div class="skills-search-section collapse" data-field-type="required">
+                                    <div class="skills-search-container mb-3">
+                                        <div class="input-group">
+                                            <input type="text" 
+                                                   class="form-control skills-search" 
+                                                   placeholder="Rechercher ou ajouter une compétence..."
+                                                   data-field-type="required">
+                                            <button type="button" class="btn btn-outline-primary skills-add-btn" data-field-type="required">
+                                                <i class="bi bi-plus-lg"></i> Ajouter
+                                            </button>
+                                        </div>
+                                        <div class="skills-suggestions mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {# Selected Skills Display #}
+                            <div class="selected-skills-container mt-3">
+                                <h6 class="mb-2 text-success">
+                                    <i class="bi bi-check-circle-fill"></i> Compétences sélectionnées pour cette offre
+                                </h6>
+                                <div class="selected-skills" data-field-type="required"></div>
+                                <div class="text-muted small mt-2">
+                                    <i class="bi bi-info-circle"></i> 
+                                    Cliquez sur une compétence pour la retirer. 
+                                    Les compétences personnalisées sont marquées d'un <i class="bi bi-star-fill text-warning"></i>
+                                </div>
                             </div>
                             {{ form_errors(form.requiredSkills) }}
                         </div>
@@ -116,8 +153,68 @@
                                 <i class="bi bi-star text-warning"></i> Compétences souhaitées (bonus)
                             </label>
                             <p class="text-muted small mb-2">Compétences optionnelles qui donneront des points supplémentaires</p>
-                            <div class="skills-section">
-                                {{ form_widget(form.preferredSkills) }}
+                            
+                            {# Hidden form field for storing selected skills #}
+                            {{ form_widget(form.preferredSkills) }}
+                            
+                            {# My Skills Quick Selection #}
+                            <div class="my-skills-section mb-3" data-field-type="preferred">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 text-warning">
+                                        <i class="bi bi-bookmark-fill"></i> Mes compétences sauvegardées
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary toggle-my-skills" data-field-type="preferred">
+                                        <i class="bi bi-chevron-down"></i> <span class="toggle-text">Afficher</span>
+                                    </button>
+                                </div>
+                                <div class="my-skills-container collapse" data-field-type="preferred">
+                                    <input type="text" class="form-control form-control-sm my-skills-search" data-field-type="preferred" placeholder="Rechercher dans mes compétences...">
+                                    <div class="my-skills-checkboxes" data-field-type="preferred">
+                                        <!-- Will be populated by JavaScript -->
+                                        <div class="text-center text-muted p-3">
+                                            <i class="bi bi-hourglass-split"></i> Chargement de vos compétences...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {# Search and Add New Skills #}
+                            <div class="skills-manager" data-field-type="preferred">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 text-warning">
+                                        <i class="bi bi-search"></i> Rechercher et ajouter des compétences
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary toggle-search-skills" data-field-type="preferred">
+                                        <i class="bi bi-chevron-down"></i> <span class="toggle-text">Afficher</span>
+                                    </button>
+                                </div>
+                                <div class="skills-search-section collapse" data-field-type="preferred">
+                                    <div class="skills-search-container mb-3">
+                                        <div class="input-group">
+                                            <input type="text" 
+                                                   class="form-control skills-search" 
+                                                   placeholder="Rechercher ou ajouter une compétence..."
+                                                   data-field-type="preferred">
+                                            <button type="button" class="btn btn-outline-warning skills-add-btn" data-field-type="preferred">
+                                                <i class="bi bi-plus-lg"></i> Ajouter
+                                            </button>
+                                        </div>
+                                        <div class="skills-suggestions mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {# Selected Skills Display #}
+                            <div class="selected-skills-container mt-3">
+                                <h6 class="mb-2 text-warning">
+                                    <i class="bi bi-star-fill"></i> Compétences sélectionnées pour cette offre
+                                </h6>
+                                <div class="selected-skills" data-field-type="preferred"></div>
+                                <div class="text-muted small mt-2">
+                                    <i class="bi bi-info-circle"></i> 
+                                    Cliquez sur une compétence pour la retirer.
+                                    Les compétences personnalisées sont marquées d'un <i class="bi bi-star-fill text-warning"></i>
+                                </div>
                             </div>
                             {{ form_errors(form.preferredSkills) }}
                         </div>
@@ -169,4 +266,583 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+class AdvancedSkillsManager {
+    constructor() {
+        this.searchTimeout = null;
+        this.selectedSkills = {
+            required: new Set(),
+            preferred: new Set()
+        };
+        this.personalSkills = [];
+        this.init();
+    }
+
+    init() {
+        this.setupToggleButtons();
+        this.setupSearchManagers();
+        this.loadPersonalSkills();
+        this.loadExistingSelectedSkills();
+    }
+
+    setupToggleButtons() {
+        // Toggle buttons for my skills sections
+        document.querySelectorAll('.toggle-my-skills').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const fieldType = btn.dataset.fieldType;
+                const container = document.querySelector(`.my-skills-container[data-field-type="${fieldType}"]`);
+                const icon = btn.querySelector('i');
+                const text = btn.querySelector('.toggle-text');
+                
+                if (container.classList.contains('show')) {
+                    container.classList.remove('show');
+                    icon.className = 'bi bi-chevron-down';
+                    text.textContent = 'Afficher';
+                } else {
+                    container.classList.add('show');
+                    icon.className = 'bi bi-chevron-up';
+                    text.textContent = 'Masquer';
+                }
+            });
+        });
+
+        // Toggle buttons for search sections
+        document.querySelectorAll('.toggle-search-skills').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const fieldType = btn.dataset.fieldType;
+                const container = document.querySelector(`.skills-search-section[data-field-type="${fieldType}"]`);
+                const icon = btn.querySelector('i');
+                const text = btn.querySelector('.toggle-text');
+                
+                if (container.classList.contains('show')) {
+                    container.classList.remove('show');
+                    icon.className = 'bi bi-chevron-down';
+                    text.textContent = 'Afficher';
+                } else {
+                    container.classList.add('show');
+                    icon.className = 'bi bi-chevron-up';
+                    text.textContent = 'Masquer';
+                }
+            });
+        });
+
+        document.querySelectorAll('.my-skills-search').forEach(input => {
+            input.addEventListener('input', () => {
+                this.filterSavedSkills(input.dataset.fieldType, input.value);
+            });
+        });
+    }
+
+    setupSearchManagers() {
+        document.querySelectorAll('.skills-manager').forEach(manager => {
+            const fieldType = manager.dataset.fieldType;
+            const searchInput = manager.querySelector('.skills-search');
+            const addBtn = manager.querySelector('.skills-add-btn');
+            const suggestionsContainer = manager.querySelector('.skills-suggestions');
+
+            // Setup search functionality
+            searchInput.addEventListener('input', (e) => {
+                this.handleSearch(e.target.value, suggestionsContainer, fieldType);
+            });
+
+            // Setup add button
+            addBtn.addEventListener('click', () => {
+                const query = searchInput.value.trim();
+                if (query) {
+                    this.addNewSkill(query, fieldType);
+                    searchInput.value = '';
+                    suggestionsContainer.classList.remove('show');
+                }
+            });
+
+            // Handle Enter key in search
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const query = searchInput.value.trim();
+                    if (query) {
+                        addBtn.click();
+                    }
+                } else if (e.key === 'Escape') {
+                    suggestionsContainer.classList.remove('show');
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!manager.contains(e.target)) {
+                    suggestionsContainer.classList.remove('show');
+                }
+            });
+        });
+    }
+
+    async loadPersonalSkills() {
+        try {
+            const response = await fetch(`{{ path('app_partner_skill_list') }}`);
+            const data = await response.json();
+            this.personalSkills = data.skillsByCategory;
+            
+            this.renderPersonalSkillsCheckboxes('required');
+            this.renderPersonalSkillsCheckboxes('preferred');
+        } catch (error) {
+            console.error('Error loading personal skills:', error);
+            this.showPersonalSkillsError('required');
+            this.showPersonalSkillsError('preferred');
+        }
+    }
+
+    renderPersonalSkillsCheckboxes(fieldType) {
+        const container = document.querySelector(`.my-skills-checkboxes[data-field-type="${fieldType}"]`);
+        container.innerHTML = '';
+
+        let hasSkills = false;
+        let skillIndex = 0;
+
+        // Render skills by category
+        Object.entries(this.personalSkills).forEach(([category, skills]) => {
+            if (skills.length === 0) return;
+            
+            hasSkills = true;
+            
+            // Add category header
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'fw-bold text-muted mb-2 mt-3';
+            categoryHeader.innerHTML = `<i class="bi bi-folder"></i> ${category}`;
+            if (skillIndex === 0) categoryHeader.classList.remove('mt-3');
+            container.appendChild(categoryHeader);
+
+            // Add skills checkboxes
+            skills.forEach(skill => {
+                const checkId = `skill-${fieldType}-${skillIndex}`;
+                const formCheck = document.createElement('div');
+                formCheck.className = 'form-check';
+                formCheck.dataset.skillName = skill.value.toLowerCase();
+                
+                const isCustom = skill.type === 'custom';
+                const customIndicator = isCustom ? '<i class="bi bi-star-fill skill-custom-indicator"></i>' : '';
+                const deleteButton = isCustom
+                    ? `<button type="button" class="delete-saved-skill" data-skill-name="${skill.value}" title="Supprimer cette compétence">
+                            <i class="bi bi-trash"></i>
+                       </button>`
+                    : '';
+                
+                formCheck.innerHTML = `
+                    <div class="skill-checkbox-row">
+                        <input class="form-check-input personal-skill-checkbox" 
+                               type="checkbox" 
+                               value="${skill.value}" 
+                               id="${checkId}"
+                               data-field-type="${fieldType}"
+                               data-skill-type="${skill.type}">
+                        <label class="form-check-label" for="${checkId}">
+                            ${skill.label}${customIndicator}
+                        </label>
+                    </div>
+                    ${deleteButton}
+                `;
+                
+                container.appendChild(formCheck);
+                skillIndex++;
+            });
+        });
+
+        if (!hasSkills) {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    <i class="bi bi-inbox"></i><br>
+                    Aucune compétence sauvegardée.<br>
+                    <small>Utilisez la recherche pour ajouter vos premières compétences.</small>
+                </div>
+            `;
+        } else {
+            // Setup checkbox event listeners
+            container.querySelectorAll('.personal-skill-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const skillName = e.target.value;
+                    const checked = e.target.checked;
+                    const skillType = e.target.dataset.skillType;
+
+                    if (checked) {
+                        this.addSkillToSelected(skillName, fieldType, skillType, false);
+                    } else {
+                        this.removeSkillFromSelected(skillName, fieldType, false);
+                    }
+                });
+            });
+
+            container.querySelectorAll('.delete-saved-skill').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const skillName = button.dataset.skillName;
+                    await this.deleteSavedSkill(skillName);
+                });
+            });
+        }
+
+        this.updatePersonalSkillCheckboxes();
+    }
+
+    filterSavedSkills(fieldType, query) {
+        const container = document.querySelector(`.my-skills-checkboxes[data-field-type="${fieldType}"]`);
+        if (!container) {
+            return;
+        }
+
+        const normalized = query.trim().toLowerCase();
+        const rows = container.querySelectorAll('.form-check');
+        const headers = container.querySelectorAll('.fw-bold.text-muted');
+
+        rows.forEach(row => {
+            if (normalized === '' || row.dataset.skillName.includes(normalized)) {
+                row.classList.remove('d-none');
+            } else {
+                row.classList.add('d-none');
+            }
+        });
+
+        headers.forEach(header => {
+            let hasVisibleSkill = false;
+            let sibling = header.nextElementSibling;
+            while (sibling && !sibling.classList.contains('fw-bold')) {
+                if (sibling.classList.contains('form-check') && !sibling.classList.contains('d-none')) {
+                    hasVisibleSkill = true;
+                    break;
+                }
+                sibling = sibling.nextElementSibling;
+            }
+
+            if (normalized === '' || hasVisibleSkill) {
+                header.classList.remove('d-none');
+            } else {
+                header.classList.add('d-none');
+            }
+        });
+    }
+
+    showPersonalSkillsError(fieldType) {
+        const container = document.querySelector(`.my-skills-checkboxes[data-field-type="${fieldType}"]`);
+        container.innerHTML = `
+            <div class="text-center text-danger p-3">
+                <i class="bi bi-exclamation-triangle"></i> Erreur lors du chargement des compétences
+            </div>
+        `;
+    }
+
+    async handleSearch(query, suggestionsContainer, fieldType) {
+        clearTimeout(this.searchTimeout);
+        
+        if (query.length < 2) {
+            suggestionsContainer.classList.remove('show');
+            return;
+        }
+
+        this.searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`{{ path('app_partner_skill_search') }}?q=${encodeURIComponent(query)}&limit=15`);
+                const data = await response.json();
+                
+                this.renderSuggestions(data.suggestions, suggestionsContainer, fieldType);
+            } catch (error) {
+                console.error('Error searching skills:', error);
+                this.showError(suggestionsContainer, 'Erreur lors de la recherche');
+            }
+        }, 300);
+    }
+
+    renderSuggestions(suggestions, container, fieldType) {
+        container.innerHTML = '';
+        
+        if (suggestions.length === 0) {
+            container.innerHTML = '<div class="no-results">Aucun résultat trouvé</div>';
+            container.classList.add('show');
+            return;
+        }
+
+        suggestions.forEach(suggestion => {
+            // Skip if already selected
+            if (this.selectedSkills[fieldType].has(suggestion.value)) {
+                return;
+            }
+
+            const item = document.createElement('div');
+            item.className = 'skills-suggestion-item';
+            item.innerHTML = `
+                <div>
+                    <span class="skill-name">${suggestion.label}</span>
+                    ${suggestion.description ? `<small class="text-muted d-block">${suggestion.description}</small>` : ''}
+                </div>
+                <span class="skill-type ${suggestion.type}">${suggestion.type === 'custom' ? 'Personnel' : suggestion.category}</span>
+            `;
+            
+            item.addEventListener('click', () => {
+                this.addSkillToSelected(suggestion.value, fieldType, suggestion.type, false);
+                container.classList.remove('show');
+            });
+            
+            container.appendChild(item);
+        });
+        
+        container.classList.add('show');
+    }
+
+    async addNewSkill(skillName, fieldType) {
+        try {
+            const response = await fetch(`{{ path('app_partner_skill_add') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: skillName,
+                    category: 'Mes compétences'
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Add to selected skills
+                this.addSkillToSelected(skillName, fieldType, 'custom', false);
+                
+                // Refresh personal skills to show the new skill in checkboxes
+                await this.loadPersonalSkills();
+                
+                // Check the newly added skill in both field types
+                this.updatePersonalSkillCheckboxes();
+                
+                // Show success message
+                this.showTemporaryMessage('success', 'Compétence ajoutée et sauvegardée!');
+            } else {
+                this.showTemporaryMessage('error', result.message || 'Erreur lors de l\'ajout');
+            }
+        } catch (error) {
+            console.error('Error adding new skill:', error);
+            this.showTemporaryMessage('error', 'Erreur lors de l\'ajout de la compétence');
+        }
+    }
+
+    addSkillToSelected(skillName, fieldType, skillType = 'predefined', updateCheckbox = true) {
+        const alreadySelected = this.selectedSkills[fieldType].has(skillName);
+        if (!alreadySelected) {
+            this.selectedSkills[fieldType].add(skillName);
+        }
+        this.ensureFormOptionExists(fieldType, skillName);
+
+        if (alreadySelected) {
+            this.updateFormField(fieldType);
+            if (updateCheckbox) {
+                this.updatePersonalSkillCheckbox(skillName, fieldType, true);
+            }
+            return;
+        }
+        
+        // Create skill tag
+        const skillTag = document.createElement('span');
+        skillTag.className = `skill-tag ${fieldType} ${skillType}`;
+        skillTag.dataset.skillName = skillName;
+        skillTag.innerHTML = `
+            ${skillName}
+            <i class="bi bi-x-lg" style="font-size: 0.75rem;"></i>
+        `;
+        
+        // Add click handler to remove skill
+        skillTag.addEventListener('click', () => {
+            this.removeSkillFromSelected(skillName, fieldType, true);
+        });
+        
+        // Add to UI
+        const selectedSkillsContainer = document.querySelector(`.selected-skills[data-field-type="${fieldType}"]`);
+        selectedSkillsContainer.appendChild(skillTag);
+        
+        // Update hidden form field
+        this.updateFormField(fieldType);
+        
+        // Update checkbox if needed
+        if (updateCheckbox) {
+            this.updatePersonalSkillCheckbox(skillName, fieldType, true);
+        }
+    }
+
+    removeSkillFromSelected(skillName, fieldType, updateCheckbox = true) {
+        // Remove from selected skills
+        this.selectedSkills[fieldType].delete(skillName);
+        
+        // Remove from UI
+        const skillTags = document.querySelectorAll(`.selected-skills[data-field-type="${fieldType}"] .skill-tag`);
+        skillTags.forEach(tag => {
+            if (tag.dataset.skillName === skillName) {
+                tag.remove();
+            }
+        });
+        
+        // Update hidden form field
+        this.updateFormField(fieldType);
+        
+        // Update checkbox if needed
+        if (updateCheckbox) {
+            this.updatePersonalSkillCheckbox(skillName, fieldType, false);
+        }
+    }
+
+    updatePersonalSkillCheckbox(skillName, fieldType, checked) {
+        const checkbox = Array.from(document.querySelectorAll(`.personal-skill-checkbox[data-field-type="${fieldType}"]`))
+            .find((element) => element.value === skillName);
+        if (checkbox) {
+            checkbox.checked = checked;
+        }
+    }
+
+    updatePersonalSkillCheckboxes() {
+        // Update all checkboxes based on selected skills
+        ['required', 'preferred'].forEach(fieldType => {
+            this.selectedSkills[fieldType].forEach(skillName => {
+                this.updatePersonalSkillCheckbox(skillName, fieldType, true);
+            });
+        });
+    }
+
+    updateFormField(fieldType) {
+        const formField = document.querySelector(`.skills-data[data-field-type="${fieldType}"]`);
+        if (formField) {
+            // Clear existing options
+            Array.from(formField.options).forEach(option => {
+                option.selected = false;
+            });
+            
+            // Select the skills that are currently selected
+            this.selectedSkills[fieldType].forEach(skillName => {
+                Array.from(formField.options).forEach(option => {
+                    if (option.value === skillName) {
+                        option.selected = true;
+                    }
+                });
+            });
+        }
+    }
+
+    ensureFormOptionExists(fieldType, skillName) {
+        const formField = document.querySelector(`.skills-data[data-field-type="${fieldType}"]`);
+        if (!formField) {
+            return;
+        }
+
+        const hasOption = Array.from(formField.options).some(option => option.value === skillName);
+        if (!hasOption) {
+            formField.appendChild(new Option(skillName, skillName, false, false));
+        }
+    }
+
+    loadExistingSelectedSkills() {
+        // Load required skills
+        const requiredField = document.querySelector('.skills-data[data-field-type="required"]');
+        if (requiredField) {
+            Array.from(requiredField.selectedOptions).forEach(option => {
+                if (option.value) {
+                    this.selectedSkills.required.add(option.value);
+                }
+            });
+        }
+
+        // Load preferred skills
+        const preferredField = document.querySelector('.skills-data[data-field-type="preferred"]');
+        if (preferredField) {
+            Array.from(preferredField.selectedOptions).forEach(option => {
+                if (option.value) {
+                    this.selectedSkills.preferred.add(option.value);
+                }
+            });
+        }
+        
+        // Render existing selected skills
+        this.renderExistingSelectedSkills();
+    }
+
+    renderExistingSelectedSkills() {
+        ['required', 'preferred'].forEach(fieldType => {
+            const skills = Array.from(this.selectedSkills[fieldType]);
+            this.selectedSkills[fieldType].clear();
+
+            skills.forEach(skillName => {
+                this.addSkillToSelected(skillName, fieldType, this.resolveSkillType(skillName), false);
+            });
+        });
+    }
+
+    resolveSkillType(skillName) {
+        for (const skills of Object.values(this.personalSkills)) {
+            const match = skills.find(skill => skill.value === skillName);
+            if (match) {
+                return match.type;
+            }
+        }
+
+        return 'predefined';
+    }
+
+    async deleteSavedSkill(skillName) {
+        try {
+            const response = await fetch(`{{ path('app_partner_skill_delete') }}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: skillName })
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                this.showTemporaryMessage('error', result.message || 'Suppression impossible');
+                return;
+            }
+
+            this.removeSkillFromSelected(skillName, 'required', true);
+            this.removeSkillFromSelected(skillName, 'preferred', true);
+            await this.loadPersonalSkills();
+            this.showTemporaryMessage('success', 'Compétence supprimée de vos compétences sauvegardées');
+        } catch (error) {
+            console.error('Error deleting saved skill:', error);
+            this.showTemporaryMessage('error', 'Erreur lors de la suppression de la compétence');
+        }
+    }
+
+    showError(container, message) {
+        container.innerHTML = `<div class="no-results text-danger">${message}</div>`;
+        container.classList.add('show');
+        setTimeout(() => {
+            container.classList.remove('show');
+        }, 3000);
+    }
+
+    showTemporaryMessage(type, message) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const icon = type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill';
+        
+        const alert = document.createElement('div');
+        alert.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+        alert.innerHTML = `
+            <i class="bi bi-${icon}"></i> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 4000);
+    }
+}
+
+// Initialize the advanced skills manager when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    new AdvancedSkillsManager();
+});
+</script>
 {% endblock %}

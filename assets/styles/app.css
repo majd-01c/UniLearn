@@ -2701,6 +2701,97 @@ hr {
     box-shadow: 0 8px 25px rgba(76, 110, 245, 0.35);
 }
 
+[data-theme="light"] .btn-success {
+    background: var(--success-gradient);
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.25);
+}
+
+[data-theme="light"] .btn-success:hover {
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.35);
+}
+
+[data-theme="light"] .btn-danger {
+    background: var(--danger-gradient);
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);
+}
+
+[data-theme="light"] .btn-danger:hover {
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.35);
+}
+
+[data-theme="light"] .btn-warning {
+    background: var(--warning-gradient);
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);
+}
+
+[data-theme="light"] .btn-warning:hover {
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.35);
+}
+
+[data-theme="light"] .btn-info {
+    background: var(--info-gradient);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="light"] .btn-info:hover {
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+}
+
+[data-theme="light"] .btn-outline-primary {
+    border: 2px solid var(--primary-500);
+    color: var(--primary-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-primary:hover {
+    background: var(--primary-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-success {
+    border: 2px solid var(--success-500);
+    color: var(--success-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-success:hover {
+    background: var(--success-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-danger {
+    border: 2px solid var(--danger-500);
+    color: var(--danger-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-danger:hover {
+    background: var(--danger-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-warning {
+    border: 2px solid var(--warning-500);
+    color: var(--warning-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-warning:hover {
+    background: var(--warning-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-info {
+    border: 2px solid var(--info-500);
+    color: var(--info-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-info:hover {
+    background: var(--info-500);
+    color: white !important;
+}
+
 /* --- Forms --- */
 [data-theme="light"] .form-control,
 [data-theme="light"] .form-select {
@@ -4084,6 +4175,67 @@ i.text-secondary {
     background: var(--gray-100);
     color: var(--gray-900) !important;
     border-color: rgba(0,0,0,0.25);
+}
+
+/* --- Light Mode Outline Button Icons --- */
+[data-theme="light"] .btn-outline-primary i,
+[data-theme="light"] .btn-outline-primary i.bi {
+    color: var(--primary-600) !important;
+}
+
+[data-theme="light"] .btn-outline-primary:hover i,
+[data-theme="light"] .btn-outline-primary:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-success i,
+[data-theme="light"] .btn-outline-success i.bi {
+    color: var(--success-600) !important;
+}
+
+[data-theme="light"] .btn-outline-success:hover i,
+[data-theme="light"] .btn-outline-success:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-danger i,
+[data-theme="light"] .btn-outline-danger i.bi {
+    color: var(--danger-600) !important;
+}
+
+[data-theme="light"] .btn-outline-danger:hover i,
+[data-theme="light"] .btn-outline-danger:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-warning i,
+[data-theme="light"] .btn-outline-warning i.bi {
+    color: var(--warning-600) !important;
+}
+
+[data-theme="light"] .btn-outline-warning:hover i,
+[data-theme="light"] .btn-outline-warning:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-info i,
+[data-theme="light"] .btn-outline-info i.bi {
+    color: var(--info-600) !important;
+}
+
+[data-theme="light"] .btn-outline-info:hover i,
+[data-theme="light"] .btn-outline-info:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-secondary i,
+[data-theme="light"] .btn-outline-secondary i.bi {
+    color: var(--gray-600) !important;
+}
+
+[data-theme="light"] .btn-outline-secondary:hover i,
+[data-theme="light"] .btn-outline-secondary:hover i.bi {
+    color: var(--gray-900) !important;
 }
 
 /* --- Enhanced List Group Items --- */

@@ -2,6 +2,40 @@
 
 {% block title %}{{ course.title }} - UniLearn{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .sortable-ghost {
+        opacity: 0.4;
+        background: var(--primary-50);
+    }
+    .sortable-drag {
+        background: var(--surface-card);
+        box-shadow: var(--shadow-lg);
+        border-radius: var(--radius-md);
+    }
+    .drag-handle {
+        cursor: grab;
+        color: var(--text-muted);
+        padding: 0 8px;
+        transition: color var(--transition-fast);
+    }
+    .drag-handle:hover {
+        color: var(--primary-500);
+    }
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+    .contenu-item {
+        transition: all var(--transition-fast);
+        border-radius: var(--radius-md);
+    }
+    .contenu-item:hover {
+        background: var(--surface-elevated);
+    }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="container-fluid py-4">
     <nav aria-label="breadcrumb" class="mb-4">
@@ -37,7 +71,10 @@
             <div class="card card-elevated mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-file-earmark-text text-info"></i> Course Content</h5>
-                    <span class="badge bg-info">{{ course.contenus|length }} item(s)</span>
+                    <div>
+                        <small class="text-muted me-2"><i class="bi bi-grip-vertical"></i> Drag to reorder</small>
+                        <span class="badge bg-info">{{ course.contenus|length }} item(s)</span>
+                    </div>
                 </div>
                 {% if course.contenus is empty %}
                     <div class="card-body text-center py-4">
@@ -45,28 +82,33 @@
                         <p class="mt-2 mb-0 text-muted">No content assigned to this course yet</p>
                     </div>
                 {% else %}
-                    <ul class="list-group list-group-flush">
+                    <ul class="list-group list-group-flush" id="contenu-sortable">
                         {% for courseContenu in course.contenus %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ courseContenu.contenu.title }}</strong>
-                                <br>
-                                <small class="text-muted">
-                                    <span class="badge bg-primary">{{ courseContenu.contenu.type.value }}</span>
-                                    {% if courseContenu.contenu.fileType %}
-                                        <span class="badge bg-secondary">{{ courseContenu.contenu.fileType.value }}</span>
-                                    {% endif %}
-                                    {% if courseContenu.contenu.published %}
-                                        <span class="badge bg-success">Published</span>
-                                    {% else %}
-                                        <span class="badge bg-warning">Draft</span>
-                                    {% endif %}
-                                    {% if courseContenu.contenu.fileName %}
-                                        | <a href="{{ vich_uploader_asset(courseContenu.contenu, 'contentFile') }}" target="_blank" class="text-decoration-none">
-                                            <i class="bi bi-download"></i> Download
-                                        </a>
-                                    {% endif %}
-                                </small>
+                        <li class="list-group-item d-flex justify-content-between align-items-center contenu-item" data-contenu-id="{{ courseContenu.contenu.id }}">
+                            <div class="d-flex align-items-center">
+                                <span class="drag-handle me-3">
+                                    <i class="bi bi-grip-vertical fs-5"></i>
+                                </span>
+                                <div>
+                                    <strong>{{ courseContenu.contenu.title }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <span class="badge bg-primary">{{ courseContenu.contenu.type.value }}</span>
+                                        {% if courseContenu.contenu.fileType %}
+                                            <span class="badge bg-secondary">{{ courseContenu.contenu.fileType.value }}</span>
+                                        {% endif %}
+                                        {% if courseContenu.contenu.published %}
+                                            <span class="badge bg-success">Published</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Draft</span>
+                                        {% endif %}
+                                        {% if courseContenu.contenu.fileName %}
+                                            | <a href="{{ vich_uploader_asset(courseContenu.contenu, 'contentFile') }}" target="_blank" class="text-decoration-none">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        {% endif %}
+                                    </small>
+                                </div>
                             </div>
                             <form method="post" action="{{ path('app_programme_courses_remove_contenu', {id: course.id, contenuId: courseContenu.contenu.id}) }}" class="d-inline">
                                 <input type="hidden" name="_token" value="{{ csrf_token('remove_contenu' ~ courseContenu.contenu.id) }}">
@@ -145,4 +187,46 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sortableList = document.getElementById('contenu-sortable');
+    if (sortableList) {
+        new Sortable(sortableList, {
+            animation: 150,
+            handle: '.drag-handle',
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            onEnd: function() {
+                const order = [];
+                sortableList.querySelectorAll('[data-contenu-id]').forEach(function(item) {
+                    order.push(parseInt(item.dataset.contenuId));
+                });
+                
+                fetch('{{ path('app_programme_courses_reorder_contenus', {id: course.id}) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ order: order })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Optional: show a success toast
+                        console.log('Order saved successfully');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving order:', error);
+                });
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

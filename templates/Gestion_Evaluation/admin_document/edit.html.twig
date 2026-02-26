@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Document - UniLearn Admin{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {# Header #}
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ path('app_admin_course_documents') }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-pencil text-primary"></i> Edit Document
+                    </h1>
+                    <p class="text-muted mb-0">Update document details</p>
+                </div>
+            </div>
+
+            {# Current File Info #}
+            <div class="alert alert-info mb-4">
+                <div class="d-flex align-items-center">
+                    {% set ext = document.fileExtension %}
+                    {% if ext in ['PDF'] %}
+                        <i class="bi bi-file-earmark-pdf text-danger me-3" style="font-size: 2rem;"></i>
+                    {% elseif ext in ['DOC', 'DOCX'] %}
+                        <i class="bi bi-file-earmark-word text-primary me-3" style="font-size: 2rem;"></i>
+                    {% else %}
+                        <i class="bi bi-file-earmark me-3" style="font-size: 2rem;"></i>
+                    {% endif %}
+                    <div>
+                        <strong>Current file:</strong> {{ document.originalFileName }}<br>
+                        <small class="text-muted">Size: {{ document.fileSizeFormatted }}</small>
+                    </div>
+                </div>
+            </div>
+
+            {# Form #}
+            <div class="card card-elevated">
+                <div class="card-body">
+                    <form method="post" action="{{ path('app_admin_course_document_edit', {id: document.id}) }}" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="title" class="form-label">Document Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="title" name="title" required
+                                       value="{{ document.title }}">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="classe_id" class="form-label">Class <span class="text-danger">*</span></label>
+                                <select class="form-select" id="classe_id" name="classe_id" required>
+                                    <option value="">Select a class</option>
+                                    {% for classe in classes %}
+                                        <option value="{{ classe.id }}" {% if document.classe.id == classe.id %}selected{% endif %}>
+                                            {{ classe.name }} ({{ classe.level.label }} - {{ classe.specialty.label }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3">{{ document.description }}</textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="document_file" class="form-label">Replace File (optional)</label>
+                                <input type="file" class="form-control" id="document_file" name="document_file">
+                                <div class="form-text">
+                                    Leave empty to keep the current file. Upload a new file to replace it.
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ path('app_admin_course_documents') }}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

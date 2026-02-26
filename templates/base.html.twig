@@ -74,6 +74,9 @@
                 <a class="sidebar-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_classe') }}">
                     <i class="bi bi-door-open-fill"></i><span>Classes</span>
                 </a>
+                <a class="sidebar-link {% if 'admin_course_document' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_admin_course_documents') }}">
+                    <i class="bi bi-file-earmark-arrow-down-fill"></i><span>Course Documents</span>
+                </a>
                 <span class="sidebar-section-label">Platform</span>
                 <a class="sidebar-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}" href="{{ path('app_event') }}">
                     <i class="bi bi-calendar-event-fill"></i><span>Events</span>
@@ -201,12 +204,22 @@
                             <a href="{{ path('app_espace_etudiant_grades') }}" class="fo-dropdown-item"><i class="bi bi-graph-up"></i> Mes Notes</a>
                             <a href="{{ path('app_espace_etudiant_reclamations') }}" class="fo-dropdown-item"><i class="bi bi-exclamation-circle"></i> Réclamations</a>
                             <a href="{{ path('app_espace_etudiant_documents') }}" class="fo-dropdown-item"><i class="bi bi-file-earmark-text"></i> Documents</a>
+                            <a href="{{ path('app_student_documents') }}" class="fo-dropdown-item"><i class="bi bi-download"></i> Course Documents</a>
                         </div>
                     </div>
                     {% endif %}
 
                     {% if is_granted('ROLE_TEACHER') %}
-                    <a href="{{ path('app_teacher_my_classes') }}" class="fo-nav-link {% if 'teacher_classe' in app.request.attributes.get('_route') %}active{% endif %}">My Classes</a>
+                    <div class="fo-nav-dropdown-wrap">
+                        <button class="fo-nav-link fo-has-dropdown {% if 'teacher_classe' in app.request.attributes.get('_route') or 'teacher_grade' in app.request.attributes.get('_route') or 'teacher_document' in app.request.attributes.get('_route') %}active{% endif %}">
+                            Teaching <i class="bi bi-chevron-down fo-caret"></i>
+                        </button>
+                        <div class="fo-dropdown-menu">
+                            <a href="{{ path('app_teacher_my_classes') }}" class="fo-dropdown-item"><i class="bi bi-door-open"></i> My Classes</a>
+                            <a href="{{ path('app_teacher_grades') }}" class="fo-dropdown-item"><i class="bi bi-journal-check"></i> Grades & Assessments</a>
+                            <a href="{{ path('app_teacher_documents') }}" class="fo-dropdown-item"><i class="bi bi-file-earmark-arrow-up"></i> Documents</a>
+                        </div>
+                    </div>
                     {% endif %}
 
                     {% if is_granted('ROLE_BUSINESS_PARTNER') %}
@@ -267,10 +280,13 @@
                 <a href="{{ path('app_espace_etudiant_grades') }}" class="fo-mobile-link"><i class="bi bi-graph-up"></i> Mes Notes</a>
                 <a href="{{ path('app_espace_etudiant_reclamations') }}" class="fo-mobile-link"><i class="bi bi-exclamation-circle"></i> Réclamations</a>
                 <a href="{{ path('app_espace_etudiant_documents') }}" class="fo-mobile-link"><i class="bi bi-file-earmark-text"></i> Documents</a>
+                <a href="{{ path('app_student_documents') }}" class="fo-mobile-link"><i class="bi bi-download"></i> Course Documents</a>
                 {% endif %}
                 {% if is_granted('ROLE_TEACHER') %}
                 <div class="fo-mobile-divider"></div>
                 <a href="{{ path('app_teacher_my_classes') }}" class="fo-mobile-link"><i class="bi bi-easel2"></i> My Classes</a>
+                <a href="{{ path('app_teacher_grades') }}" class="fo-mobile-link"><i class="bi bi-journal-check"></i> Grades & Assessments</a>
+                <a href="{{ path('app_teacher_documents') }}" class="fo-mobile-link"><i class="bi bi-file-earmark-arrow-up"></i> Documents</a>
                 {% endif %}
                 {% if is_granted('ROLE_BUSINESS_PARTNER') %}
                 <div class="fo-mobile-divider"></div>

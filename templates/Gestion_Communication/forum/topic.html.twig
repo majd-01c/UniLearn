@@ -9,31 +9,21 @@
     }
     
     @keyframes highlightFade {
-        0% { background-color: #fff3cd; }
+        0% { background-color: var(--bs-warning-bg-subtle, rgba(255, 193, 7, 0.2)); }
         100% { background-color: transparent; }
-    }
-    
-    .comment-item {
-        transition: background-color 0.2s;
-    }
-    
-    .comment-item:hover {
-        background-color: rgba(102, 126, 234, 0.03);
     }
     
     .nested-reply {
         margin-left: 50px;
-        border-left: 3px solid #e9ecef;
-        background-color: #fafbfc;
+        border-left: 3px solid var(--bs-border-color);
     }
     
     .reply-form-container {
         display: none;
         margin-top: 15px;
         padding: 15px;
-        background-color: #f8f9fa;
         border-radius: 8px;
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--bs-border-color);
     }
     
     .reply-form-container.show {
@@ -79,7 +69,7 @@
 
         {# Topic Header Card #}
         <div class="card mb-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-start">
+            <div class="card-header d-flex justify-content-between align-items-start">
                 <div>
                     <div class="mb-2">
                         {% if topic.isPinned %}
@@ -177,7 +167,7 @@
 
         {# Comments Section #}
         <div class="card mb-4" id="comments">
-            <div class="card-header bg-white">
+            <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-chat-left-text"></i> Comments ({{ topic.commentsCount }})
                 </h5>
@@ -226,6 +216,30 @@
                                 
                                 <div class="comment-content mb-3">
                                     {{ comment.content|e|nl2br }}
+                                </div>
+                                
+                                {# Like/Dislike Reactions #}
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    {% set userLiked = comment.hasUserLiked(app.user) %}
+                                    {% set userDisliked = comment.hasUserDisliked(app.user) %}
+                                    
+                                    {# Like button #}
+                                    <form method="POST" action="{{ path('app_forum_comment_react', {id: comment.id, type: 'like'}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('react-comment-' ~ comment.id) }}">
+                                        <button type="submit" class="btn btn-sm {{ userLiked ? 'btn-primary' : 'btn-outline-primary' }} btn-action" title="Like this comment">
+                                            <i class="bi bi-hand-thumbs-up{{ userLiked ? '-fill' : '' }}"></i>
+                                            <span class="ms-1">{{ comment.likesCount }}</span>
+                                        </button>
+                                    </form>
+                                    
+                                    {# Dislike button #}
+                                    <form method="POST" action="{{ path('app_forum_comment_react', {id: comment.id, type: 'dislike'}) }}" class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('react-comment-' ~ comment.id) }}">
+                                        <button type="submit" class="btn btn-sm {{ userDisliked ? 'btn-danger' : 'btn-outline-danger' }} btn-action" title="Dislike this comment">
+                                            <i class="bi bi-hand-thumbs-down{{ userDisliked ? '-fill' : '' }}"></i>
+                                            <span class="ms-1">{{ comment.dislikesCount }}</span>
+                                        </button>
+                                    </form>
                                 </div>
                                 
                                 {# Comment Actions #}
@@ -343,6 +357,30 @@
                                         {{ reply.content|e|nl2br }}
                                     </div>
                                     
+                                    {# Like/Dislike Reactions for Reply #}
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        {% set userLikedReply = reply.hasUserLiked(app.user) %}
+                                        {% set userDislikedReply = reply.hasUserDisliked(app.user) %}
+                                        
+                                        {# Like button #}
+                                        <form method="POST" action="{{ path('app_forum_comment_react', {id: reply.id, type: 'like'}) }}" class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('react-comment-' ~ reply.id) }}">
+                                            <button type="submit" class="btn btn-xs {{ userLikedReply ? 'btn-primary' : 'btn-outline-primary' }} btn-action" title="Like this reply">
+                                                <i class="bi bi-hand-thumbs-up{{ userLikedReply ? '-fill' : '' }}"></i>
+                                                <span class="ms-1">{{ reply.likesCount }}</span>
+                                            </button>
+                                        </form>
+                                        
+                                        {# Dislike button #}
+                                        <form method="POST" action="{{ path('app_forum_comment_react', {id: reply.id, type: 'dislike'}) }}" class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('react-comment-' ~ reply.id) }}">
+                                            <button type="submit" class="btn btn-xs {{ userDislikedReply ? 'btn-danger' : 'btn-outline-danger' }} btn-action" title="Dislike this reply">
+                                                <i class="bi bi-hand-thumbs-down{{ userDislikedReply ? '-fill' : '' }}"></i>
+                                                <span class="ms-1">{{ reply.dislikesCount }}</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
                                     {# Reply Actions #}
                                     <div class="d-flex align-items-center gap-2">
                                         {% if reply.author == app.user and not topic.isLocked %}
@@ -371,7 +409,7 @@
             
             {# Pagination #}
             {% if totalPages > 1 %}
-            <div class="card-footer bg-white">
+            <div class="card-footer">
                 <nav aria-label="Comments pagination">
                     <ul class="pagination pagination-sm justify-content-center mb-0">
                         {% if page > 1 %}
@@ -404,7 +442,7 @@
             </div>
         {% else %}
             <div class="card">
-                <div class="card-header bg-white">
+                <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-chat-dots"></i> Post a Comment
                     </h5>

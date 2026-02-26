@@ -36,9 +36,12 @@ services:
         arguments:
             $apiKey: '%groq_api_key%'
 
+    # Consolidated ATS Service (includes Gemini AI functionality)
     App\Service\JobOffer\ATSScoringService:
         arguments:
             $cvUploadDirectory: '%cv_upload_directory%'
+            $geminiApiKey: '%gemini_api_key%'
+            
     App\Service\AvatarGeneratorClient:
         arguments:
             $avatarServiceUrl: '%avatar_service_url%'

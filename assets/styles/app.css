@@ -7233,3 +7233,56 @@ body:not(.back-office) .table thead th {
     border-color: rgba(248, 113, 113, 0.3);
     color: #f87171;
 }
+
+/* ── Quiz Dropdown Styles (Light/Dark Theme) ─────────────────────────────── */
+.quiz-dropdown {
+    min-width: 180px;
+    padding: 0.5rem 0;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quiz-dropdown .dropdown-item {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.quiz-dropdown .dropdown-item:hover {
+    background-color: var(--primary-500);
+    color: #fff;
+}
+
+.quiz-dropdown .dropdown-item:hover i {
+    color: #fff !important;
+}
+
+/* Light theme dropdown styles */
+[data-theme="light"] .quiz-dropdown {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+}
+
+[data-theme="light"] .quiz-dropdown .dropdown-item {
+    color: #333;
+}
+
+[data-theme="light"] .quiz-dropdown .dropdown-item:hover {
+    background-color: #4c6ef5;
+    color: #fff;
+}
+
+/* Dark theme dropdown styles */
+[data-theme="dark"] .quiz-dropdown {
+    background-color: var(--gray-200);
+    border: 1px solid var(--gray-300);
+}
+
+[data-theme="dark"] .quiz-dropdown .dropdown-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .quiz-dropdown .dropdown-item:hover {
+    background-color: var(--primary-500);
+    color: #fff;
+}

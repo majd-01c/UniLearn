@@ -42,8 +42,8 @@ class Grade
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
     }
 
     public function getId(): ?int

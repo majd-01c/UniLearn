@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Evaluation;
 
+use App\Entity\User;
+use App\Entity\Course;
 use App\Repository\ReclamationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

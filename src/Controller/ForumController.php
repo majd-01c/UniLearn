@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\ForumCategory;
 use App\Entity\ForumComment;
+use App\Entity\ForumCommentReaction;
 use App\Entity\ForumTopic;
 use App\Enum\TopicStatus;
 use App\Form\ForumCategoryType;
@@ -515,6 +516,62 @@ class ForumController extends AbstractController
         }
 
         return $this->redirectToRoute('app_forum_admin_categories');
+    }
+
+    // ================================
+    // COMMENT REACTIONS (LIKE/DISLIKE)
+    // ================================
+
+    /**
+     * Handle like/dislike reaction on a comment
+     */
+    #[Route('/comment/{id}/react/{type}', name: 'app_forum_comment_react', methods: ['POST'])]
+    public function reactToComment(
+        ForumComment $comment,
+        string $type,
+        Request $request
+    ): Response {
+        // Validate type
+        if (!in_array($type, ['like', 'dislike'])) {
+            throw $this->createNotFoundException('Invalid reaction type');
+        }
+
+        // CSRF token validation
+        if (!$this->isCsrfTokenValid('react-comment-' . $comment->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $comment->getTopic()->getId()]);
+        }
+
+        $user = $this->getUser();
+        $reactionRepo = $this->em->getRepository(ForumCommentReaction::class);
+        
+        // Check if user already has a reaction
+        $existingReaction = $reactionRepo->findUserReaction($user, $comment);
+
+        if ($existingReaction) {
+            // If same type, remove it (toggle off)
+            if ($existingReaction->getType() === $type) {
+                $this->em->remove($existingReaction);
+            } else {
+                // If different type, update it
+                $existingReaction->setType($type);
+            }
+        } else {
+            // Create new reaction
+            $reaction = new ForumCommentReaction();
+            $reaction->setUser($user);
+            $reaction->setComment($comment);
+            $reaction->setType($type);
+            $this->em->persist($reaction);
+        }
+
+        $this->em->flush();
+
+        // Redirect back to the topic with anchor to comment
+        return $this->redirectToRoute('app_forum_topic', [
+            'id' => $comment->getTopic()->getId(),
+            '_fragment' => 'comment-' . $comment->getId()
+        ]);
     }
 
     // ================================

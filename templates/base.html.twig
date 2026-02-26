@@ -183,8 +183,6 @@
 
                 <div class="fo-navbar-links" id="foNavLinks">
                     <a href="{{ path('app_home') }}" class="fo-nav-link {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}">Home</a>
-                    <a href="{{ path('app_programme') }}" class="fo-nav-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}">Programmes</a>
-                    <a href="{{ path('app_classe') }}" class="fo-nav-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') and 'student' not in app.request.attributes.get('_route') %}active{% endif %}">Classes</a>
                     <a href="{{ path('app_event') }}" class="fo-nav-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}">Events</a>
                     <a href="{{ path('app_job_offer_index') }}" class="fo-nav-link {% if 'job' in app.request.attributes.get('_route') and 'partner' not in app.request.attributes.get('_route') and 'admin' not in app.request.attributes.get('_route') %}active{% endif %}">Jobs</a>
                     <a href="{{ path('app_forum') }}" class="fo-nav-link {% if 'forum' in app.request.attributes.get('_route') %}active{% endif %}">Forum</a>
@@ -263,8 +261,6 @@
 
             <div class="fo-mobile-menu" id="foMobileMenu">
                 <a href="{{ path('app_home') }}" class="fo-mobile-link {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}"><i class="bi bi-house-door"></i> Home</a>
-                <a href="{{ path('app_programme') }}" class="fo-mobile-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-journal-bookmark"></i> Programmes</a>
-                <a href="{{ path('app_classe') }}" class="fo-mobile-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-grid-3x3-gap"></i> Classes</a>
                 <a href="{{ path('app_event') }}" class="fo-mobile-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-calendar2-event"></i> Events</a>
                 <a href="{{ path('app_job_offer_index') }}" class="fo-mobile-link {% if 'job' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-briefcase"></i> Job Offers</a>
                 <a href="{{ path('app_forum') }}" class="fo-mobile-link {% if 'forum' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-chat-square-dots"></i> Forum</a>

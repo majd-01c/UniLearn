@@ -167,6 +167,31 @@
         border-radius: 50%;
     }
     
+    .choice-checkbox {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #ced4da;
+        border-radius: 4px;
+        margin-left: auto;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .choice-option.selected .choice-checkbox {
+        border-color: #667eea;
+        background: #667eea;
+    }
+    
+    .choice-option.selected .choice-checkbox::after {
+        content: '\2713';
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
     .choice-text {
         flex: 1;
         font-size: 1rem;
@@ -347,19 +372,41 @@
                             {% set letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] %}
                             {% set choicesList = question.choices|default([]) %}
                             {% set shuffledChoices = quiz.shuffleChoices ? choicesList|shuffle : choicesList %}
+                            {% set correctCount = question.correctChoices|length %}
+                            {% set isMultiSelect = correctCount > 1 %}
+                            
+                            {% if isMultiSelect %}
+                                <div class="alert alert-info mb-3 py-2">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    <small>Select all correct answers ({{ correctCount }} correct answers)</small>
+                                </div>
+                            {% endif %}
                             
                             {% if shuffledChoices|length > 0 %}
                                 {% for choice in shuffledChoices %}
-                                    <label class="choice-option" for="choice_{{ choice.id }}" onclick="selectChoice(this, {{ question.id }})">
-                                        <input type="radio" 
-                                               class="choice-input"
-                                               name="answers[{{ question.id }}]" 
-                                               id="choice_{{ choice.id }}" 
-                                               value="{{ choice.id }}">
-                                        <span class="choice-letter">{{ letters[loop.index0] }}</span>
-                                        <span class="choice-text">{{ choice.choiceText }}</span>
-                                        <span class="choice-radio"></span>
-                                    </label>
+                                    {% if isMultiSelect %}
+                                        <label class="choice-option" onclick="toggleChoice(this, {{ question.id }}, event)">
+                                            <input type="checkbox" 
+                                                   class="choice-input"
+                                                   name="answers[{{ question.id }}][]" 
+                                                   id="choice_{{ choice.id }}" 
+                                                   value="{{ choice.id }}">
+                                            <span class="choice-letter">{{ letters[loop.index0] }}</span>
+                                            <span class="choice-text">{{ choice.choiceText }}</span>
+                                            <span class="choice-checkbox"></span>
+                                        </label>
+                                    {% else %}
+                                        <label class="choice-option" onclick="selectChoice(this, {{ question.id }}, event)">
+                                            <input type="radio" 
+                                                   class="choice-input"
+                                                   name="answers[{{ question.id }}]" 
+                                                   id="choice_{{ choice.id }}" 
+                                                   value="{{ choice.id }}">
+                                            <span class="choice-letter">{{ letters[loop.index0] }}</span>
+                                            <span class="choice-text">{{ choice.choiceText }}</span>
+                                            <span class="choice-radio"></span>
+                                        </label>
+                                    {% endif %}
                                 {% endfor %}
                             {% else %}
                                 <div class="alert alert-warning">
@@ -388,13 +435,49 @@
 </div>
 
 <script>
-function selectChoice(element, questionId) {
+function selectChoice(element, questionId, event) {
+    // Prevent double-triggering from label
+    if (event) event.preventDefault();
+    
     const parent = element.closest('.question-body');
     parent.querySelectorAll('.choice-option').forEach(opt => {
         opt.classList.remove('selected');
+        const radio = opt.querySelector('input[type="radio"]');
+        if (radio) radio.checked = false;
     });
     element.classList.add('selected');
+    const radio = element.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
     document.getElementById('question-' + questionId).classList.add('answered');
+    updateProgress();
+}
+
+function toggleChoice(element, questionId, event) {
+    // Prevent double-triggering from label
+    if (event) event.preventDefault();
+    
+    // Toggle the selected state for checkboxes (multi-select MCQ)
+    const checkbox = element.querySelector('input[type="checkbox"]');
+    const isNowSelected = !element.classList.contains('selected');
+    
+    if (isNowSelected) {
+        element.classList.add('selected');
+        checkbox.checked = true;
+    } else {
+        element.classList.remove('selected');
+        checkbox.checked = false;
+    }
+    
+    // Check if at least one option is selected
+    const parent = element.closest('.question-body');
+    const selectedOptions = parent.querySelectorAll('.choice-option.selected');
+    const questionCard = document.getElementById('question-' + questionId);
+    
+    if (selectedOptions.length > 0) {
+        questionCard.classList.add('answered');
+    } else {
+        questionCard.classList.remove('answered');
+    }
     updateProgress();
 }
 

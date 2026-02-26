@@ -13,8 +13,10 @@ use App\Form\ForumTopicType;
 use App\Repository\ForumCategoryRepository;
 use App\Repository\ForumCommentRepository;
 use App\Repository\ForumTopicRepository;
+use App\Service\ForumAiAssistantService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,7 +32,8 @@ class ForumController extends AbstractController
         private ForumCategoryRepository $categoryRepository,
         private ForumTopicRepository $topicRepository,
         private ForumCommentRepository $commentRepository,
-        private RequestStack $requestStack
+        private RequestStack $requestStack,
+        private ForumAiAssistantService $aiAssistant
     ) {}
 
     /**
@@ -153,7 +156,72 @@ class ForumController extends AbstractController
 
         return $this->render('Gestion_Communication/forum/new_topic.html.twig', [
             'form' => $form,
+            'aiEnabled' => true,
         ]);
+    }
+
+    /**
+     * Get AI suggestions for similar topics (AJAX endpoint)
+     */
+    #[Route('/ai-suggestions', name: 'app_forum_ai_suggestions', methods: ['POST'])]
+    public function aiSuggestions(Request $request): JsonResponse
+    {
+        $question = $request->request->get('question', '');
+        $categoryId = $request->request->get('categoryId');
+
+        if (empty($question) || strlen($question) < 3) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Question too short. Please provide more details.'
+            ]);
+        }
+
+        try {
+            $result = $this->aiAssistant->getSimilarTopics($question, $categoryId ? (int) $categoryId : null);
+            
+            // When fromCache is true, topics are already formatted arrays
+            if ($result['fromCache']) {
+                $topics = array_map(function($topic) {
+                    return [
+                        'id' => $topic['id'],
+                        'title' => $topic['title'],
+                        'url' => $this->generateUrl('app_forum_topic', ['id' => $topic['id']]),
+                        'commentsCount' => $topic['commentsCount'],
+                        'hasAcceptedAnswers' => $topic['hasAcceptedAnswers'],
+                        'categoryName' => $topic['categoryName'] ?? null,
+                        'status' => $topic['status'] ?? 'open'
+                    ];
+                }, $result['topics']);
+            } else {
+                // When not cached, topics are ForumTopic entities
+                $topics = array_map(function($topic) {
+                    return [
+                        'id' => $topic->getId(),
+                        'title' => $topic->getTitle(),
+                        'url' => $this->generateUrl('app_forum_topic', ['id' => $topic->getId()]),
+                        'commentsCount' => $topic->getCommentsCount(),
+                        'hasAcceptedAnswers' => $topic->hasAcceptedAnswers(),
+                        'categoryName' => $topic->getCategory()?->getName(),
+                        'status' => $topic->getStatus()->value
+                    ];
+                }, $result['topics']);
+            }
+
+            return new JsonResponse([
+                'success' => true,
+                'topics' => $topics,
+                'advice' => $result['aiAdvice'],
+                'fromCache' => $result['fromCache']
+            ]);
+
+        } catch (\Exception $e) {
+            // Log the actual error for debugging
+            error_log('AI Suggestions Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

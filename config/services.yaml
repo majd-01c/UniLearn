@@ -42,3 +42,8 @@ services:
     App\Service\AvatarGeneratorClient:
         arguments:
             $avatarServiceUrl: '%avatar_service_url%'
+
+    # Forum AI Assistant (Gemini API)
+    App\Service\GeminiApiService:
+        arguments:
+            $geminiApiKey: '%gemini_api_key%'

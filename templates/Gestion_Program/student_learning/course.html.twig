@@ -46,8 +46,13 @@
                     <div class="list-group list-group-flush">
                         {% for index, classeContenu in visibleContenus %}
                             {% set contenu = classeContenu.contenu %}
-                            <a href="{{ path('app_student_contenu_view', {classeId: classe.id, contenuId: classeContenu.id}) }}" 
-                               class="list-group-item list-group-item-action p-3">
+                            {% if contenu.type.value == 'QUIZ' and contenu.quiz %}
+                                <a href="{{ path('app_student_quiz_view', {classeId: classe.id, quizId: contenu.quiz.id}) }}" 
+                                   class="list-group-item list-group-item-action p-3">
+                            {% else %}
+                                <a href="{{ path('app_student_contenu_view', {classeId: classe.id, contenuId: classeContenu.id}) }}" 
+                                   class="list-group-item list-group-item-action p-3">
+                            {% endif %}
                                 <div class="d-flex align-items-center">
                                     <div class="me-3">
                                         <span class="badge bg-primary rounded-circle" style="width: 32px; height: 32px; line-height: 22px; font-size: 0.85rem;">
@@ -60,7 +65,10 @@
                                             {% if contenu.type.value == 'VIDEO' %}
                                                 <i class="bi bi-play-circle text-danger me-1"></i> Video
                                             {% elseif contenu.type.value == 'QUIZ' %}
-                                                <i class="bi bi-question-circle text-warning me-1"></i> Quiz
+                                                <i class="bi bi-patch-question-fill text-info me-1"></i> Quiz
+                                                {% if contenu.quiz %}
+                                                    <span class="badge bg-info ms-1">{{ contenu.quiz.questions|length }} questions</span>
+                                                {% endif %}
                                             {% elseif contenu.type.value == 'TEXT' %}
                                                 <i class="bi bi-file-text text-info me-1"></i> Reading
                                             {% elseif contenu.type.value == 'EXERCICE' %}

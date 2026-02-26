@@ -45,7 +45,7 @@
             <div class="card-body py-2">
                 <form method="GET" action="{{ path('app_forum_category', {id: category.id}) }}" class="d-flex">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
+                        <span class="input-group-text border-end-0">
                             <i class="bi bi-search"></i>
                         </span>
                         <input type="text" name="search" class="form-control border-start-0" 
@@ -62,7 +62,7 @@
 
         {# Topics List #}
         <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-list-ul"></i> Topics
                     {% if search %}
@@ -92,7 +92,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 50%;">Topic</th>
-                                    <th class="text-center">Replies</th>
+                                    <th class="text-center">Comments</th>
                                     <th class="text-center">Views</th>
                                     <th>Last Activity</th>
                                 </tr>
@@ -125,7 +125,7 @@
                                         </div>
                                     </td>
                                     <td class="text-center align-middle">
-                                        <span class="badge bg-light text-dark">{{ topic.repliesCount }}</span>
+                                        <span class="badge bg-light text-dark">{{ topic.commentsCount }}</span>
                                     </td>
                                     <td class="text-center align-middle">
                                         <span class="text-muted">{{ topic.viewCount }}</span>
@@ -143,7 +143,7 @@
 
                     {# Pagination #}
                     {% if totalPages > 1 %}
-                    <div class="card-footer bg-white">
+                    <div class="card-footer">
                         <nav aria-label="Topics pagination">
                             <ul class="pagination justify-content-center mb-0">
                                 <li class="page-item {{ page <= 1 ? 'disabled' : '' }}">

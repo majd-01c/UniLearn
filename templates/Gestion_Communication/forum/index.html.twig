@@ -46,7 +46,7 @@
             {# Main Content - Categories #}
             <div class="col-lg-8">
                 <div class="card">
-                    <div class="card-header bg-white">
+                    <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-collection"></i> Categories
                         </h5>
@@ -74,7 +74,7 @@
                                         <div class="text-end">
                                             <span class="badge bg-primary">{{ category.topicsCount }} topics</span>
                                             <br>
-                                            <small class="text-muted">{{ category.repliesCount }} replies</small>
+                                            <small class="text-muted">{{ category.commentsCount }} comments</small>
                                         </div>
                                     </div>
                                 </a>
@@ -86,7 +86,7 @@
 
                 {# Recent Topics #}
                 <div class="card mt-4">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-clock-history"></i> Recent Discussions
                         </h5>
@@ -117,7 +117,7 @@
                                         </div>
                                         <div class="text-end">
                                             <small class="text-muted">
-                                                <i class="bi bi-chat"></i> {{ topic.repliesCount }}
+                                                <i class="bi bi-chat"></i> {{ topic.commentsCount }}
                                                 &nbsp;
                                                 <i class="bi bi-eye"></i> {{ topic.viewCount }}
                                             </small>
@@ -135,7 +135,7 @@
             <div class="col-lg-4">
                 {# Stats Card #}
                 <div class="card mb-4">
-                    <div class="card-header bg-white">
+                    <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-bar-chart"></i> Forum Stats
                         </h5>
@@ -160,7 +160,7 @@
 
                 {# Unanswered Topics #}
                 <div class="card">
-                    <div class="card-header bg-white">
+                    <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-question-circle text-warning"></i> Needs Answer
                         </h5>
@@ -189,7 +189,7 @@
                 {# Admin Quick Links #}
                 {% if is_granted('ROLE_ADMIN') %}
                 <div class="card mt-4">
-                    <div class="card-header bg-white">
+                    <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="bi bi-gear"></i> Admin Tools
                         </h5>

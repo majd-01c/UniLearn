@@ -51,7 +51,33 @@ final class JobApplicationService
 
     public function updateStatus(JobApplication $application, JobApplicationStatus $status): void
     {
+        $oldStatus = $application->getStatus();
         $application->setStatus($status);
+        
+        // If status changed to ACCEPTED or REJECTED, mark for notification
+        if ($oldStatus !== $status && in_array($status, [JobApplicationStatus::ACCEPTED, JobApplicationStatus::REJECTED], true)) {
+            $application->setStatusNotified(false);
+            $application->setStatusNotifiedAt(null);
+            
+            // Set appropriate status message
+            $statusMessage = match($status) {
+                JobApplicationStatus::ACCEPTED => 'Congratulations! Your application has been accepted.',
+                JobApplicationStatus::REJECTED => 'Thank you for your interest. Unfortunately, your application was not selected for this position.',
+                default => null
+            };
+            $application->setStatusMessage($statusMessage);
+        }
+        
+        $this->em->flush();
+    }
+
+    /**
+     * Mark application status as notified (when student views the notification)
+     */
+    public function markStatusAsNotified(JobApplication $application): void
+    {
+        $application->setStatusNotified(true);
+        $application->setStatusNotifiedAt(new \DateTimeImmutable());
         $this->em->flush();
     }
 
@@ -60,6 +86,15 @@ final class JobApplicationService
     {
         return $this->applicationRepository->findBy(
             ['offer' => $offer],
+            ['createdAt' => 'DESC']
+        );
+    }
+
+    /** @return JobApplication[] */
+    public function getApplicationsForStudent(User $student): array
+    {
+        return $this->applicationRepository->findBy(
+            ['student' => $student],
             ['createdAt' => 'DESC']
         );
     }

@@ -25,6 +25,30 @@ class StudentJobOfferController extends AbstractController
     }
 
     /**
+     * View student's job applications with status
+     */
+    #[Route('/my-applications', name: 'app_student_job_applications', methods: ['GET'])]
+    #[IsGranted('ROLE_STUDENT')]
+    public function myApplications(): Response
+    {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        
+        $applications = $this->applicationService->getApplicationsForStudent($user);
+
+        // Mark unnotified applications with decisions as notified
+        foreach ($applications as $application) {
+            if ($application->needsStatusNotification()) {
+                $this->applicationService->markStatusAsNotified($application);
+            }
+        }
+
+        return $this->render('Gestion_Job_Offre/student/applications.html.twig', [
+            'applications' => $applications,
+        ]);
+    }
+
+    /**
      * List all active job offers with search filters
      */
     #[Route('', name: 'app_job_offer_index', methods: ['GET'])]

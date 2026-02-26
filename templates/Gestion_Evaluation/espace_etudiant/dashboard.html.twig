@@ -186,7 +186,7 @@
                         {% for grade in recentGrades %}
                         {% set maxScore = 20 %}
                         <tr>
-                            <td><strong>{{ grade.assessment.course.title }}</strong></td>
+                            <td><strong>{{ grade.assessment.course ? grade.assessment.course.title : 'N/A' }}</strong></td>
                             <td>{{ grade.assessment.title }}</td>
                             <td>
                                 <span class="badge {% if grade.score >= 12 %}bg-success{% elseif grade.score >= 10 %}bg-warning{% else %}bg-danger{% endif %}">

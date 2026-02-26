@@ -18,3 +18,8 @@ vich_uploader:
             uri_prefix: /uploads/content
             upload_destination: '%kernel.project_dir%/public/uploads/content'
             namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+
+        course_documents:
+            uri_prefix: /uploads/documents
+            upload_destination: '%kernel.project_dir%/public/uploads/documents'
+            namer: Vich\UploaderBundle\Naming\SmartUniqueNamer

@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Class Meetings - {{ classe.name }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Header #}
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ path('app_student_classe_view', {id: classe.id}) }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-camera-video-fill text-primary"></i> Class Meetings
+            </h1>
+            <p class="text-muted mb-0">{{ classe.name }}</p>
+        </div>
+    </div>
+
+    {# Live Meetings - Prominent Display #}
+    {% if liveMeetings|length > 0 %}
+        <div class="row mb-4">
+            {% for meeting in liveMeetings %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-success bg-success bg-opacity-10">
+                        <div class="card-body text-center py-4">
+                            <div class="mb-3">
+                                <span class="badge bg-success fs-6 px-3 py-2">
+                                    <i class="bi bi-broadcast me-1"></i> LIVE NOW
+                                </span>
+                            </div>
+                            <h4 class="card-title mb-3">{{ meeting.title }}</h4>
+                            <p class="text-muted mb-3">
+                                <small>
+                                    <i class="bi bi-person-fill me-1"></i>
+                                    Teacher: {{ meeting.teacherClasse.teacher.name }}
+                                </small>
+                            </p>
+                            {% if meeting.description %}
+                                <p class="text-muted small mb-3">{{ meeting.description }}</p>
+                            {% endif %}
+                            <a href="{{ path('app_student_meeting_join', {meetingId: meeting.id}) }}" 
+                               class="btn btn-success btn-lg px-5">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Join Meeting
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# Scheduled Meetings #}
+    <div class="card card-elevated">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Upcoming Meetings</h5>
+        </div>
+        <div class="card-body p-0">
+            {% set scheduledMeetings = meetings|filter(m => m.status == 'scheduled') %}
+            {% if scheduledMeetings|length == 0 and liveMeetings|length == 0 %}
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+                    <h5 class="mt-3 text-muted">No Meetings Scheduled</h5>
+                    <p class="text-muted">Your teacher will schedule meetings when needed.</p>
+                </div>
+            {% elseif scheduledMeetings|length > 0 %}
+                <div class="list-group list-group-flush">
+                    {% for meeting in scheduledMeetings %}
+                        <div class="list-group-item py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ meeting.title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-person me-1"></i>{{ meeting.teacherClasse.teacher.name }}
+                                        {% if meeting.scheduledAt %}
+                                            <span class="mx-2">•</span>
+                                            <i class="bi bi-clock me-1"></i>{{ meeting.scheduledAt|date('M d, Y \\a\\t H:i') }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-calendar-check me-1"></i> Scheduled
+                                </span>
+                            </div>
+                            {% if meeting.description %}
+                                <p class="mb-0 mt-2 small text-muted">{{ meeting.description }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="mb-0">No upcoming meetings scheduled.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Info Note #}
+    <div class="alert alert-info mt-4">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Tip:</strong> Keep this page open to see when a meeting goes live, or check back later.
+    </div>
+</div>
+
+{% if liveMeetings|length > 0 %}
+<style>
+    @keyframes pulse-border {
+        0%, 100% { border-color: rgba(25, 135, 84, 0.5); }
+        50% { border-color: rgba(25, 135, 84, 1); }
+    }
+    .border-success {
+        border-width: 2px !important;
+        animation: pulse-border 2s infinite;
+    }
+</style>
+{% endif %}
+{% endblock %}

@@ -87,6 +87,58 @@
                         </div>
                     {% endif %}
 
+                    {# ATS Detailed Requirements #}
+                    {% if offer.minExperienceYears or offer.minEducation or offer.requiredLanguages|length > 0 %}
+                        <div class="mb-3">
+                            <h5 class="text-muted mb-2">
+                                <i class="bi bi-person-workspace"></i> Detailed Requirements
+                            </h5>
+                            <div class="row">
+                                {% if offer.minExperienceYears %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card border-primary h-100">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-briefcase fs-2 text-primary mb-2"></i>
+                                                <h6 class="card-title fw-bold">Expérience minimum</h6>
+                                                <p class="card-text fs-5 text-primary fw-semibold">
+                                                    {{ offer.minExperienceYears }} {{ offer.minExperienceYears > 1 ? 'années' : 'année' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if offer.minEducation %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card border-success h-100">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-mortarboard fs-2 text-success mb-2"></i>
+                                                <h6 class="card-title fw-bold">Niveau d'études minimum</h6>
+                                                <p class="card-text fs-6 text-success fw-semibold">
+                                                    {{ offer.minEducation }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if offer.requiredLanguages|length > 0 %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card border-info h-100">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-translate fs-2 text-info mb-2"></i>
+                                                <h6 class="card-title fw-bold">Langues requises</h6>
+                                                <div class="mt-2">
+                                                    {% for language in offer.requiredLanguages %}
+                                                        <span class="badge bg-info fs-6 me-1 mb-1">{{ language }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+
                     <hr class="my-4">
 
                     <div class="row">

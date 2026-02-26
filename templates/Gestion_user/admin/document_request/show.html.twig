@@ -80,8 +80,8 @@
                     
                     {% if documentRequest.documentPath %}
                     <div class="alert alert-success">
-                        <i class="bi bi-file-check"></i> Document généré: 
-                        <a href="{{ asset('uploads/documents/' ~ documentRequest.documentPath) }}" target="_blank" class="btn btn-sm btn-success">
+                        <i class="bi bi-file-check"></i> Document ajouté: 
+                        <a href="{{ asset('uploads/student_documents/' ~ documentRequest.documentPath) }}" target="_blank" class="btn btn-sm btn-success">
                             <i class="bi bi-download"></i> Télécharger
                         </a>
                     </div>
@@ -91,6 +91,28 @@
         </div>
 
         <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-upload"></i> Ajouter le Document</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ path('app_admin_document_request_upload', {id: documentRequest.id}) }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="document_file" class="form-label">Fichier (PDF, DOC, DOCX, JPG, PNG)</label>
+                            <input type="file" class="form-control" name="document_file" id="document_file" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-cloud-upload"></i> Télécharger le Document
+                        </button>
+                    </form>
+                    {% if documentRequest.documentPath %}
+                    <div class="alert alert-info mt-3 mb-0">
+                        <small><i class="bi bi-info-circle"></i> Un nouveau fichier remplacera l'ancien.</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header bg-secondary text-white">
                     <h5 class="mb-0">Actions</h5>
@@ -112,12 +134,6 @@
                             <i class="bi bi-check-circle"></i> Mettre à jour
                         </button>
                     </form>
-
-                    <hr>
-
-                    <div class="alert alert-info">
-                        <small><i class="bi bi-info-circle"></i> Pour générer le document, changez le statut à "Prête" et uploadez le fichier manuellement dans <code>public/uploads/documents/</code></small>
-                    </div>
 
                     <hr>
 

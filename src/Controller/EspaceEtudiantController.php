@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Reclamation;
+use App\Entity\Evaluation\Reclamation;
 use App\Entity\DocumentRequest;
 use App\Form\ReclamationType;
 use App\Form\DocumentRequestType;
@@ -57,7 +57,7 @@ class EspaceEtudiantController extends AbstractController
         
         $grades = $gradeRepository->createQueryBuilder('g')
             ->join('g.assessment', 'a')
-            ->join('a.course', 'c')
+            ->leftJoin('a.course', 'c')
             ->where('g.student = :student')
             ->setParameter('student', $user)
             ->orderBy('a.date', 'DESC')
@@ -162,7 +162,7 @@ class EspaceEtudiantController extends AbstractController
         ]);
     }
 
-    #[Route('/reclamations/nouvelle', name: 'app_espace_etudiant_reclamation_new')]
+    #[Route('/reclamations/nouvelle', name: 'app_espace_etudiant_reclamation_new', methods: ['GET', 'POST'])]
     public function newReclamation(Request $request, EntityManagerInterface $entityManager): Response
     {
         $reclamation = new Reclamation();
@@ -218,5 +218,30 @@ class EspaceEtudiantController extends AbstractController
         return $this->render('Gestion_Evaluation/espace_etudiant/document_request.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    #[Route('/documents/{id}/download', name: 'app_espace_etudiant_document_download')]
+    public function downloadDocument(DocumentRequest $documentRequest): Response
+    {
+        $user = $this->getUser();
+        
+        // Security check - only the requesting student can download
+        if ($documentRequest->getStudent() !== $user) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à télécharger ce document.');
+        }
+        
+        if (!$documentRequest->getDocumentPath()) {
+            $this->addFlash('error', 'Le document n\'est pas encore disponible.');
+            return $this->redirectToRoute('app_espace_etudiant_documents');
+        }
+        
+        $filePath = $this->getParameter('kernel.project_dir') . '/public/uploads/student_documents/' . $documentRequest->getDocumentPath();
+        
+        if (!file_exists($filePath)) {
+            $this->addFlash('error', 'Le fichier n\'existe pas.');
+            return $this->redirectToRoute('app_espace_etudiant_documents');
+        }
+        
+        return $this->file($filePath, $documentRequest->getDocumentPath());
     }
 }

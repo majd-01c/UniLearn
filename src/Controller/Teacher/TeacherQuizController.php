@@ -206,6 +206,12 @@ class TeacherQuizController extends AbstractController
             $this->entityManager->flush();
 
             $this->addFlash('success', 'Quiz settings updated successfully!');
+            
+            // Check if user wants to exit after saving
+            $action = $request->request->get('action', 'save');
+            if ($action === 'save_exit') {
+                return $this->redirectToRoute('app_teacher_classe_show', ['id' => $teacherClasseId]);
+            }
         }
 
         return $this->render('Gestion_Program/teacher_quiz/edit.html.twig', [

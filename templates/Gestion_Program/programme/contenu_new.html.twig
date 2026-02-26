@@ -2,6 +2,77 @@
 
 {% block title %}Add Content - UniLearn{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .dropzone {
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--radius-lg);
+        padding: 40px 20px;
+        text-align: center;
+        background: var(--surface-elevated);
+        transition: all var(--transition-normal);
+        cursor: pointer;
+    }
+    .dropzone:hover, .dropzone.dragover {
+        border-color: var(--success-500);
+        background: var(--success-50);
+    }
+    .dropzone.has-file {
+        border-color: var(--success-500);
+        background: var(--success-50);
+    }
+    .dropzone-icon {
+        font-size: 3rem;
+        color: var(--text-muted);
+        transition: color var(--transition-fast);
+    }
+    .dropzone.dragover .dropzone-icon,
+    .dropzone:hover .dropzone-icon {
+        color: var(--success-500);
+    }
+    .dropzone-text {
+        color: var(--text-muted);
+        margin: 10px 0 0;
+    }
+    .dropzone-text strong {
+        color: var(--primary-500);
+    }
+    .file-preview {
+        display: none;
+        margin-top: 15px;
+        padding: 12px 16px;
+        background: var(--surface-card);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--gray-300);
+        box-shadow: var(--shadow-sm);
+    }
+    .file-preview.show {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-primary);
+    }
+    .file-info i {
+        font-size: 1.5rem;
+        color: var(--success-500);
+    }
+    .file-info .file-name {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    .file-info .file-size {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="container py-4">
     <nav aria-label="breadcrumb" class="mb-4">
@@ -41,7 +112,25 @@
 
                         <div class="mb-3">
                             {{ form_label(form.contentFile, null, {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.contentFile) }}
+                            <div class="dropzone" id="file-dropzone">
+                                <i class="bi bi-cloud-arrow-up dropzone-icon"></i>
+                                <p class="dropzone-text mb-0">
+                                    <strong>Drag and drop your file here</strong><br>
+                                    or click to browse
+                                </p>
+                                <div class="file-preview" id="file-preview">
+                                    <div class="file-info">
+                                        <i class="bi bi-file-earmark-check"></i>
+                                        <span id="file-name"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="remove-file">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="file-input-wrapper" style="display: none;">
+                                {{ form_widget(form.contentFile) }}
+                            </div>
                             {{ form_errors(form.contentFile) }}
                             <small class="form-text text-muted">Upload your file (PDF, Word, PPT, Video, Audio, Image — max 50MB)</small>
                         </div>
@@ -66,4 +155,91 @@
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    function initDropzone() {
+        var dropzone = document.getElementById('file-dropzone');
+        // Find the file input inside the wrapper div (VichUploaderBundle)
+        var fileInputWrapper = document.getElementById('file-input-wrapper');
+        var fileInput = fileInputWrapper ? fileInputWrapper.querySelector('input[type="file"]') : null;
+        var filePreview = document.getElementById('file-preview');
+        var fileName = document.getElementById('file-name');
+        var removeFileBtn = document.getElementById('remove-file');
+
+        if (!dropzone || !fileInput) {
+            console.error('Dropzone elements not found', { dropzone: dropzone, fileInput: fileInput, wrapper: fileInputWrapper });
+            return;
+        }
+
+        // Click to browse
+        dropzone.addEventListener('click', function(e) {
+            if (e.target !== removeFileBtn && !removeFileBtn.contains(e.target)) {
+                fileInput.click();
+            }
+        });
+
+        // Drag events
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+            dropzone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(function(eventName) {
+            dropzone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove('dragover');
+            });
+        });
+
+        // Drop file
+        dropzone.addEventListener('drop', function(e) {
+            var files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updatePreview(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                updatePreview(this.files[0]);
+            }
+        });
+
+        // Remove file
+        removeFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            fileInput.value = '';
+            filePreview.classList.remove('show');
+            dropzone.classList.remove('has-file');
+        });
+
+        function updatePreview(file) {
+            fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+            filePreview.classList.add('show');
+            dropzone.classList.add('has-file');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            var k = 1024;
+            var sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDropzone);
+    } else {
+        initDropzone();
+    }
+})();
+</script>
 {% endblock %}

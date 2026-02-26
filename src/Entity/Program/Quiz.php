@@ -16,7 +16,7 @@ class Quiz
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: Contenu::class)]
+    #[ORM\OneToOne(targetEntity: Contenu::class, inversedBy: 'quiz')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', unique: true)]
     private ?Contenu $contenu = null;
 

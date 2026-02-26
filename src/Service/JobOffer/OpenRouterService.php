@@ -6,21 +6,19 @@ use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
- * Service to call OpenRouter API for AI-powered CV extraction.
- * OpenRouter provides access to multiple AI models (Gemini, Claude, GPT, etc.)
+ * Service to call Google Gemini API for AI-powered CV extraction.
+ * Uses the free tier of Gemini API (15 RPM, 1M tokens/day).
  */
 class OpenRouterService
 {
-    private const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+    // Gemini API endpoint (free tier)
+    private const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
     
-    // Using a cost-effective model good at French text extraction
-    private const DEFAULT_MODEL = 'google/gemini-flash-1.5';
+    // Primary model - Gemini 2.5 Flash (free, fast, great for structured extraction)
+    private const PRIMARY_MODEL = 'gemini-2.5-flash';
     
-    // Fallback free models
-    private const FALLBACK_MODELS = [
-        'mistralai/mistral-7b-instruct:free',
-        'meta-llama/llama-3-8b-instruct:free',
-    ];
+    // Fallback models
+    private const FALLBACK_MODELS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite'];
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -39,30 +37,41 @@ class OpenRouterService
     public function extractCVData(string $cvText, array $knownSkills = []): ?array
     {
         if (empty($this->apiKey)) {
-            $this->logger->error('OpenRouter API key not configured');
+            $this->logger->error('Gemini API key not configured. Get a free key at https://aistudio.google.com/apikey');
             return null;
         }
 
         $prompt = $this->buildExtractionPrompt($cvText, $knownSkills);
         
         // Try primary model first, then fallbacks
-        $models = array_merge([self::DEFAULT_MODEL], self::FALLBACK_MODELS);
+        $models = array_merge([self::PRIMARY_MODEL], self::FALLBACK_MODELS);
         
         foreach ($models as $model) {
-            try {
-                $result = $this->callApi($prompt, $model);
-                if ($result !== null) {
-                    return $result;
+            // Retry up to 2 times per model (handles rate limits)
+            for ($attempt = 1; $attempt <= 2; $attempt++) {
+                try {
+                    $result = $this->callGeminiApi($prompt, $model);
+                    if ($result !== null) {
+                        $this->logger->info('CV data extracted successfully', ['model' => $model, 'attempt' => $attempt]);
+                        return $result;
+                    }
+                } catch (\Exception $e) {
+                    $this->logger->warning('Gemini model failed', [
+                        'model' => $model,
+                        'attempt' => $attempt,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
-            } catch (\Exception $e) {
-                $this->logger->warning('Model failed, trying fallback', [
-                    'model' => $model,
-                    'error' => $e->getMessage(),
-                ]);
+                
+                // Wait before retry (rate limit cooldown)
+                if ($attempt < 2) {
+                    $this->logger->info('Waiting 5 seconds before retry...', ['model' => $model]);
+                    sleep(5);
+                }
             }
         }
         
-        $this->logger->error('All AI models failed for CV extraction');
+        $this->logger->error('All Gemini models failed for CV extraction');
         return null;
     }
 
@@ -71,84 +80,86 @@ class OpenRouterService
      */
     private function buildExtractionPrompt(string $cvText, array $knownSkills): string
     {
-        $skillsList = !empty($knownSkills) 
-            ? "Voici une liste de compétences à rechercher: " . implode(', ', $knownSkills) . "\n\n"
-            : "";
+        // Limit known skills list to avoid huge prompts
+        $skillsHint = '';
+        if (!empty($knownSkills)) {
+            // Only send first 50 skills to keep prompt small
+            $limitedSkills = array_slice($knownSkills, 0, 50);
+            $skillsHint = "Compétences connues: " . implode(', ', $limitedSkills) . "\n";
+        }
+
+        // Truncate CV text to 8000 chars max to stay within token limits
+        $cvText = mb_substr($cvText, 0, 8000);
 
         return <<<PROMPT
-Tu es un assistant expert en analyse de CV français. Analyse le CV suivant et extrait les informations structurées.
-
-{$skillsList}Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte (sans texte avant ou après):
-{
-    "skills": ["compétence1", "compétence2"],
-    "educationLevel": "master|licence|bac+2|bac|ingenieur|doctorat|null",
-    "educationField": "domaine d'études ou null",
-    "experienceYears": nombre entier ou 0,
-    "languages": ["langue1", "langue2"],
-    "portfolioUrls": ["url1", "url2"]
-}
-
-Règles importantes:
-- Pour "skills": inclus uniquement les compétences techniques mentionnées dans le CV
-- Pour "educationLevel": normalise en minuscules (master, licence, bac+2, bac, ingenieur, doctorat)
-- Pour "experienceYears": calcule le nombre total d'années d'expérience professionnelle
-- Pour "languages": inclus les langues parlées mentionnées
-- Pour "portfolioUrls": extrait les liens GitHub, LinkedIn, portfolio, etc.
-
-CV à analyser:
----
+Analyse ce CV et retourne un JSON avec: skills (tableau), educationLevel (bac/bac+2/licence/master/ingenieur/doctorat ou null), educationField (string ou null), experienceYears (int), languages (tableau), portfolioUrls (tableau).
+{$skillsHint}
+CV:
 {$cvText}
----
-
-JSON:
 PROMPT;
     }
 
     /**
-     * Call the OpenRouter API.
+     * Call the Google Gemini API directly.
      */
-    private function callApi(string $prompt, string $model): ?array
+    private function callGeminiApi(string $prompt, string $model): ?array
     {
-        $response = $this->httpClient->request('POST', self::API_URL, [
+        $url = sprintf('%s/%s:generateContent?key=%s', self::GEMINI_API_URL, $model, $this->apiKey);
+
+        $response = $this->httpClient->request('POST', $url, [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
-                'HTTP-Referer' => 'https://unilearn.local',
-                'X-Title' => 'UniLearn ATS',
             ],
             'json' => [
-                'model' => $model,
-                'messages' => [
+                'contents' => [
                     [
-                        'role' => 'user',
-                        'content' => $prompt,
+                        'parts' => [
+                            ['text' => $prompt],
+                        ],
                     ],
                 ],
-                'temperature' => 0.1, // Low temperature for more consistent extraction
-                'max_tokens' => 1000,
+                'generationConfig' => [
+                    'temperature' => 0.1,
+                    'maxOutputTokens' => 4096,
+                    'responseMimeType' => 'application/json',
+                ],
             ],
-            'timeout' => 30,
+            'timeout' => 45,
         ]);
 
         $statusCode = $response->getStatusCode();
         
         if ($statusCode !== 200) {
-            $this->logger->error('OpenRouter API error', [
+            $errorBody = $response->getContent(false);
+            $this->logger->error('Gemini API error', [
                 'model' => $model,
                 'statusCode' => $statusCode,
-                'response' => $response->getContent(false),
             ]);
+            
+            if ($statusCode === 429) {
+                $this->logger->warning('Gemini API: Rate limited. Throwing exception to trigger retry.');
+                throw new \RuntimeException('Rate limited (429). Will retry.');
+            }
+            
             return null;
         }
 
         $data = $response->toArray();
         
-        if (!isset($data['choices'][0]['message']['content'])) {
-            $this->logger->error('Invalid API response structure', ['data' => $data]);
+        // Gemini API response structure
+        if (!isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+            // Check if response was truncated due to safety or length
+            $finishReason = $data['candidates'][0]['finishReason'] ?? 'UNKNOWN';
+            $this->logger->error('Invalid Gemini API response', [
+                'model' => $model,
+                'finishReason' => $finishReason,
+            ]);
             return null;
         }
 
-        $content = $data['choices'][0]['message']['content'];
+        $content = $data['candidates'][0]['content']['parts'][0]['text'];
+        
+        $this->logger->debug('Gemini raw response', ['content' => substr($content, 0, 200)]);
         
         // Parse the JSON response
         return $this->parseJsonResponse($content);
@@ -161,22 +172,22 @@ PROMPT;
     {
         // Clean up the response - remove markdown code blocks if present
         $content = trim($content);
-        $content = preg_replace('/^```json?\s*/', '', $content);
-        $content = preg_replace('/\s*```$/', '', $content);
+        $content = preg_replace('/^```json?\s*/m', '', $content);
+        $content = preg_replace('/\s*```$/m', '', $content);
         $content = trim($content);
 
         try {
             $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             $this->logger->error('Failed to parse AI response as JSON', [
-                'content' => $content,
+                'content' => substr($content, 0, 500),
                 'error' => $e->getMessage(),
             ]);
             return null;
         }
 
         // Validate and normalize the structure
-        return [
+        $result = [
             'skills' => $this->normalizeArray($data['skills'] ?? []),
             'educationLevel' => $this->normalizeEducationLevel($data['educationLevel'] ?? null),
             'educationField' => $data['educationField'] ?? null,
@@ -184,6 +195,15 @@ PROMPT;
             'languages' => $this->normalizeArray($data['languages'] ?? []),
             'portfolioUrls' => $this->normalizeArray($data['portfolioUrls'] ?? []),
         ];
+        
+        $this->logger->info('Parsed CV data', [
+            'skillsCount' => count($result['skills']),
+            'educationLevel' => $result['educationLevel'],
+            'experienceYears' => $result['experienceYears'],
+            'languagesCount' => count($result['languages']),
+        ]);
+        
+        return $result;
     }
 
     /**
@@ -195,7 +215,7 @@ PROMPT;
             return [];
         }
         
-        return array_filter(array_map('trim', $value), fn($v) => !empty($v));
+        return array_values(array_filter(array_map('trim', $value), fn($v) => !empty($v)));
     }
 
     /**

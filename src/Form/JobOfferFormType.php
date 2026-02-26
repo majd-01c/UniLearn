@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\JobOffer;
+use App\Entity\User;
 use App\Enum\JobOfferType as JobOfferTypeEnum;
 use App\Service\JobOffer\SkillsProvider;
 use Symfony\Component\Form\AbstractType;
@@ -29,12 +30,13 @@ class JobOfferFormType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var User|null $partner */
+        $partner = $options['partner'];
+
         // Get skill choices (value => label format)
         $skillChoices = [];
-        foreach ($this->skillsProvider->getSkillsByCategory() as $category => $skills) {
-            foreach ($skills as $skill) {
-                $skillChoices[$skill] = $skill;
-            }
+        foreach ($this->skillsProvider->getAllSkillsForPartner($partner) as $skill) {
+            $skillChoices[$skill] = $skill;
         }
 
         // Education level choices
@@ -125,15 +127,16 @@ class JobOfferFormType extends AbstractType
                 ],
             ])
             
-            // ATS Requirement Fields
+            // ATS Requirement Fields - Using hidden fields for dynamic skill management
             ->add('requiredSkills', ChoiceType::class, [
                 'label' => 'Compétences requises (ATS)',
                 'choices' => $skillChoices,
                 'multiple' => true,
-                'expanded' => true, // Checkboxes
+                'expanded' => false,
                 'required' => false,
                 'attr' => [
-                    'class' => 'skills-checkboxes',
+                    'class' => 'd-none skills-data',
+                    'data-field-type' => 'required',
                 ],
                 'label_attr' => [
                     'class' => 'form-label fw-bold',
@@ -144,10 +147,11 @@ class JobOfferFormType extends AbstractType
                 'label' => 'Compétences souhaitées (bonus)',
                 'choices' => $skillChoices,
                 'multiple' => true,
-                'expanded' => true, // Checkboxes
+                'expanded' => false,
                 'required' => false,
                 'attr' => [
-                    'class' => 'skills-checkboxes',
+                    'class' => 'd-none skills-data',
+                    'data-field-type' => 'preferred',
                 ],
                 'label_attr' => [
                     'class' => 'form-label fw-bold',
@@ -206,6 +210,9 @@ class JobOfferFormType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => JobOffer::class,
+            'partner' => null,
         ]);
+
+        $resolver->setAllowedTypes('partner', [User::class, 'null']);
     }
 }

@@ -72,7 +72,7 @@
                             </td>
                             <td>
     {% if request.documentPath %}
-        <a href="{{ asset('uploads/documents/' ~ request.documentPath) }}" class="btn btn-sm btn-success" target="_blank">
+        <a href="{{ path('app_espace_etudiant_document_download', {id: request.id}) }}" class="btn btn-sm btn-success">
             <i class="fas fa-download"></i> Télécharger
         </a>
     {% elseif request.status == 'pending' %}
@@ -83,9 +83,9 @@
         <span class="badge bg-info">
             <i class="fas fa-spinner"></i> En cours
         </span>
-    {% elseif request.status == 'ready' or request.status == 'delivered' %}
+    {% elseif request.status == 'ready' %}
         <span class="badge bg-secondary">
-            <i class="fas fa-exclamation-circle"></i> Document manquant
+            <i class="fas fa-exclamation-circle"></i> Bientôt disponible
         </span>
     {% else %}
         <span class="text-muted">Non disponible</span>

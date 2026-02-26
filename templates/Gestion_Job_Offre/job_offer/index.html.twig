@@ -88,6 +88,22 @@
                             <p class="card-text flex-grow-1">
                                 {{ offer.description|length > 150 ? offer.description|slice(0, 150) ~ '...' : offer.description }}
                             </p>
+                            
+                            {# Quick Requirements Summary #}
+                            {% if offer.minExperienceYears or offer.requiredLanguages|length > 0 %}
+                                <div class="mb-2 p-2 bg-light rounded">
+                                    <small class="text-muted">
+                                        {% if offer.minExperienceYears %}
+                                            <i class="bi bi-briefcase"></i> {{ offer.minExperienceYears }}{{ offer.minExperienceYears > 1 ? ' ans' : ' an' }}
+                                        {% endif %}
+                                        {% if offer.minExperienceYears and offer.requiredLanguages|length > 0 %} • {% endif %}
+                                        {% if offer.requiredLanguages|length > 0 %}
+                                            <i class="bi bi-translate"></i> {{ offer.requiredLanguages|slice(0, 2)|join(', ') }}{% if offer.requiredLanguages|length > 2 %}...{% endif %}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            {% endif %}
+                            
                             <div class="mt-auto">
                                 <small class="text-muted d-block mb-2">
                                     <i class="bi bi-calendar"></i> 

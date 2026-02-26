@@ -2701,6 +2701,97 @@ hr {
     box-shadow: 0 8px 25px rgba(76, 110, 245, 0.35);
 }
 
+[data-theme="light"] .btn-success {
+    background: var(--success-gradient);
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.25);
+}
+
+[data-theme="light"] .btn-success:hover {
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.35);
+}
+
+[data-theme="light"] .btn-danger {
+    background: var(--danger-gradient);
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);
+}
+
+[data-theme="light"] .btn-danger:hover {
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.35);
+}
+
+[data-theme="light"] .btn-warning {
+    background: var(--warning-gradient);
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);
+}
+
+[data-theme="light"] .btn-warning:hover {
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.35);
+}
+
+[data-theme="light"] .btn-info {
+    background: var(--info-gradient);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="light"] .btn-info:hover {
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+}
+
+[data-theme="light"] .btn-outline-primary {
+    border: 2px solid var(--primary-500);
+    color: var(--primary-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-primary:hover {
+    background: var(--primary-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-success {
+    border: 2px solid var(--success-500);
+    color: var(--success-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-success:hover {
+    background: var(--success-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-danger {
+    border: 2px solid var(--danger-500);
+    color: var(--danger-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-danger:hover {
+    background: var(--danger-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-warning {
+    border: 2px solid var(--warning-500);
+    color: var(--warning-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-warning:hover {
+    background: var(--warning-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-info {
+    border: 2px solid var(--info-500);
+    color: var(--info-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-info:hover {
+    background: var(--info-500);
+    color: white !important;
+}
+
 /* --- Forms --- */
 [data-theme="light"] .form-control,
 [data-theme="light"] .form-select {
@@ -4084,6 +4175,67 @@ i.text-secondary {
     background: var(--gray-100);
     color: var(--gray-900) !important;
     border-color: rgba(0,0,0,0.25);
+}
+
+/* --- Light Mode Outline Button Icons --- */
+[data-theme="light"] .btn-outline-primary i,
+[data-theme="light"] .btn-outline-primary i.bi {
+    color: var(--primary-600) !important;
+}
+
+[data-theme="light"] .btn-outline-primary:hover i,
+[data-theme="light"] .btn-outline-primary:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-success i,
+[data-theme="light"] .btn-outline-success i.bi {
+    color: var(--success-600) !important;
+}
+
+[data-theme="light"] .btn-outline-success:hover i,
+[data-theme="light"] .btn-outline-success:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-danger i,
+[data-theme="light"] .btn-outline-danger i.bi {
+    color: var(--danger-600) !important;
+}
+
+[data-theme="light"] .btn-outline-danger:hover i,
+[data-theme="light"] .btn-outline-danger:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-warning i,
+[data-theme="light"] .btn-outline-warning i.bi {
+    color: var(--warning-600) !important;
+}
+
+[data-theme="light"] .btn-outline-warning:hover i,
+[data-theme="light"] .btn-outline-warning:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-info i,
+[data-theme="light"] .btn-outline-info i.bi {
+    color: var(--info-600) !important;
+}
+
+[data-theme="light"] .btn-outline-info:hover i,
+[data-theme="light"] .btn-outline-info:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-secondary i,
+[data-theme="light"] .btn-outline-secondary i.bi {
+    color: var(--gray-600) !important;
+}
+
+[data-theme="light"] .btn-outline-secondary:hover i,
+[data-theme="light"] .btn-outline-secondary:hover i.bi {
+    color: var(--gray-900) !important;
 }
 
 /* --- Enhanced List Group Items --- */
@@ -6900,6 +7052,419 @@ body:not(.back-office) .table thead th {
 
 [data-theme="light"] .btn-admin-primary:hover {
     box-shadow: 0 4px 12px rgba(109, 40, 217, 0.25);
+}
+
+/* --------------------------------------------------------------------------
+   Job Offer Form - Skills Manager & Language Checkboxes
+   -------------------------------------------------------------------------- */
+
+/* Skills sections (My Skills & Search Manager) */
+.my-skills-section,
+.skills-manager {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    background: var(--surface-elevated);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.my-skills-section {
+    background: linear-gradient(135deg, var(--surface-elevated) 0%, var(--gray-200) 100%);
+}
+
+.skills-manager {
+    background: linear-gradient(135deg, var(--gray-200) 0%, var(--gray-300) 100%);
+}
+
+[data-theme="light"] .my-skills-section {
+    border-color: var(--gray-300);
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+}
+
+[data-theme="light"] .skills-manager {
+    border-color: var(--gray-300);
+    background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+}
+
+/* Skills checkboxes scrollable list */
+.my-skills-checkboxes {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem 0;
+}
+
+.my-skills-search {
+    margin-bottom: 0.75rem;
+}
+
+.my-skills-checkboxes .form-check {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+    padding: 0.25rem 0.5rem;
+    background: var(--surface-card);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s;
+}
+
+[data-theme="light"] .my-skills-checkboxes .form-check {
+    background: #ffffff;
+    border-color: var(--gray-200);
+}
+
+.skill-checkbox-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.skill-checkbox-row .form-check-input {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    border: 2px solid var(--primary-500);
+    background-color: transparent;
+    cursor: pointer;
+    appearance: auto;
+    -webkit-appearance: checkbox;
+}
+
+.skill-checkbox-row .form-check-input:checked {
+    background-color: var(--primary-500);
+    border-color: var(--primary-500);
+}
+
+.skill-checkbox-row .form-check-label {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.my-skills-checkboxes .form-check:hover {
+    background: var(--surface-elevated);
+    border-color: var(--primary-500);
+}
+
+[data-theme="light"] .my-skills-checkboxes .form-check:hover {
+    background: var(--gray-100);
+    border-color: var(--primary-500);
+}
+
+.my-skills-checkboxes .form-check-input:checked + .form-check-label {
+    color: var(--primary-500);
+    font-weight: 500;
+}
+
+.my-skills-checkboxes .form-check-label {
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.skill-custom-indicator {
+    color: #f57c00;
+    font-size: 0.7rem;
+    margin-left: 0.25rem;
+}
+
+/* Delete saved skill button */
+.delete-saved-skill {
+    border: none;
+    background: transparent;
+    color: var(--danger-500);
+    line-height: 1;
+    padding: 0.1rem 0.2rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-saved-skill:hover {
+    background: var(--danger-50);
+}
+
+.delete-saved-skill:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Skills suggestions dropdown */
+.skills-suggestions {
+    display: none;
+    background: var(--surface-card);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 1000;
+}
+
+[data-theme="light"] .skills-suggestions {
+    border-color: var(--gray-300);
+}
+
+.skills-suggestions.show {
+    display: block;
+}
+
+.skills-suggestion-item {
+    padding: 0.5rem;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .skills-suggestion-item {
+    border-bottom-color: var(--gray-200);
+}
+
+.skills-suggestion-item:hover {
+    background: var(--surface-elevated);
+}
+
+[data-theme="light"] .skills-suggestion-item:hover {
+    background: var(--gray-100);
+}
+
+.skills-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.skills-suggestion-item .skill-type {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-full);
+    margin-left: 0.5rem;
+}
+
+.skills-suggestion-item .skill-type.predefined {
+    background: var(--info-50);
+    color: var(--info-500);
+}
+
+.skills-suggestion-item .skill-type.custom {
+    background: var(--warning-50);
+    color: var(--warning-500);
+}
+
+[data-theme="light"] .skills-suggestion-item .skill-type.predefined {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+[data-theme="light"] .skills-suggestion-item .skill-type.custom {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+/* Selected skills tags */
+.selected-skills {
+    min-height: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.skill-tag {
+    background: var(--primary-500);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.skill-tag:hover {
+    background: var(--danger-500);
+    transform: translateY(-1px);
+}
+
+.skill-tag.preferred {
+    background: #fd7e14;
+}
+
+.skill-tag.custom::after {
+    content: '\2605';
+    margin-left: 0.25rem;
+    color: var(--warning-500);
+}
+
+/* Skills search input focus */
+.skills-search:focus {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: none;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top: 2px solid var(--primary-500);
+    border-radius: 50%;
+    animation: skillsSpin 1s linear infinite;
+}
+
+@keyframes skillsSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+[data-theme="light"] .loading-spinner {
+    border-color: var(--gray-200);
+    border-top-color: var(--primary-600);
+}
+
+/* No results message */
+.no-results {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Toggle buttons */
+.toggle-my-skills,
+.toggle-search-skills {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Selected skills container */
+.selected-skills-container {
+    background: var(--surface-card);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+}
+
+[data-theme="light"] .selected-skills-container {
+    border-color: var(--gray-300);
+}
+
+/* Empty skills placeholder */
+.empty-skills {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+}
+
+[data-theme="light"] .empty-skills {
+    border-color: var(--gray-300);
+}
+
+/* Language checkboxes - Clean Organized Layout */
+.language-checkboxes {
+    background: var(--surface-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+[data-theme="light"] .language-checkboxes {
+    background: var(--gray-50);
+    border-color: var(--gray-300);
+}
+
+.language-checkboxes .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 1rem;
+    background: var(--surface-card);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+[data-theme="light"] .language-checkboxes .form-check {
+    background: white;
+    border-color: var(--gray-200);
+}
+
+.language-checkboxes .form-check:hover {
+    background: var(--surface-elevated);
+    border-color: var(--primary-500);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+[data-theme="light"] .language-checkboxes .form-check:hover {
+    background: var(--gray-100);
+}
+
+.language-checkboxes .form-check-input {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0 !important;
+    border: 2px solid var(--text-muted);
+    background-color: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    position: relative;
+}
+
+.language-checkboxes .form-check-input:checked {
+    background-color: var(--primary-500);
+    border-color: var(--primary-500);
+}
+
+.language-checkboxes .form-check-input:checked + .form-check-label {
+    color: var(--primary-500);
+    font-weight: 600;
+}
+
+.language-checkboxes .form-check-label {
+    color: var(--text-primary);
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0 !important;
+    font-size: 0.95rem;
+    flex: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .language-checkboxes {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+    
+    .language-checkboxes .form-check {
+        padding: 0.75rem;
+    }
 }
 
 /* --------------------------------------------------------------------------

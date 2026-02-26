@@ -70,6 +70,16 @@ class JobApplication
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $extractedData = null;
 
+    // Notification fields
+    #[ORM\Column(nullable: true)]
+    private ?bool $statusNotified = false;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $statusNotifiedAt = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $statusMessage = null;
+
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
@@ -218,5 +228,56 @@ class JobApplication
     {
         $this->extractedData = $extractedData;
         return $this;
+    }
+
+    // Notification getters and setters
+
+    public function isStatusNotified(): ?bool
+    {
+        return $this->statusNotified;
+    }
+
+    public function setStatusNotified(?bool $statusNotified): static
+    {
+        $this->statusNotified = $statusNotified;
+        return $this;
+    }
+
+    public function getStatusNotifiedAt(): ?\DateTimeImmutable
+    {
+        return $this->statusNotifiedAt;
+    }
+
+    public function setStatusNotifiedAt(?\DateTimeImmutable $statusNotifiedAt): static
+    {
+        $this->statusNotifiedAt = $statusNotifiedAt;
+        return $this;
+    }
+
+    public function getStatusMessage(): ?string
+    {
+        return $this->statusMessage;
+    }
+
+    public function setStatusMessage(?string $statusMessage): static
+    {
+        $this->statusMessage = $statusMessage;
+        return $this;
+    }
+
+    /**
+     * Check if this application has a decision (accepted or rejected)
+     */
+    public function hasDecision(): bool
+    {
+        return in_array($this->status, [JobApplicationStatus::ACCEPTED, JobApplicationStatus::REJECTED], true);
+    }
+
+    /**
+     * Check if status change needs notification
+     */
+    public function needsStatusNotification(): bool
+    {
+        return $this->hasDecision() && !$this->statusNotified;
     }
 }

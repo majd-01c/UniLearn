@@ -59,7 +59,9 @@ class PartnerJobOfferController extends AbstractController
         $user = $this->getUser();
 
         $offer = new JobOffer();
-        $form = $this->createForm(JobOfferFormType::class, $offer);
+        $form = $this->createForm(JobOfferFormType::class, $offer, [
+            'partner' => $user,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -85,7 +87,12 @@ class PartnerJobOfferController extends AbstractController
     {
         $this->denyAccessUnlessGranted(JobOfferVoter::EDIT, $offer);
 
-        $form = $this->createForm(JobOfferFormType::class, $offer);
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        $form = $this->createForm(JobOfferFormType::class, $offer, [
+            'partner' => $user,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

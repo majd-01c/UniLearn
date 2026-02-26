@@ -3,16 +3,13 @@
 require __DIR__.'/vendor/autoload.php';
 
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Entity\Profile;
 
 $kernel = new App\Kernel('dev', true);
 $kernel->boot();
 $container = $kernel->getContainer();
 
 $entityManager = $container->get('doctrine')->getManager();
-$passwordHasher = $container->get(UserPasswordHasherInterface::class);
 
 // Delete existing admin if exists
 $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => 'admin@unilearn.com']);
@@ -31,11 +28,19 @@ $admin->setIsActive(true);
 $admin->setIsVerified(true);
 $admin->setNeedsVerification(false);
 
-// Hash the password
-$hashedPassword = $passwordHasher->hashPassword($admin, 'admin123');
+// Hash the password using PHP native bcrypt (compatible with Symfony's auto hasher)
+$hashedPassword = password_hash('admin123', PASSWORD_BCRYPT);
 $admin->setPassword($hashedPassword);
 
 $entityManager->persist($admin);
+
+// Create profile for admin
+$profile = new Profile();
+$profile->setFirstName('Admin');
+$profile->setLastName('User');
+$profile->setUser($admin);
+
+$entityManager->persist($profile);
 $entityManager->flush();
 
 echo "✅ Admin user created successfully!\n";

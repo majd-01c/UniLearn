@@ -225,6 +225,113 @@ class ForumController extends AbstractController
     }
 
     /**
+     * Generate AI answer for a topic (AJAX endpoint)
+     */
+    #[Route('/topic/{id}/ai-answer', name: 'app_forum_ai_answer', methods: ['POST'])]
+    public function aiAnswer(ForumTopic $topic): JsonResponse
+    {
+        try {
+            $geminiApi = $this->aiAssistant->getGeminiApi();
+            
+            if (!$geminiApi->isAvailable()) {
+                return new JsonResponse(['success' => false, 'message' => 'AI service not available']);
+            }
+
+            // Gather existing comments for context
+            $existingComments = [];
+            foreach ($topic->getTopLevelComments() as $comment) {
+                $existingComments[] = [
+                    'content' => mb_substr($comment->getContent(), 0, 500),
+                    'isAccepted' => $comment->isAccepted(),
+                    'isTeacherResponse' => $comment->isTeacherResponse(),
+                ];
+            }
+
+            $answer = $geminiApi->generateTopicAnswer(
+                $topic->getTitle(),
+                mb_substr($topic->getContent(), 0, 1000),
+                $existingComments
+            );
+
+            if (!$answer) {
+                return new JsonResponse(['success' => false, 'message' => 'AI could not generate an answer']);
+            }
+
+            return new JsonResponse([
+                'success' => true,
+                'answer' => $answer,
+            ]);
+        } catch (\Exception $e) {
+            error_log('AI Answer Error: ' . $e->getMessage());
+            return new JsonResponse(['success' => false, 'message' => 'AI error occurred'], 500);
+        }
+    }
+
+    /**
+     * Check comment text for toxicity (AJAX endpoint)
+     */
+    #[Route('/comment/check-toxicity', name: 'app_forum_check_toxicity', methods: ['POST'])]
+    public function checkToxicity(Request $request): JsonResponse
+    {
+        $text = $request->request->get('text', '');
+
+        if (empty($text) || strlen($text) < 3) {
+            return new JsonResponse(['success' => true, 'isToxic' => false]);
+        }
+
+        try {
+            $geminiApi = $this->aiAssistant->getGeminiApi();
+            
+            if (!$geminiApi->isAvailable()) {
+                return new JsonResponse(['success' => true, 'isToxic' => false]);
+            }
+
+            $result = $geminiApi->checkToxicity($text);
+
+            return new JsonResponse([
+                'success' => true,
+                'isToxic' => $result['isToxic'] ?? false,
+                'severity' => $result['severity'] ?? 'none',
+                'reason' => $result['reason'] ?? '',
+            ]);
+        } catch (\Exception $e) {
+            error_log('Toxicity Check Error: ' . $e->getMessage());
+            return new JsonResponse(['success' => true, 'isToxic' => false]);
+        }
+    }
+
+    /**
+     * Rate a comment's quality (AJAX endpoint)
+     */
+    #[Route('/comment/{id}/ai-rate', name: 'app_forum_ai_rate_comment', methods: ['POST'])]
+    public function aiRateComment(ForumComment $comment): JsonResponse
+    {
+        try {
+            $geminiApi = $this->aiAssistant->getGeminiApi();
+            
+            if (!$geminiApi->isAvailable()) {
+                return new JsonResponse(['success' => false, 'message' => 'AI service not available']);
+            }
+
+            $topic = $comment->getTopic();
+            $result = $geminiApi->rateAnswerQuality(
+                $topic->getTitle() . "\n" . mb_substr($topic->getContent(), 0, 500),
+                mb_substr($comment->getContent(), 0, 500)
+            );
+
+            return new JsonResponse([
+                'success' => true,
+                'score' => $result['score'] ?? 0,
+                'label' => $result['label'] ?? 'Not rated',
+                'reason' => $result['reason'] ?? '',
+            ]);
+        } catch (\Exception $e) {
+            error_log('AI Rate Error: ' . $e->getMessage());
+            return new JsonResponse(['success' => false, 'message' => 'AI error occurred'], 500);
+        }
+    }
+
+    /**
      * Edit a topic (author only or admin)
      */
     #[Route('/topic/{id}/edit', name: 'app_forum_topic_edit')]

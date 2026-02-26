@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Emploi du Temps{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4 px-4">
+
+    <div class="uni-page-header mb-4">
+        <div class="uni-page-header-info">
+            <h1 class="uni-page-header-title">
+                <i class="bi bi-calendar-week-fill"></i> Mon Emploi du Temps
+            </h1>
+            <p class="uni-page-header-subtitle">
+                {{ teacher.name ?? teacher.email }} — toutes vos classes assignées
+            </p>
+        </div>
+        <div class="uni-page-header-actions">
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-printer"></i> Imprimer
+            </button>
+        </div>
+    </div>
+
+    {% set days = {
+        'monday':    'Lundi',
+        'tuesday':   'Mardi',
+        'wednesday': 'Mercredi',
+        'thursday':  'Jeudi',
+        'friday':    'Vendredi',
+        'saturday':  'Samedi'
+    } %}
+
+    {% set timeSlots = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'] %}
+
+    {% set hasAnySchedule = false %}
+    {% for day, slots in weekSchedule %}
+        {% if slots|length > 0 %}{% set hasAnySchedule = true %}{% endif %}
+    {% endfor %}
+
+    {% if hasAnySchedule %}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-center" style="width:80px;">Horaire</th>
+                            {% for dayKey, dayLabel in days %}
+                            <th class="text-center">{{ dayLabel }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for timeSlot in timeSlots %}
+                        <tr>
+                            <td class="text-center fw-bold text-muted small">{{ timeSlot }}</td>
+                            {% for dayKey, dayLabel in days %}
+                            <td style="min-width:130px;vertical-align:top;padding:4px;">
+                                {% set hasClass = false %}
+                                {% for schedule in weekSchedule[dayKey] %}
+                                    {% if schedule.startTime|date('H:i') <= timeSlot and schedule.endTime|date('H:i') > timeSlot %}
+                                        {% set hasClass = true %}
+                                        <div class="p-2 rounded text-white mb-1"
+                                             style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);font-size:.82rem;">
+                                            <div class="fw-bold">{{ schedule.course.title }}</div>
+                                            <div class="opacity-90">
+                                                <i class="bi bi-clock"></i>
+                                                {{ schedule.startTime|date('H:i') }}–{{ schedule.endTime|date('H:i') }}
+                                            </div>
+                                            {% if schedule.classe %}
+                                            <div class="opacity-90">
+                                                <i class="bi bi-people-fill"></i>
+                                                {{ schedule.classe.name }}
+                                            </div>
+                                            {% endif %}
+                                            {% if schedule.room %}
+                                            <div class="opacity-90">
+                                                <i class="bi bi-door-open"></i>
+                                                {{ schedule.room }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not hasClass %}
+                                    <div class="text-center text-muted" style="font-size:.75rem;">—</div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Summary cards #}
+    <div class="row g-3 mt-3">
+        {% for dayKey, dayLabel in days %}
+        {% if weekSchedule[dayKey]|length > 0 %}
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="card border-primary border-opacity-25 h-100">
+                <div class="card-header bg-primary bg-opacity-10 fw-semibold py-2">
+                    <i class="bi bi-calendar-day me-1 text-primary"></i>{{ dayLabel }}
+                    <span class="badge bg-primary float-end">{{ weekSchedule[dayKey]|length }}</span>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for s in weekSchedule[dayKey] %}
+                    <li class="list-group-item py-2 px-3" style="font-size:.85rem;">
+                        <div class="fw-semibold">{{ s.course.title }}</div>
+                        <div class="text-muted small">
+                            {{ s.startTime|date('H:i') }}–{{ s.endTime|date('H:i') }}
+                            {% if s.classe %} · {{ s.classe.name }}{% endif %}
+                            {% if s.room %} · Salle {{ s.room }}{% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="card border-warning">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-calendar-x text-warning" style="font-size:3.5rem;"></i>
+            <h4 class="mt-3 fw-bold">Aucun créneau assigné</h4>
+            <p class="text-muted">Vous n'avez pas encore de cours dans l'emploi du temps.<br>
+            Contactez l'administration pour être ajouté à un créneau.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{{ path('app_teacher_my_classes') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Mes Classes
+        </a>
+    </div>
+</div>
+{% endblock %}

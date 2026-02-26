@@ -43,7 +43,15 @@ class AdminScheduleType extends AbstractType
             ])
             ->add('teacher', EntityType::class, [
                 'class' => User::class,
-                'choice_label' => 'name',
+                'choice_label' => function (User $user): string {
+                    return $user->getName() ?: $user->getEmail();
+                },
+                'query_builder' => function ($repository) {
+                    return $repository->createQueryBuilder('u')
+                        ->where('u.role = :role')
+                        ->setParameter('role', 'TEACHER')
+                        ->orderBy('u.name', 'ASC');
+                },
                 'label' => 'Enseignant',
                 'required' => false,
                 'placeholder' => '-- Sélectionnez un enseignant --',

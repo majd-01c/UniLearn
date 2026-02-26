@@ -46,7 +46,7 @@
                                                 <small><i class="fas fa-door-open"></i> {{ schedule.room }}</small><br>
                                             {% endif %}
                                             {% if schedule.teacher %}
-                                                <small><i class="fas fa-user"></i> {{ schedule.teacher.name }}</small>
+                                                <small><i class="fas fa-user"></i> {{ schedule.teacher.name ?? 'Enseignant' }}</small>
                                             {% endif %}
                                         </div>
                                     {% endif %}

@@ -206,11 +206,12 @@
 
                     {% if is_granted('ROLE_TEACHER') %}
                     <div class="fo-nav-dropdown-wrap">
-                        <button class="fo-nav-link fo-has-dropdown {% if 'teacher_classe' in app.request.attributes.get('_route') or 'teacher_grade' in app.request.attributes.get('_route') or 'teacher_document' in app.request.attributes.get('_route') %}active{% endif %}">
+                        <button class="fo-nav-link fo-has-dropdown {% if 'teacher_classe' in app.request.attributes.get('_route') or 'teacher_grade' in app.request.attributes.get('_route') or 'teacher_document' in app.request.attributes.get('_route') or 'teacher_schedule' in app.request.attributes.get('_route') %}active{% endif %}">
                             Teaching <i class="bi bi-chevron-down fo-caret"></i>
                         </button>
                         <div class="fo-dropdown-menu">
                             <a href="{{ path('app_teacher_my_classes') }}" class="fo-dropdown-item"><i class="bi bi-door-open"></i> My Classes</a>
+                            <a href="{{ path('app_teacher_schedule') }}" class="fo-dropdown-item"><i class="bi bi-calendar-week-fill"></i> Mon Emploi du Temps</a>
                             <a href="{{ path('app_teacher_grades') }}" class="fo-dropdown-item"><i class="bi bi-journal-check"></i> Grades & Assessments</a>
                             <a href="{{ path('app_teacher_documents') }}" class="fo-dropdown-item"><i class="bi bi-file-earmark-arrow-up"></i> Documents</a>
                         </div>
@@ -279,6 +280,7 @@
                 {% if is_granted('ROLE_TEACHER') %}
                 <div class="fo-mobile-divider"></div>
                 <a href="{{ path('app_teacher_my_classes') }}" class="fo-mobile-link"><i class="bi bi-easel2"></i> My Classes</a>
+                <a href="{{ path('app_teacher_schedule') }}" class="fo-mobile-link"><i class="bi bi-calendar-week-fill"></i> Mon Emploi du Temps</a>
                 <a href="{{ path('app_teacher_grades') }}" class="fo-mobile-link"><i class="bi bi-journal-check"></i> Grades & Assessments</a>
                 <a href="{{ path('app_teacher_documents') }}" class="fo-mobile-link"><i class="bi bi-file-earmark-arrow-up"></i> Documents</a>
                 {% endif %}
@@ -437,8 +439,8 @@
                     cleanupFns.push(function() { window.removeEventListener('scroll', onScroll); });
                 }
 
-                // Auto-dismiss alerts
-                document.querySelectorAll('.alert').forEach(function(el) {
+                // Auto-dismiss alerts (only flash messages, not persistent alert blocks)
+                document.querySelectorAll('.alert.alert-dismissible').forEach(function(el) {
                     setTimeout(function() {
                         if (!el || !el.isConnected) return;
                         el.classList.remove('show');

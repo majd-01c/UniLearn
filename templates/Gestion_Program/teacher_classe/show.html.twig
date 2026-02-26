@@ -174,10 +174,28 @@
                                                            class="btn btn-outline-success" title="Add Content">
                                                             <i class="bi bi-plus-lg"></i> Add Content
                                                         </a>
-                                                        <a href="{{ path('app_teacher_quiz_create', {teacherClasseId: teacherClasse.id, courseId: classeCourse.id}) }}" 
-                                                           class="btn btn-outline-info" title="Add Quiz">
-                                                            <i class="bi bi-patch-question"></i> Add Quiz
-                                                        </a>
+                                                        <div class="btn-group">
+                                                            <a href="{{ path('app_teacher_quiz_create', {teacherClasseId: teacherClasse.id, courseId: classeCourse.id}) }}" 
+                                                               class="btn btn-outline-info" title="Add Quiz">
+                                                                <i class="bi bi-patch-question"></i> Add Quiz
+                                                            </a>
+                                                            <button type="button" class="btn btn-outline-info dropdown-toggle dropdown-toggle-split" 
+                                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <span class="visually-hidden">Toggle Dropdown</span>
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                                <li>
+                                                                    <a class="dropdown-item" href="{{ path('app_teacher_quiz_create', {teacherClasseId: teacherClasse.id, courseId: classeCourse.id}) }}">
+                                                                        <i class="bi bi-pencil me-2"></i> Create Manually
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item" href="{{ path('app_teacher_quiz_ai_generate', {teacherClasseId: teacherClasse.id, courseId: classeCourse.id}) }}">
+                                                                        <i class="bi bi-robot me-2 text-primary"></i> Generate with AI
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
                                                         <form action="{{ path('app_teacher_toggle_course_visibility', {id: teacherClasse.id, courseId: classeCourse.id}) }}" 
                                                               method="post" class="d-inline">
                                                             <input type="hidden" name="_token" value="{{ csrf_token('toggle_course_visibility' ~ teacherClasse.id) }}">

@@ -6,6 +6,7 @@
 parameters:
     mailer_dsn: '%env(MAILER_DSN)%'
     avatar_service_url: '%env(AVATAR_SERVICE_URL)%'
+    gemini_api_key: '%env(GEMINI_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -32,3 +33,7 @@ services:
     App\Service\AvatarGeneratorClient:
         arguments:
             $avatarServiceUrl: '%avatar_service_url%'
+
+    App\Service\AI\GeminiAIService:
+        arguments:
+            $apiKey: '%gemini_api_key%'

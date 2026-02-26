@@ -13,10 +13,12 @@ use App\Entity\Quiz;
 use App\Entity\StudentClasse;
 use App\Entity\User;
 use App\Entity\UserAnswer;
+use App\Enum\QuestionType;
 use App\Repository\ClassMeetingRepository;
 use App\Repository\QuizRepository;
 use App\Repository\StudentClasseRepository;
 use App\Repository\UserAnswerRepository;
+use App\Service\AI\GeminiAIService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +35,8 @@ class StudentLearningController extends AbstractController
         private StudentClasseRepository $studentClasseRepository,
         private QuizRepository $quizRepository,
         private UserAnswerRepository $userAnswerRepository,
-        private ClassMeetingRepository $classMeetingRepository
+        private ClassMeetingRepository $classMeetingRepository,
+        private GeminiAIService $geminiAIService
     ) {}
 
     #[Route('', name: 'app_student_learning_index')]
@@ -373,11 +376,54 @@ class StudentLearningController extends AbstractController
         $totalScore = 0;
         $totalPoints = 0;
         $answers = $request->request->all('answers');
+        $aiFeedback = []; // Store AI feedback for TEXT questions
 
         foreach ($quiz->getQuestions() as $question) {
             $totalPoints += $question->getPoints();
             $questionId = $question->getId();
             $selectedAnswer = $answers[$questionId] ?? null;
+            $questionType = $question->getType();
+
+            // Handle TEXT type questions with AI grading
+            if ($questionType === QuestionType::TEXT) {
+                $answer = new Answer();
+                $answer->setUserAnswer($userAnswer);
+                $answer->setQuestion($question);
+                $answer->setTextAnswer($selectedAnswer);
+
+                if (!empty(trim($selectedAnswer ?? ''))) {
+                    try {
+                        // Get expected answer from explanation if available
+                        $expectedAnswer = $question->getExplanation() ?? $question->getQuestionText();
+                        
+                        // Use AI to evaluate the answer
+                        $evaluation = $this->geminiAIService->evaluateTextAnswer(
+                            $question->getQuestionText(),
+                            $expectedAnswer,
+                            $selectedAnswer,
+                            $question->getPoints()
+                        );
+
+                        $answer->setIsCorrect($evaluation['isCorrect']);
+                        $answer->setPointsEarned($evaluation['score']);
+                        $totalScore += $evaluation['score'];
+                        
+                        // Store feedback for display
+                        $aiFeedback[$questionId] = $evaluation['feedback'];
+                    } catch (\Exception $e) {
+                        // If AI grading fails, mark for manual review (give 0 points)
+                        $answer->setIsCorrect(false);
+                        $answer->setPointsEarned(0);
+                        $aiFeedback[$questionId] = 'Pending manual review.';
+                    }
+                } else {
+                    $answer->setIsCorrect(false);
+                    $answer->setPointsEarned(0);
+                }
+
+                $this->entityManager->persist($answer);
+                continue;
+            }
 
             // Get correct choices for this question
             $correctChoices = $question->getCorrectChoices();

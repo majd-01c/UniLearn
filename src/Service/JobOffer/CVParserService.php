@@ -83,17 +83,4 @@ class CVParserService
         return $text;
     }
 
-    /**
-     * Check if a file is a valid PDF.
-     */
-    public function isValidPdf(string $filePath): bool
-    {
-        if (!file_exists($filePath)) {
-            return false;
-        }
-
-        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        
-        return $extension === 'pdf';
-    }
 }

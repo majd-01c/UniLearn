@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\DocumentRequestRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DocumentRequestRepository::class)]
 class DocumentRequest
@@ -19,12 +20,17 @@ class DocumentRequest
     private ?User $student = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Document type is required')]
+    #[Assert\Length(max: 100)]
     private ?string $documentType = null; // attestation_stage, attestation_inscription, releve_notes, etc.
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 2000, maxMessage: 'Additional info cannot exceed {{ limit }} characters')]
     private ?string $additionalInfo = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Choice(choices: ['pending', 'approved', 'ready', 'delivered', 'rejected'], message: 'Invalid status')]
     private ?string $status = 'pending'; // pending, approved, ready, delivered, rejected
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

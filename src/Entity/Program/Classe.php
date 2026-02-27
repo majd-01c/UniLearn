@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ClasseRepository::class)]
 #[ORM\Index(columns: ['program_id'])]
@@ -23,28 +24,37 @@ class Classe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Class name is required')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Name must be at least {{ limit }} characters')]
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Program::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Program is required')]
     private ?Program $program = null;
 
     #[ORM\Column(type: 'string', length: 10, enumType: Level::class)]
+    #[Assert\NotNull(message: 'Level is required')]
     private ?Level $level = null;
 
     #[ORM\Column(type: 'string', length: 50, enumType: Specialty::class)]
+    #[Assert\NotNull(message: 'Specialty is required')]
     private ?Specialty $specialty = null;
 
     #[ORM\Column]
+    #[Assert\Positive(message: 'Capacity must be a positive number')]
     private int $capacity = 30;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(message: 'Start date is required')]
     private ?\DateTimeInterface $startDate = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(message: 'End date is required')]
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $imageUrl = null;
 
     #[ORM\Column(type: 'string', length: 20, enumType: ClasseStatus::class, options: ['default' => 'inactive'])]

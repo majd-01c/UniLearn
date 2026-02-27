@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AssessmentRepository::class)]
 #[ORM\Index(columns: ['type'])]
@@ -20,12 +21,16 @@ class Assessment
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', enumType: AssessmentType::class)]
+    #[Assert\NotNull(message: 'Assessment type is required')]
     private ?AssessmentType $type = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Assessment title is required')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Title must be at least {{ limit }} characters')]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 5000, maxMessage: 'Description cannot exceed {{ limit }} characters')]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]

@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProgramRepository::class)]
 #[ORM\Index(columns: ['published'])]
@@ -18,6 +19,8 @@ class Program
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Program name is required')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Name must be at least {{ limit }} characters')]
     private ?string $name = null;
 
     #[ORM\Column]

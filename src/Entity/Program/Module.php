@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ModuleRepository::class)]
 class Module
@@ -18,12 +19,17 @@ class Module
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Module name is required')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Name must be at least {{ limit }} characters')]
     private ?string $name = null;
 
     #[ORM\Column(type: 'string', enumType: PeriodUnit::class)]
+    #[Assert\NotNull(message: 'Period unit is required')]
     private ?PeriodUnit $periodUnit = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: 'Duration is required')]
+    #[Assert\Positive(message: 'Duration must be a positive number')]
     private ?int $duration = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

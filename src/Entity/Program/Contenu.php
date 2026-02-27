@@ -25,6 +25,8 @@ class Contenu
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Content title is required')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Title must be at least {{ limit }} characters')]
     private ?string $title = null;
 
     #[Vich\UploadableField(mapping: 'content_files', fileNameProperty: 'fileName', size: 'fileSize')]
@@ -64,6 +66,7 @@ class Contenu
     private ?FileType $fileType = null;
 
     #[ORM\Column(type: 'string', enumType: ContenuType::class)]
+    #[Assert\NotNull(message: 'Content type is required')]
     private ?ContenuType $type = null;
 
     #[ORM\Column]

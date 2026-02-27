@@ -48,13 +48,18 @@
                             <label for="inputPassword" class="form-label">
                                 <i class="bi bi-lock"></i> Password
                             </label>
-                            <input type="password" 
-                                   name="_password" 
-                                   id="inputPassword" 
-                                   class="form-control form-control-lg" 
-                                   placeholder="Enter your password"
-                                   autocomplete="current-password" 
-                                   required>
+                            <div class="input-group">
+                                <input type="password" 
+                                       name="_password" 
+                                       id="inputPassword" 
+                                       class="form-control form-control-lg" 
+                                       placeholder="Enter your password"
+                                       autocomplete="current-password" 
+                                       required>
+                                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="inputPassword" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">

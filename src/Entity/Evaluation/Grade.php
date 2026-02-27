@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\GradeRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: GradeRepository::class)]
 #[ORM\UniqueConstraint(name: 'assessment_student_unique', columns: ['assessment_id', 'student_id'])]
@@ -17,9 +18,12 @@ class Grade
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Assert\NotNull(message: 'Score is required')]
+    #[Assert\PositiveOrZero(message: 'Score must be zero or positive')]
     private ?float $score = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 2000, maxMessage: 'Comment cannot exceed {{ limit }} characters')]
     private ?string $comment = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

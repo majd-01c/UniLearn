@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BuildProgramRepository::class)]
 #[ORM\Index(columns: ['program_id'])]
@@ -20,18 +21,24 @@ class BuildProgram
 
     #[ORM\ManyToOne(targetEntity: Program::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Program is required')]
     private ?Program $program = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(message: 'Start date is required')]
     private ?\DateTimeInterface $startDate = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotNull(message: 'End date is required')]
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $imageUrl = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'Level is required')]
+    #[Assert\Length(max: 50)]
     private string $level = 'Basique';
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

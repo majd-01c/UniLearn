@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -22,9 +23,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'Role is required')]
+    #[Assert\Length(max: 50)]
     private ?string $role = 'STUDENT';
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(message: 'Email is required')]
+    #[Assert\Email(message: 'Please enter a valid email address')]
+    #[Assert\Length(max: 180)]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -34,9 +40,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?bool $isActive = true;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255, maxMessage: 'Name cannot exceed {{ limit }} characters')]
     private ?string $name = null;
 
     #[ORM\Column(length: 50, nullable: true)]
+    #[Assert\Length(max: 50)]
+    #[Assert\Regex(pattern: '/^[0-9+\-\s()]*$/', message: 'Please enter a valid phone number')]
     private ?string $phone = null;
 
     #[ORM\Column(length: 255, nullable: true)]

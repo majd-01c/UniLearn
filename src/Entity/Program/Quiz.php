@@ -6,6 +6,7 @@ use App\Repository\QuizRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: QuizRepository::class)]
 #[ORM\Index(columns: ['contenu_id'])]
@@ -18,18 +19,24 @@ class Quiz
 
     #[ORM\OneToOne(targetEntity: Contenu::class, inversedBy: 'quiz')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE', unique: true)]
+    #[Assert\NotNull(message: 'Content is required')]
     private ?Contenu $contenu = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Quiz title is required')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Title must be at least {{ limit }} characters')]
     private ?string $title = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Assert\Length(max: 5000, maxMessage: 'Description cannot exceed {{ limit }} characters')]
     private ?string $description = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Passing score must be zero or positive')]
     private ?int $passingScore = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Positive(message: 'Time limit must be a positive number')]
     private ?int $timeLimit = null; // in minutes
 
     #[ORM\Column(options: ['default' => true])]

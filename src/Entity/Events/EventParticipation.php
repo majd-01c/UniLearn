@@ -6,6 +6,7 @@ use App\Repository\EventParticipationRepository;
 use App\Enum\ParticipationStatus;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EventParticipationRepository::class)]
 #[ORM\UniqueConstraint(name: 'event_user_unique', columns: ['event_id', 'user_id'])]
@@ -18,6 +19,7 @@ class EventParticipation
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', enumType: ParticipationStatus::class)]
+    #[Assert\NotNull(message: 'Participation status is required')]
     private ?ParticipationStatus $status = ParticipationStatus::PENDING;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
@@ -28,10 +30,12 @@ class EventParticipation
 
     #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: 'participations')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Event is required')]
     private ?Event $event = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'eventParticipations')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'User is required')]
     private ?User $user = null;
 
     public function __construct()

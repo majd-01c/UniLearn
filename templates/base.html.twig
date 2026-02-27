@@ -22,6 +22,21 @@
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 document.querySelectorAll('form').forEach(function (f) { f.setAttribute('novalidate', ''); });
+
+                // Password visibility toggle
+                document.querySelectorAll('.toggle-password').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var input = btn.dataset.target
+                            ? document.getElementById(btn.dataset.target)
+                            : btn.closest('.input-group').querySelector('input');
+                        if (!input) return;
+                        var isPassword = input.type === 'password';
+                        input.type = isPassword ? 'text' : 'password';
+                        var icon = btn.querySelector('i');
+                        icon.classList.toggle('bi-eye', !isPassword);
+                        icon.classList.toggle('bi-eye-slash', isPassword);
+                    });
+                });
             });
         </script>
         {% block stylesheets %}{% endblock %}

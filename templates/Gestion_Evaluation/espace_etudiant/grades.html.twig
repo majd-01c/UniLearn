@@ -37,6 +37,7 @@
                         {% set maxScore = 20 %}
                         {% set percentage = (grade.score / maxScore) * 100 %}
                         <tr>
+                            <td><strong>{{ grade.assessment.course ? grade.assessment.course.title : 'N/A' }}</strong></td>
                             <td><strong>{{ grade.assessment.course.title }}</strong></td>
                             <td><span class="badge bg-info">{{ grade.assessment.type.value }}</span></td>
                             <td>{{ grade.assessment.title }}</td>

@@ -35,8 +35,13 @@ class ProfileController extends AbstractController
         $profile = $user->getProfile();
 
         if (!$profile) {
-            $this->addFlash('error', 'Profile not found.');
-            return $this->redirectToRoute('app_home');
+            // Auto-create profile if missing (e.g. admin created via script)
+            $profile = new \App\Entity\Profile();
+            $profile->setFirstName($user->getName() ?? 'User');
+            $profile->setLastName('');
+            $profile->setUser($user);
+            $this->entityManager->persist($profile);
+            $this->entityManager->flush();
         }
 
         $form = $this->createForm(ProfileType::class, $profile);

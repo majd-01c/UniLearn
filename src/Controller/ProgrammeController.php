@@ -24,8 +24,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_ADMIN')]
 class ProgrammeController extends AbstractController
 {
     // ============ PROGRAMS INDEX ============
@@ -456,15 +459,24 @@ class ProgrammeController extends AbstractController
     }
 
     #[Route('/programme/courses/{id}/add-contenu', name: 'app_programme_courses_add_contenu', methods: ['POST'])]
-    public function addContenuToCourse(Course $course, Request $request, EntityManagerInterface $em, ContenuRepository $contenuRepository): Response
+    public function addContenuToCourse(Course $course, Request $request, EntityManagerInterface $em, ContenuRepository $contenuRepository, CourseContenuRepository $courseContenuRepo): Response
     {
         $contenuId = $request->request->get('contenu_id');
         $contenu = $contenuRepository->find($contenuId);
 
         if ($contenu) {
+            // Get the max position for this course
+            $maxPosition = $courseContenuRepo->createQueryBuilder('cc')
+                ->select('MAX(cc.position)')
+                ->where('cc.course = :course')
+                ->setParameter('course', $course)
+                ->getQuery()
+                ->getSingleScalarResult();
+
             $courseContenu = new CourseContenu();
             $courseContenu->setCourse($course);
             $courseContenu->setContenu($contenu);
+            $courseContenu->setPosition(($maxPosition ?? -1) + 1);
             $em->persist($courseContenu);
             $em->flush();
 
@@ -487,5 +499,23 @@ class ProgrammeController extends AbstractController
         }
 
         return $this->redirectToRoute('app_programme_courses_show', ['id' => $course->getId()]);
+    }
+
+    #[Route('/programme/courses/{id}/reorder-contenus', name: 'app_programme_courses_reorder_contenus', methods: ['POST'])]
+    public function reorderContenus(Course $course, Request $request, EntityManagerInterface $em, CourseContenuRepository $repo): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $order = $data['order'] ?? [];
+
+        foreach ($order as $position => $contenuId) {
+            $courseContenu = $repo->findOneBy(['course' => $course, 'contenu' => $contenuId]);
+            if ($courseContenu) {
+                $courseContenu->setPosition($position);
+            }
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true]);
     }
 }

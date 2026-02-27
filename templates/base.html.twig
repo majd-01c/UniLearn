@@ -16,7 +16,6 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-        <link rel="stylesheet" href="{{ asset('assets/styles/app.css') }}">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
         {# Disable HTML5 native validation on every form — server-side validation handles all feedback #}
         <script>
@@ -184,8 +183,6 @@
 
                 <div class="fo-navbar-links" id="foNavLinks">
                     <a href="{{ path('app_home') }}" class="fo-nav-link {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}">Home</a>
-                    <a href="{{ path('app_programme') }}" class="fo-nav-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}">Programmes</a>
-                    <a href="{{ path('app_classe') }}" class="fo-nav-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') and 'student' not in app.request.attributes.get('_route') %}active{% endif %}">Classes</a>
                     <a href="{{ path('app_event') }}" class="fo-nav-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}">Events</a>
                     <a href="{{ path('app_job_offer_index') }}" class="fo-nav-link {% if 'job' in app.request.attributes.get('_route') and 'partner' not in app.request.attributes.get('_route') and 'admin' not in app.request.attributes.get('_route') %}active{% endif %}">Jobs</a>
                     <a href="{{ path('app_forum') }}" class="fo-nav-link {% if 'forum' in app.request.attributes.get('_route') %}active{% endif %}">Forum</a>
@@ -206,7 +203,16 @@
                     {% endif %}
 
                     {% if is_granted('ROLE_TEACHER') %}
-                    <a href="{{ path('app_teacher_my_classes') }}" class="fo-nav-link {% if 'teacher_classe' in app.request.attributes.get('_route') %}active{% endif %}">My Classes</a>
+                    <div class="fo-nav-dropdown-wrap">
+                        <button class="fo-nav-link fo-has-dropdown {% if 'teacher_classe' in app.request.attributes.get('_route') or 'teacher_grade' in app.request.attributes.get('_route') or 'teacher_document' in app.request.attributes.get('_route') %}active{% endif %}">
+                            Teaching <i class="bi bi-chevron-down fo-caret"></i>
+                        </button>
+                        <div class="fo-dropdown-menu">
+                            <a href="{{ path('app_teacher_my_classes') }}" class="fo-dropdown-item"><i class="bi bi-door-open"></i> My Classes</a>
+                            <a href="{{ path('app_teacher_grades') }}" class="fo-dropdown-item"><i class="bi bi-journal-check"></i> Grades & Assessments</a>
+                            <a href="{{ path('app_teacher_documents') }}" class="fo-dropdown-item"><i class="bi bi-file-earmark-arrow-up"></i> Documents</a>
+                        </div>
+                    </div>
                     {% endif %}
 
                     {% if is_granted('ROLE_BUSINESS_PARTNER') %}
@@ -255,8 +261,6 @@
 
             <div class="fo-mobile-menu" id="foMobileMenu">
                 <a href="{{ path('app_home') }}" class="fo-mobile-link {% if app.request.attributes.get('_route') == 'app_home' %}active{% endif %}"><i class="bi bi-house-door"></i> Home</a>
-                <a href="{{ path('app_programme') }}" class="fo-mobile-link {% if 'programme' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-journal-bookmark"></i> Programmes</a>
-                <a href="{{ path('app_classe') }}" class="fo-mobile-link {% if 'classe' in app.request.attributes.get('_route') and 'teacher' not in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-grid-3x3-gap"></i> Classes</a>
                 <a href="{{ path('app_event') }}" class="fo-mobile-link {% if 'event' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-calendar2-event"></i> Events</a>
                 <a href="{{ path('app_job_offer_index') }}" class="fo-mobile-link {% if 'job' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-briefcase"></i> Job Offers</a>
                 <a href="{{ path('app_forum') }}" class="fo-mobile-link {% if 'forum' in app.request.attributes.get('_route') %}active{% endif %}"><i class="bi bi-chat-square-dots"></i> Forum</a>
@@ -271,6 +275,8 @@
                 {% if is_granted('ROLE_TEACHER') %}
                 <div class="fo-mobile-divider"></div>
                 <a href="{{ path('app_teacher_my_classes') }}" class="fo-mobile-link"><i class="bi bi-easel2"></i> My Classes</a>
+                <a href="{{ path('app_teacher_grades') }}" class="fo-mobile-link"><i class="bi bi-journal-check"></i> Grades & Assessments</a>
+                <a href="{{ path('app_teacher_documents') }}" class="fo-mobile-link"><i class="bi bi-file-earmark-arrow-up"></i> Documents</a>
                 {% endif %}
                 {% if is_granted('ROLE_BUSINESS_PARTNER') %}
                 <div class="fo-mobile-divider"></div>

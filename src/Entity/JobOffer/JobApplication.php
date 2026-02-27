@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Repository\JobApplicationRepository;
 use App\Enum\JobApplicationStatus;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -10,7 +9,7 @@ use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
-#[ORM\Entity(repositoryClass: JobApplicationRepository::class)]
+#[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(name: 'uniq_offer_student', columns: ['offer_id', 'student_id'])]
 #[Vich\Uploadable]
@@ -35,13 +34,15 @@ class JobApplication
 
     #[Vich\UploadableField(mapping: 'cv_files', fileNameProperty: 'cvFileName')]
     #[Assert\File(
-        maxSize: '5M',
+        maxSize: '10M',
         mimeTypes: [
             'application/pdf',
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ],
-        mimeTypesMessage: 'Please upload a valid document (PDF, DOC, or DOCX)'
+        mimeTypesMessage: 'Please upload a valid CV file (PDF, DOC, or DOCX format only).',
+        extensions: ['pdf', 'doc', 'docx'],
+        extensionsMessage: 'Please upload a file with one of the following extensions: {{ extensions }}.'
     )]
     private ?File $cvFile = null;
 

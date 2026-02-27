@@ -82,13 +82,13 @@
                     <hr class="my-4">
 
                     <div class="d-flex justify-content-between">
-                        <form action="{{ path('app_classe_delete', {id: classe.id}) }}" method="post" 
-                              onsubmit="return confirm('Are you sure you want to delete this class? All student enrollments will be removed.');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ classe.id) }}">
-                            <button type="submit" class="btn btn-outline-danger">
+                        <div>
+                            {# Delete button will trigger the separate delete form below #}
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="if(confirm('Are you sure you want to delete this class? All student enrollments will be removed.')) document.getElementById('delete-form').submit();">
                                 <i class="bi bi-trash"></i> Delete Class
                             </button>
-                        </form>
+                        </div>
 
                         <div class="d-flex gap-2">
                             <a href="{{ path('app_classe_show', {id: classe.id}) }}" class="btn btn-outline-secondary">
@@ -106,4 +106,9 @@
         </div>
     </div>
 </div>
+
+{# Separate delete form outside the main edit form #}
+<form id="delete-form" action="{{ path('app_classe_delete', {id: classe.id}) }}" method="post" style="display: none;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ classe.id) }}">
+</form>
 {% endblock %}

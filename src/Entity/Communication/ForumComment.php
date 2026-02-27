@@ -55,11 +55,18 @@ class ForumComment
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $replies;
 
+    /**
+     * @var Collection<int, ForumCommentReaction>
+     */
+    #[ORM\OneToMany(targetEntity: ForumCommentReaction::class, mappedBy: 'comment', orphanRemoval: true)]
+    private Collection $reactions;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->replies = new ArrayCollection();
+        $this->reactions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -190,5 +197,69 @@ class ForumComment
     public function getRepliesCount(): int
     {
         return $this->replies->count();
+    }
+
+    /**
+     * @return Collection<int, ForumCommentReaction>
+     */
+    public function getReactions(): Collection
+    {
+        return $this->reactions;
+    }
+
+    public function addReaction(ForumCommentReaction $reaction): static
+    {
+        if (!$this->reactions->contains($reaction)) {
+            $this->reactions->add($reaction);
+            $reaction->setComment($this);
+        }
+        return $this;
+    }
+
+    public function removeReaction(ForumCommentReaction $reaction): static
+    {
+        if ($this->reactions->removeElement($reaction)) {
+            if ($reaction->getComment() === $this) {
+                $reaction->setComment(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getLikesCount(): int
+    {
+        return $this->reactions->filter(fn($r) => $r->getType() === 'like')->count();
+    }
+
+    public function getDislikesCount(): int
+    {
+        return $this->reactions->filter(fn($r) => $r->getType() === 'dislike')->count();
+    }
+
+    public function getUserReaction(?User $user): ?ForumCommentReaction
+    {
+        if (!$user) {
+            return null;
+        }
+
+        foreach ($this->reactions as $reaction) {
+            if ($reaction->getUser() === $user) {
+                return $reaction;
+            }
+        }
+
+        return null;
+    }
+
+    public function hasUserLiked(?User $user): bool
+    {
+        $reaction = $this->getUserReaction($user);
+        return $reaction && $reaction->isLike();
+    }
+
+    public function hasUserDisliked(?User $user): bool
+    {
+        $reaction = $this->getUserReaction($user);
+        return $reaction && $reaction->isDislike();
     }
 }

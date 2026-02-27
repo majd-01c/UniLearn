@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\User;
+use App\Entity\Profile;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -28,30 +29,43 @@ class CreateAdminCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        // Remove existing admin if exists
-        $existingUser = $this->entityManager->getRepository(User::class)
+        // Check for existing admin
+        $admin = $this->entityManager->getRepository(User::class)
             ->findOneBy(['email' => 'admin@unilearn.com']);
         
-        if ($existingUser) {
-            $this->entityManager->remove($existingUser);
-            $this->entityManager->flush();
-            $io->info('Removed existing admin user');
+        if ($admin) {
+            $io->info('Found existing admin user — updating...');
+        } else {
+            // Create new admin
+            $admin = new User();
+            $admin->setEmail('admin@unilearn.com');
+            $admin->setRole('ADMIN');
+            $admin->setName('Admin User');
+            $admin->setIsActive(true);
+            $admin->setIsVerified(true);
+            $admin->setNeedsVerification(false);
+
+            // Hash password
+            $hashedPassword = $this->passwordHasher->hashPassword($admin, 'admin123');
+            $admin->setPassword($hashedPassword);
+
+            $this->entityManager->persist($admin);
+            $io->info('Created new admin user');
         }
 
-        // Create new admin
-        $admin = new User();
-        $admin->setEmail('admin@unilearn.com');
-        $admin->setRole('ADMIN');
-        $admin->setName('Admin User');
-        $admin->setIsActive(true);
-        $admin->setIsVerified(true);
-        $admin->setNeedsVerification(false);
+        // Ensure profile exists
+        $profile = $admin->getProfile();
+        if (!$profile) {
+            $profile = new Profile();
+            $profile->setFirstName('Admin');
+            $profile->setLastName('User');
+            $profile->setUser($admin);
+            $this->entityManager->persist($profile);
+            $io->info('Created profile for admin user');
+        } else {
+            $io->info('Admin already has a profile');
+        }
 
-        // Hash password
-        $hashedPassword = $this->passwordHasher->hashPassword($admin, 'admin123');
-        $admin->setPassword($hashedPassword);
-
-        $this->entityManager->persist($admin);
         $this->entityManager->flush();
 
         $io->success('Admin user created successfully!');

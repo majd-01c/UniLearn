@@ -52,6 +52,29 @@
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
     }
+
+    /* AI Answer styles */
+    #ai-answer-container { background: var(--surface-card); border-radius: 0.5rem; }
+    #ai-answer-container .card { background: var(--surface-card) !important; }
+    #ai-answer-container .card-header { background: linear-gradient(135deg, #6366f1, #8b5cf6) !important; }
+    #ai-answer-container .card-header * { color: #fff !important; }
+    #ai-answer-container .card-body { background: var(--surface-card) !important; }
+    #ai-answer-container .card-body div,
+    #ai-answer-container .card-body p { color: var(--text-primary) !important; }
+    #ai-answer-container .ai-answer-text { white-space: pre-wrap; line-height: 1.7; color: var(--text-primary) !important; }
+    
+    /* AI Quality Badge */
+    .ai-quality-badge { cursor: pointer; font-size: 0.7rem; opacity: 0.8; transition: opacity 0.2s; }
+    .ai-quality-badge:hover { opacity: 1; }
+    .ai-quality-badge .bi-star-fill { color: #fbbf24; }
+    .ai-quality-badge .bi-star { color: var(--text-muted); }
+    .ai-quality-popover { font-size: 0.8rem; }
+
+    /* Toxicity Warning */
+    .toxicity-warning { border: 1px solid #dc3545; background: rgba(220, 53, 69, 0.1); border-radius: 0.375rem; padding: 0.75rem; margin-top: 0.5rem; }
+    .toxicity-warning.severity-low { border-color: #ffc107; background: rgba(255, 193, 7, 0.1); }
+    .toxicity-warning.severity-medium { border-color: #fd7e14; background: rgba(253, 126, 20, 0.1); }
+    .toxicity-warning.severity-high { border-color: #dc3545; background: rgba(220, 53, 69, 0.1); }
 </style>
 {% endblock %}
 
@@ -165,6 +188,30 @@
             </div>
         </div>
 
+        {# AI Auto-Answer Section #}
+        <div id="ai-answer-container" class="mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="bi bi-robot"></i> UniLearn AI Assistant
+                    </h6>
+                    <button id="ai-answer-btn" class="btn btn-sm btn-light" onclick="generateAiAnswer()">
+                        <i class="bi bi-stars"></i> Get AI Answer
+                    </button>
+                </div>
+                <div class="card-body" id="ai-answer-body" style="display: none;">
+                    <div id="ai-answer-loading" class="text-center py-3" style="display: none;">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <p class="mt-2 mb-0 small">AI is thinking...</p>
+                    </div>
+                    <div id="ai-answer-content" class="ai-answer-text"></div>
+                    <div class="mt-3 text-end">
+                        <small class="text-muted"><i class="bi bi-info-circle"></i> AI-generated answer — may not always be accurate</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {# Comments Section #}
         <div class="card mb-4" id="comments">
             <div class="card-header">
@@ -240,6 +287,14 @@
                                             <span class="ms-1">{{ comment.dislikesCount }}</span>
                                         </button>
                                     </form>
+
+                                    {# AI Quality Rate button #}
+                                    <span class="ai-quality-badge badge bg-transparent border ms-auto" 
+                                          id="ai-quality-{{ comment.id }}" 
+                                          onclick="rateCommentQuality({{ comment.id }})" 
+                                          title="AI quality rating">
+                                        <i class="bi bi-stars text-warning"></i> <span class="quality-text">Rate</span>
+                                    </span>
                                 </div>
                                 
                                 {# Comment Actions #}
@@ -448,10 +503,18 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {{ form_start(form) }}
-                        {{ form_row(form.content, {'attr': {'rows': 4, 'placeholder': 'Write your comment here...'}}) }}
+                    {{ form_start(form, {'attr': {'id': 'comment-form'}}) }}
+                        {{ form_row(form.content, {'attr': {'rows': 4, 'placeholder': 'Write your comment here...', 'id': 'comment-textarea'}}) }}
+                        <div id="toxicity-warning" class="toxicity-warning" style="display: none;">
+                            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                            <strong>Content Warning:</strong> <span id="toxicity-reason"></span>
+                            <br><small class="text-muted">Please revise your comment before posting.</small>
+                        </div>
                         <div class="text-end mt-3">
-                            <button type="submit" class="btn btn-primary">
+                            <span id="toxicity-checking" style="display: none;" class="me-2 small text-muted">
+                                <span class="spinner-border spinner-border-sm"></span> Checking content...
+                            </span>
+                            <button type="submit" class="btn btn-primary" id="comment-submit-btn">
                                 <i class="bi bi-send"></i> Post Comment
                             </button>
                         </div>
@@ -467,7 +530,6 @@
 {{ parent() }}
 <script>
 function toggleReplyForm(commentId) {
-    // Close all other reply forms first
     document.querySelectorAll('.reply-form-container.show').forEach(function(form) {
         if (form.id !== 'reply-form-' + commentId) {
             form.classList.remove('show');
@@ -483,8 +545,169 @@ function toggleReplyForm(commentId) {
     }
 }
 
-// Highlight scrolled-to comment
+// ── Feature 1: AI Auto-Answer ──────────────────────────────────────
+let aiAnswerGenerated = false;
+
+function generateAiAnswer() {
+    if (aiAnswerGenerated) return;
+    
+    const btn = document.getElementById('ai-answer-btn');
+    const body = document.getElementById('ai-answer-body');
+    const loading = document.getElementById('ai-answer-loading');
+    const content = document.getElementById('ai-answer-content');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+    body.style.display = 'block';
+    loading.style.display = 'block';
+    content.innerHTML = '';
+    
+    fetch('{{ path('app_forum_ai_answer', {id: topic.id}) }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
+    .then(res => res.json())
+    .then(data => {
+        loading.style.display = 'none';
+        if (data.success && data.answer) {
+            content.textContent = data.answer;
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> AI Answer Generated';
+            btn.classList.remove('btn-light');
+            btn.classList.add('btn-success', 'btn-sm');
+            aiAnswerGenerated = true;
+        } else {
+            content.innerHTML = '<span class="text-muted"><i class="bi bi-info-circle"></i> ' + (data.message || 'Could not generate answer') + '</span>';
+            btn.innerHTML = '<i class="bi bi-stars"></i> Try Again';
+            btn.disabled = false;
+        }
+    })
+    .catch(err => {
+        loading.style.display = 'none';
+        content.innerHTML = '<span class="text-muted"><i class="bi bi-exclamation-circle"></i> Connection error</span>';
+        btn.innerHTML = '<i class="bi bi-stars"></i> Try Again';
+        btn.disabled = false;
+    });
+}
+
+// ── Feature 2: Toxicity Filter ─────────────────────────────────────
+let toxicityTimer = null;
+let lastCheckedText = '';
+
+function setupToxicityCheck() {
+    const textarea = document.getElementById('comment-textarea');
+    const warning = document.getElementById('toxicity-warning');
+    const reason = document.getElementById('toxicity-reason');
+    const checking = document.getElementById('toxicity-checking');
+    const submitBtn = document.getElementById('comment-submit-btn');
+    const form = document.getElementById('comment-form');
+    
+    if (!textarea || !warning) return;
+    
+    textarea.addEventListener('input', function() {
+        clearTimeout(toxicityTimer);
+        const text = textarea.value.trim();
+        
+        if (text.length < 10) {
+            warning.style.display = 'none';
+            return;
+        }
+        
+        toxicityTimer = setTimeout(() => {
+            if (text === lastCheckedText) return;
+            lastCheckedText = text;
+            checking.style.display = 'inline';
+            
+            fetch('{{ path('app_forum_check_toxicity') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ text: text })
+            })
+            .then(res => res.json())
+            .then(data => {
+                checking.style.display = 'none';
+                if (data.isToxic) {
+                    warning.style.display = 'block';
+                    warning.className = 'toxicity-warning severity-' + (data.severity || 'medium');
+                    reason.textContent = data.reason || 'Your comment may contain inappropriate content.';
+                    
+                    if (data.severity === 'high') {
+                        submitBtn.disabled = true;
+                        submitBtn.title = 'Please revise your comment';
+                    } else {
+                        submitBtn.disabled = false;
+                    }
+                } else {
+                    warning.style.display = 'none';
+                    submitBtn.disabled = false;
+                    submitBtn.title = '';
+                }
+            })
+            .catch(() => { checking.style.display = 'none'; });
+        }, 1500);
+    });
+
+    // Also check toxicity on form submit for high-severity
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const text = textarea.value.trim();
+            if (text.length < 3) {
+                e.preventDefault();
+                return;
+            }
+        });
+    }
+}
+
+// ── Feature 3: AI Quality Rating ───────────────────────────────────
+const ratedComments = {};
+
+function rateCommentQuality(commentId) {
+    if (ratedComments[commentId]) return;
+    
+    const badge = document.getElementById('ai-quality-' + commentId);
+    const qualityText = badge.querySelector('.quality-text');
+    
+    badge.style.opacity = '0.5';
+    qualityText.textContent = '...';
+    
+    fetch('/forum/comment/' + commentId + '/ai-rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
+    .then(res => res.json())
+    .then(data => {
+        badge.style.opacity = '1';
+        if (data.success && data.score > 0) {
+            ratedComments[commentId] = data;
+            
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += i <= data.score 
+                    ? '<i class="bi bi-star-fill"></i>' 
+                    : '<i class="bi bi-star"></i>';
+            }
+            
+            badge.innerHTML = stars + ' <span class="quality-text">' + data.label + '</span>';
+            badge.title = data.reason || '';
+            badge.style.cursor = 'default';
+            
+            // Color based on score
+            if (data.score >= 4) badge.classList.add('text-success');
+            else if (data.score >= 3) badge.classList.add('text-warning');
+            else badge.classList.add('text-danger');
+        } else {
+            qualityText.textContent = 'N/A';
+        }
+    })
+    .catch(() => {
+        badge.style.opacity = '1';
+        qualityText.textContent = 'Error';
+    });
+}
+
+// ── Init ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
+    // Highlight scrolled-to comment
     if (window.location.hash) {
         const element = document.querySelector(window.location.hash);
         if (element) {
@@ -492,6 +715,9 @@ document.addEventListener('DOMContentLoaded', function() {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
+    
+    // Setup toxicity check
+    setupToxicityCheck();
 });
 </script>
 {% endblock %}

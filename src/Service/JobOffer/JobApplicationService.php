@@ -9,20 +9,20 @@ use App\Entity\JobOffer;
 use App\Entity\User;
 use App\Enum\JobApplicationStatus;
 use App\Enum\JobOfferStatus;
-use App\Repository\JobApplicationRepository;
+use App\Repository\JobOfferRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class JobApplicationService
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly JobApplicationRepository $applicationRepository,
+        private readonly JobOfferRepository $jobOfferRepository,
     ) {
     }
 
     public function hasAlreadyApplied(JobOffer $offer, User $student): bool
     {
-        return $this->applicationRepository->hasStudentApplied($offer, $student);
+        return $this->jobOfferRepository->hasStudentApplied($offer, $student);
     }
 
     /**
@@ -84,7 +84,7 @@ final class JobApplicationService
     /** @return JobApplication[] */
     public function getApplicationsForOffer(JobOffer $offer): array
     {
-        return $this->applicationRepository->findBy(
+        return $this->em->getRepository(JobApplication::class)->findBy(
             ['offer' => $offer],
             ['createdAt' => 'DESC']
         );
@@ -93,7 +93,7 @@ final class JobApplicationService
     /** @return JobApplication[] */
     public function getApplicationsForStudent(User $student): array
     {
-        return $this->applicationRepository->findBy(
+        return $this->em->getRepository(JobApplication::class)->findBy(
             ['student' => $student],
             ['createdAt' => 'DESC']
         );

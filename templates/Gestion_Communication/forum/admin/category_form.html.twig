@@ -43,9 +43,7 @@
                                     {{ form_widget(form.icon) }}
                                     {{ form_errors(form.icon) }}
                                     <div class="form-text">
-                                        Use Bootstrap Icons class, e.g. <code>bi-chat-dots</code>
-                                        <br>
-                                        <a href="https://icons.getbootstrap.com/" target="_blank">Browse icons</a>
+                                        Preview: <i id="icon-preview" class="bi {{ form.vars.value.icon ?? 'bi-chat-dots' }} fs-5"></i>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -79,4 +77,19 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const iconSelect = document.getElementById('forum_category_icon');
+    const preview = document.getElementById('icon-preview');
+    if (iconSelect && preview) {
+        iconSelect.addEventListener('change', function() {
+            preview.className = 'bi ' + (this.value || 'bi-chat-dots') + ' fs-5';
+        });
+    }
+});
+</script>
 {% endblock %}

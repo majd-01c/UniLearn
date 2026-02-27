@@ -97,4 +97,34 @@ class StudentClasseRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * Check if student is enrolled in any class
+     */
+    public function isStudentEnrolledInAnyClass(User $student): bool
+    {
+        $result = $this->createQueryBuilder('sc')
+            ->select('COUNT(sc.id)')
+            ->andWhere('sc.student = :student')
+            ->andWhere('sc.isActive = true')
+            ->setParameter('student', $student)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $result > 0;
+    }
+
+    /**
+     * Get the class the student is enrolled in (if any)
+     */
+    public function findStudentCurrentEnrollment(User $student): ?StudentClasse
+    {
+        return $this->createQueryBuilder('sc')
+            ->andWhere('sc.student = :student')
+            ->andWhere('sc.isActive = true')
+            ->setParameter('student', $student)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

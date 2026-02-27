@@ -81,43 +81,72 @@
                             <div class="mb-4 pb-4 {{ not loop.last ? 'border-bottom' : '' }}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <strong>Question {{ loop.index }}</strong>
-                                    {% if studentAnswer and studentAnswer.isCorrect %}
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check"></i> Correct (+{{ studentAnswer.pointsEarned }} pts)
-                                        </span>
+                                    {% if studentAnswer %}
+                                        {% if studentAnswer.isCorrect %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check"></i> Correct (+{{ studentAnswer.pointsEarned }} pts)
+                                            </span>
+                                        {% elseif studentAnswer.pointsEarned > 0 %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-dash"></i> Partial (+{{ studentAnswer.pointsEarned }} pts)
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x"></i> Incorrect
+                                            </span>
+                                        {% endif %}
                                     {% else %}
-                                        <span class="badge bg-danger">
-                                            <i class="bi bi-x"></i> Incorrect
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-question"></i> Not answered
                                         </span>
                                     {% endif %}
                                 </div>
                                 
                                 <p class="mb-3">{{ question.questionText }}</p>
                                 
-                                {% for choice in question.choices %}
-                                    <div class="d-flex align-items-center mb-2 p-2 rounded 
-                                                {{ choice.isCorrect ? 'bg-success bg-opacity-10 border border-success' : '' }}
-                                                {{ studentAnswer and studentAnswer.selectedChoice and studentAnswer.selectedChoice.id == choice.id and not choice.isCorrect ? 'bg-danger bg-opacity-10 border border-danger' : '' }}">
-                                        {% if choice.isCorrect %}
-                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                        {% elseif studentAnswer and studentAnswer.selectedChoice and studentAnswer.selectedChoice.id == choice.id %}
-                                            <i class="bi bi-x-circle-fill text-danger me-2"></i>
-                                        {% else %}
-                                            <i class="bi bi-circle me-2 text-muted"></i>
-                                        {% endif %}
-                                        <span class="{{ choice.isCorrect ? 'fw-medium' : '' }}">
-                                            {{ choice.choiceText }}
-                                        </span>
-                                        {% if studentAnswer and studentAnswer.selectedChoice and studentAnswer.selectedChoice.id == choice.id %}
-                                            <span class="ms-2 small text-muted">(Your answer)</span>
-                                        {% endif %}
+                                {# TEXT type question #}
+                                {% if question.type.value == 'TEXT' %}
+                                    <div class="p-3 rounded border mb-2 {{ studentAnswer and studentAnswer.isCorrect ? 'border-success bg-success bg-opacity-10' : 'border-secondary' }}">
+                                        <strong>Your Answer:</strong>
+                                        <p class="mb-0 mt-2">{{ studentAnswer ? studentAnswer.textAnswer : 'No answer provided' }}</p>
                                     </div>
-                                {% endfor %}
+                                    {% if studentAnswer and studentAnswer.pointsEarned > 0 and not studentAnswer.isCorrect %}
+                                        <div class="alert alert-warning mt-2 mb-0">
+                                            <i class="bi bi-robot"></i> <strong>AI Graded:</strong> Partial credit awarded based on AI evaluation.
+                                        </div>
+                                    {% endif %}
+                                    {% if question.explanation %}
+                                        <div class="alert alert-info mt-3 mb-0">
+                                            <i class="bi bi-lightbulb"></i> <strong>Expected Answer:</strong> {{ question.explanation }}
+                                        </div>
+                                    {% endif %}
+                                {# MCQ type question #}
+                                {% else %}
+                                    {% for choice in question.choices %}
+                                        <div class="d-flex align-items-center mb-2 p-2 rounded 
+                                                    {{ choice.isCorrect ? 'bg-success bg-opacity-10 border border-success' : '' }}
+                                                    {{ studentAnswer and studentAnswer.selectedChoice and studentAnswer.selectedChoice.id == choice.id and not choice.isCorrect ? 'bg-danger bg-opacity-10 border border-danger' : '' }}">
+                                            {% if choice.isCorrect %}
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                            {% elseif studentAnswer and studentAnswer.selectedChoice and studentAnswer.selectedChoice.id == choice.id %}
+                                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                            {% else %}
+                                                <i class="bi bi-circle me-2 text-muted"></i>
+                                            {% endif %}
+                                            <span class="{{ choice.isCorrect ? 'fw-medium' : '' }}">
+                                                {{ choice.choiceText }}
+                                            </span>
+                                            {% if studentAnswer and studentAnswer.selectedChoice and studentAnswer.selectedChoice.id == choice.id %}
+                                                <span class="ms-2 small text-muted">(Your answer)</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
 
-                                {% if question.explanation %}
-                                    <div class="alert alert-info mt-3 mb-0">
-                                        <i class="bi bi-lightbulb"></i> <strong>Explanation:</strong> {{ question.explanation }}
-                                    </div>
+                                    {% if question.explanation %}
+                                        <div class="alert alert-info mt-3 mb-0">
+                                            <i class="bi bi-lightbulb"></i> <strong>Explanation:</strong> {{ question.explanation }}
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         {% endfor %}

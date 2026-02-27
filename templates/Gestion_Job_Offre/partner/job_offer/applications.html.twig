@@ -118,8 +118,8 @@
                                             </span>
                                             <br>
                                             <a href="{{ path('app_partner_job_application_score_details', {id: application.id}) }}" 
-                                               class="btn btn-sm btn-link p-0" title="Voir détails">
-                                                <small>Détails</small>
+                                               class="btn btn-sm btn-outline-{{ scoreClass }} mt-1" title="Voir les détails du score">
+                                                <i class="bi bi-eye"></i> Détails
                                             </a>
                                         {% else %}
                                             <span class="badge bg-secondary">-</span>

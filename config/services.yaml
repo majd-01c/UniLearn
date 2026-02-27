@@ -32,10 +32,10 @@ services:
         arguments:
             $mailerDsn: '%mailer_dsn%'
 
-    # ATS Services (Groq API - free tier)
-    App\Service\JobOffer\OpenRouterService:
-        arguments:
-            $apiKey: '%groq_api_key%'
+    # # ATS Services (Groq API - free tier)
+    # App\Service\JobOffer\OpenRouterService:
+    #     arguments:
+    #         $apiKey: '%groq_api_key%'
 
     # Consolidated ATS Service (includes Gemini AI functionality)
     App\Service\JobOffer\ATSScoringService:

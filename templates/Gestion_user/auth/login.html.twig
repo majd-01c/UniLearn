@@ -66,7 +66,7 @@
                                     Remember me
                                 </label>
                             </div>
-                            {# <a href="#" class="text-decoration-none small">Forgot password?</a> #}
+                            <a href="{{ path('app_forgot_password') }}" class="text-decoration-none small">Forgot password?</a>
                         </div>
 
                         <div class="d-grid mb-4">
@@ -75,6 +75,16 @@
                             </button>
                         </div>
                     </form>
+
+                    {# Face ID Login Option #}
+                    <div class="text-center mb-3">
+                        <div class="d-flex align-items-center mb-3">
+                            <hr class="flex-grow-1"><span class="px-3 text-muted small">OR</span><hr class="flex-grow-1">
+                        </div>
+                        <a href="{{ path('face_login_page') }}" class="btn btn-outline-light w-100">
+                            <i class="bi bi-person-bounding-box"></i> Sign in with Face ID
+                        </a>
+                    </div>
 
                     {# Footer #}
                     <div class="text-center">

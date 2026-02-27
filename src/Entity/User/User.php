@@ -78,6 +78,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $faceEnabled = false;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $faceDescriptors = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $faceEnrolledAt = null;
+
     #[ORM\OneToOne(targetEntity: Profile::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?Profile $profile = null;
 
@@ -625,6 +634,40 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->profile = $profile;
+        return $this;
+    }
+
+    // Face ID methods
+    public function isFaceEnabled(): bool
+    {
+        return $this->faceEnabled;
+    }
+
+    public function setFaceEnabled(bool $faceEnabled): static
+    {
+        $this->faceEnabled = $faceEnabled;
+        return $this;
+    }
+
+    public function getFaceDescriptors(): ?array
+    {
+        return $this->faceDescriptors;
+    }
+
+    public function setFaceDescriptors(?array $faceDescriptors): static
+    {
+        $this->faceDescriptors = $faceDescriptors;
+        return $this;
+    }
+
+    public function getFaceEnrolledAt(): ?\DateTimeImmutable
+    {
+        return $this->faceEnrolledAt;
+    }
+
+    public function setFaceEnrolledAt(?\DateTimeImmutable $faceEnrolledAt): static
+    {
+        $this->faceEnrolledAt = $faceEnrolledAt;
         return $this;
     }
 

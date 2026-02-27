@@ -134,6 +134,46 @@
                     {{ form_end(form) }}
                 </div>
             </div>
+
+            {# ─── Face ID Security Section ─── #}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="bi bi-shield-lock"></i> Face ID Login</h4>
+                </div>
+                <div class="card-body">
+                    {% if user.faceEnabled %}
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-success me-2"><i class="bi bi-check-circle"></i> Active</span>
+                            <span class="text-muted">
+                                Enrolled on {{ user.faceEnrolledAt ? user.faceEnrolledAt|date('M d, Y H:i') : 'N/A' }}
+                            </span>
+                        </div>
+                        <p class="text-muted mb-3">
+                            After entering your password at login, you will be asked to verify your face using your camera.
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('face_enroll_page') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-repeat"></i> Re-enroll Face
+                            </a>
+                            <form action="{{ path('face_disable') }}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to disable Face ID?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('face_disable') }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-x-circle"></i> Disable Face ID
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-3">
+                            Face ID adds an extra layer of security to your account. After enabling it, you will verify 
+                            your identity with your camera each time you log in.
+                        </p>
+                        <a href="{{ path('face_enroll_page') }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-person-bounding-box"></i> Enable Face ID
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>

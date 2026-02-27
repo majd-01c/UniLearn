@@ -1,7 +1,9 @@
 """
-Avatar Generation Microservice
-Uses OpenCV cartoon filters to generate stylized avatars
-from uploaded profile photos.  Runs in < 1 second on CPU.
+Avatar Generation Microservice  v5.0
+Uses Hugging Face Stable Diffusion img2img to generate a fully AI-painted
+cartoon avatar that looks completely different from the original photo.
+
+Falls back to an enhanced OpenCV cartoon filter when the HF API is unavailable.
 """
 
 import io
@@ -10,65 +12,107 @@ import numpy as np
 import cv2
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+from PIL import Image, ImageEnhance
+from huggingface_hub import InferenceClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Avatar Generator Service", version="3.0.0")
+# ── Hugging Face configuration ────────────────────────────────────────
+HF_TOKEN = "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"
 
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+# img2img model – well-supported on the free HF Inference API
+HF_MODEL = "stabilityai/stable-diffusion-2-1"
+
+# Prompt engineered for vivid, clean, fully-illustrated cartoon portrait
+CARTOON_PROMPT = (
+    "cartoon portrait illustration, anime art style, cel-shaded, bold clean outlines, "
+    "vibrant saturated colors, studio ghibli inspired, flat color regions, "
+    "professional digital art, painterly, high detail, colorful background"
+)
+NEGATIVE_PROMPT = (
+    "photorealistic, photograph, photo, realistic, blurry, grainy, noisy, "
+    "dark, low quality, ugly, deformed, extra limbs, watermark, text, logo"
+)
+
+# strength=0.90 → 90 % of noise added back, so the result is almost an
+# entirely new AI-generated image inspired by the composition/colours.
+IMG2IMG_STRENGTH = 0.90
+
+hf_client = InferenceClient(token=HF_TOKEN)
+
+# ── Service setup ────────────────────────────────────────────────────
+app = FastAPI(title="Avatar Generator Service – HF AI", version="5.0.0")
+
+MAX_FILE_SIZE = 5 * 1024 * 1024
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+TARGET_SIZE = (512, 512)   # optimal resolution for SD 2.1
 
 
-# ── Cartoon filter pipeline ──────────────────────────────────────────
+# ── Image pre-processing ─────────────────────────────────────────────
 
-def cartoonize(img_rgb: np.ndarray) -> np.ndarray:
+def preprocess(img: Image.Image) -> Image.Image:
     """
-    Apply a cartoon / comic-book effect using OpenCV:
-      1. Bilateral filter to smooth colours while keeping edges
-      2. Adaptive-threshold edge mask
-      3. Colour quantization via K-means
-      4. Combine smoothed colours + edges
+    Center-crop to a square, resize to 512×512, and lightly enhance
+    contrast & sharpness so SD has a clean input to work from.
     """
+    w, h = img.size
+    side = min(w, h)
+    left = (w - side) // 2
+    top  = (h - side) // 2
+    img = img.crop((left, top, left + side, top + side))
+    img = img.resize(TARGET_SIZE, Image.LANCZOS)
+
+    # Mild contrast boost so colour information is clear for SD
+    img = ImageEnhance.Contrast(img).enhance(1.15)
+    img = ImageEnhance.Color(img).enhance(1.10)
+    return img
+
+
+# ── OpenCV fallback cartoon ──────────────────────────────────────────
+
+def opencv_cartoon_fallback(img_rgb: np.ndarray) -> np.ndarray:
+    """Enhanced OpenCV cartoon used only when the HF API is unreachable."""
     h, w = img_rgb.shape[:2]
-
-    # --- 1. Edge mask ---------------------------------------------------
-    gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
+    big = cv2.resize(img_rgb, (w * 2, h * 2), interpolation=cv2.INTER_LANCZOS4)
+    styled = cv2.stylization(big, sigma_s=60, sigma_r=0.45)
+    colour = styled.copy()
+    for _ in range(4):
+        colour = cv2.bilateralFilter(colour, d=9, sigmaColor=75, sigmaSpace=75)
+    hsv = cv2.cvtColor(colour, cv2.COLOR_RGB2HSV).astype(np.float32)
+    hsv[:, :, 1] = np.clip(hsv[:, :, 1] * 1.5, 0, 255)
+    hsv[:, :, 2] = np.clip(hsv[:, :, 2] * 1.08, 0, 255)
+    colour = cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2RGB)
+    gray = cv2.cvtColor(big, cv2.COLOR_RGB2GRAY)
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
     gray = cv2.medianBlur(gray, 5)
     edges = cv2.adaptiveThreshold(
-        gray, 255,
-        cv2.ADAPTIVE_THRESH_MEAN_C,
-        cv2.THRESH_BINARY,
-        blockSize=9,
-        C=2,
+        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 17, 6,
     )
-
-    # --- 2. Smooth colours with bilateral filter (repeat for stronger) --
-    colour = img_rgb.copy()
-    for _ in range(3):
-        colour = cv2.bilateralFilter(colour, d=9, sigmaColor=75, sigmaSpace=75)
-
-    # --- 3. Colour quantization (K-means, K=12) -------------------------
-    data = np.float32(colour.reshape(-1, 3))
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
-    _, labels, centres = cv2.kmeans(
-        data, 12, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS,
-    )
-    centres = np.uint8(centres)
-    quantised = centres[labels.flatten()].reshape(colour.shape)
-
-    # --- 4. Combine: quantised colours masked by edges ------------------
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+    edges = cv2.morphologyEx(edges, cv2.MORPH_OPEN, kernel)
     edges_3ch = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
-    cartoon = cv2.bitwise_and(quantised, edges_3ch)
+    cartoon = cv2.bitwise_and(colour, edges_3ch)
+    return cv2.resize(cartoon, (w, h), interpolation=cv2.INTER_AREA)
 
-    # Boost saturation slightly for a vivid cartoon look
-    hsv = cv2.cvtColor(cartoon, cv2.COLOR_RGB2HSV).astype(np.float32)
-    hsv[:, :, 1] = np.clip(hsv[:, :, 1] * 1.3, 0, 255)
-    hsv = hsv.astype(np.uint8)
-    cartoon = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
 
-    return cartoon
+# ── HF img2img generation ────────────────────────────────────────────
+
+def generate_via_huggingface(source: Image.Image) -> Image.Image:
+    """
+    Send the pre-processed photo to Stable Diffusion img2img on the
+    Hugging Face Inference API and return the cartoon PIL Image.
+    """
+    logger.info("Sending image to HuggingFace img2img (%s) …", HF_MODEL)
+    result: Image.Image = hf_client.image_to_image(
+        image=source,
+        prompt=CARTOON_PROMPT,
+        negative_prompt=NEGATIVE_PROMPT,
+        model=HF_MODEL,
+        strength=IMG2IMG_STRENGTH,
+    )
+    logger.info("HuggingFace generation complete.")
+    return result
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────
@@ -77,63 +121,66 @@ def cartoonize(img_rgb: np.ndarray) -> np.ndarray:
 async def health_check():
     return {
         "status": "ok",
-        "engine": "opencv-cartoon",
+        "engine": "huggingface-sd-img2img",
+        "model": HF_MODEL,
+        "strength": IMG2IMG_STRENGTH,
     }
 
 
 @app.post("/generate-avatar")
 async def generate_avatar(file: UploadFile = File(...)):
     """
-    Generate a cartoon avatar from an uploaded photo.
+    Generate an AI cartoon avatar from an uploaded photo.
     Accepts: JPG, PNG, WebP, GIF (max 5 MB)
-    Returns: PNG image
+    Returns: PNG image (AI-illustrated cartoon, looks different from original)
     """
-    # Validate content type
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid file type '{file.content_type}'. Allowed: {', '.join(ALLOWED_TYPES)}",
         )
 
-    # Read and validate size
     contents = await file.read()
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=400,
-            detail=f"File too large ({len(contents)} bytes). Maximum: {MAX_FILE_SIZE} bytes (5 MB)",
+            detail=f"File too large. Maximum: 5 MB.",
         )
     if len(contents) == 0:
-        raise HTTPException(status_code=400, detail="Empty file uploaded")
+        raise HTTPException(status_code=400, detail="Empty file uploaded.")
 
     try:
-        # Open and prepare the image
-        input_image = Image.open(io.BytesIO(contents)).convert("RGB")
+        source = Image.open(io.BytesIO(contents)).convert("RGB")
+        source = preprocess(source)
 
-        # Resize to 512×512 for consistency
-        input_image = input_image.resize((512, 512), Image.LANCZOS)
+        # ── Primary: Hugging Face AI generation ──────────────────────
+        try:
+            result = generate_via_huggingface(source)
+            engine_used = "huggingface-sd-img2img"
+        except Exception as hf_err:
+            logger.warning("HuggingFace API failed (%s) – falling back to OpenCV.", hf_err)
+            arr = opencv_cartoon_fallback(np.array(source))
+            result = Image.fromarray(arr)
+            engine_used = "opencv-cartoon-fallback"
 
-        # Convert to numpy array for OpenCV processing
-        img_array = np.array(input_image)
-
-        # Apply cartoon effect
-        cartoon_array = cartoonize(img_array)
-
-        # Convert back to PIL Image
-        result = Image.fromarray(cartoon_array)
-
-        # Convert to PNG bytes
+        # ── Encode and return ─────────────────────────────────────────
         output = io.BytesIO()
         result.save(output, format="PNG", optimize=True)
         output.seek(0)
 
-        logger.info("Avatar generated successfully")
+        logger.info("Avatar generated successfully via %s", engine_used)
 
         return StreamingResponse(
             output,
             media_type="image/png",
-            headers={"Content-Disposition": "inline; filename=avatar.png"},
+            headers={
+                "Content-Disposition": "inline; filename=avatar.png",
+                "X-Avatar-Engine": engine_used,
+            },
         )
 
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
         logger.exception("Avatar generation failed")
         raise HTTPException(status_code=500, detail="Avatar generation failed: internal error")

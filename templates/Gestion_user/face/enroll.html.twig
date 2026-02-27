@@ -1,0 +1,151 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Enable Face ID - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="bi bi-person-bounding-box"></i> Face ID Enrollment</h2>
+                    <a href="{{ path('profile_edit') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Profile
+                    </a>
+                </div>
+                <div class="card-body">
+                    {# Flash Messages #}
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {# Step indicator #}
+                    <div id="face-enroll-steps" class="mb-4">
+                        <div class="d-flex justify-content-between text-center">
+                            <div class="flex-fill" id="step-1-label">
+                                <span class="badge bg-primary rounded-pill">1</span>
+                                <small class="d-block mt-1">Load Models</small>
+                            </div>
+                            <div class="flex-fill" id="step-2-label">
+                                <span class="badge bg-secondary rounded-pill">2</span>
+                                <small class="d-block mt-1">Capture Face</small>
+                            </div>
+                            <div class="flex-fill" id="step-3-label">
+                                <span class="badge bg-secondary rounded-pill">3</span>
+                                <small class="d-block mt-1">Done</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Step 1: Loading models #}
+                    <div id="step-loading" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <h5>Loading face detection models...</h5>
+                        <p class="text-muted">This may take a moment on the first load.</p>
+                        <div class="progress mx-auto" style="max-width: 400px; height: 6px;">
+                            <div id="model-progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    {# Step 2: Camera / Upload #}
+                    <div id="step-capture" class="d-none">
+                        {# Camera view #}
+                        <div id="camera-section">
+                            <div class="text-center mb-3">
+                                <p class="text-muted">Position your face within the frame. 5 frames will be captured automatically.</p>
+                            </div>
+                            <div class="position-relative mx-auto" style="max-width: 480px;">
+                                <video id="video" autoplay muted playsinline
+                                       class="w-100 rounded border" style="transform: scaleX(-1);"></video>
+                                <canvas id="overlay" class="position-absolute top-0 start-0 w-100 h-100"
+                                        style="pointer-events: none; transform: scaleX(-1);"></canvas>
+                            </div>
+                            <div class="text-center mt-3">
+                                <h5 id="capture-status" class="text-primary">
+                                    <i class="bi bi-camera-video"></i> Preparing camera...
+                                </h5>
+                                <div class="progress mx-auto mt-2" style="max-width: 400px; height: 8px;">
+                                    <div id="capture-progress" class="progress-bar bg-success" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Upload fallback #}
+                        <div id="upload-section" class="d-none">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Camera is unavailable. You can upload 5 photos of your face instead.
+                            </div>
+                            <div class="mb-3">
+                                <label for="face-upload" class="form-label">Upload face photos (up to 5 images)</label>
+                                <input type="file" id="face-upload" class="form-control"
+                                       accept="image/*" multiple>
+                                <small class="text-muted">Select up to 5 clear photos of your face (JPEG / PNG).</small>
+                            </div>
+                            <div id="upload-previews" class="d-flex flex-wrap gap-2 mb-3"></div>
+                            <button id="btn-process-uploads" class="btn btn-primary" disabled>
+                                <i class="bi bi-cpu"></i> Process Photos
+                            </button>
+                            <div id="upload-status" class="mt-2"></div>
+                        </div>
+
+                        {# Consent #}
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" id="consent-check">
+                            <label class="form-check-label" for="consent-check">
+                                I consent to storing my facial biometric data for Face ID login. 
+                                This data is stored as numerical descriptors only — no images are saved on the server.
+                            </label>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <button id="btn-enroll" class="btn btn-success btn-lg d-none" disabled>
+                                <i class="bi bi-check-circle"></i> Enable Face ID
+                            </button>
+                        </div>
+                    </div>
+
+                    {# Step 3: Success #}
+                    <div id="step-success" class="d-none text-center py-5">
+                        <div class="text-success mb-3">
+                            <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-success">Face ID Enabled!</h3>
+                        <p class="text-muted">Your face has been enrolled successfully. You will need to verify your face after each login.</p>
+                        <a href="{{ path('profile_edit') }}" class="btn btn-primary mt-3">
+                            <i class="bi bi-arrow-left"></i> Back to Profile
+                        </a>
+                    </div>
+
+                    {# Error state #}
+                    <div id="step-error" class="d-none text-center py-5">
+                        <div class="text-danger mb-3">
+                            <i class="bi bi-x-circle-fill" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-danger">Enrollment Failed</h3>
+                        <p id="error-message" class="text-muted"></p>
+                        <button class="btn btn-outline-primary mt-3" onclick="location.reload()">
+                            <i class="bi bi-arrow-clockwise"></i> Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# face-api.js loaded locally #}
+<script src="{{ asset('face-api/face-api.min.js') }}"></script>
+<script>
+    const FACE_API_MODEL_URL = '{{ asset("face-api/models") }}';
+    const ENROLL_URL = '{{ path("face_enroll") }}';
+    const CSRF_TOKEN = '{{ csrf_token("face_enroll") }}';
+    const MODE = 'enroll';
+</script>
+<script src="{{ asset('face-api/face-id.js') }}"></script>
+{% endblock %}

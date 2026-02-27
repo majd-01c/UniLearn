@@ -145,8 +145,14 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="admin-avatar">
-                            <i class="bi bi-person-circle"></i>
+                        <div class="admin-avatar" style="overflow:hidden;">
+                            {% if app.user.profile and app.user.profile.photo %}
+                                <img src="{{ vich_uploader_asset(app.user.profile, 'photoFile') }}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                            {% elseif app.user.profile and app.user.profile.avatarFilename %}
+                                <img src="{{ asset(app.user.profile.avatarFilename) }}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                            {% else %}
+                                <i class="bi bi-person-circle"></i>
+                            {% endif %}
                         </div>
                         <div>
                             <div class="fw-semibold">{{ app.user.profile ? app.user.profile.firstName ~ ' ' ~ app.user.profile.lastName : app.user.email }}</div>
@@ -431,8 +437,14 @@
                 </div>
                 <div class="fo-panel-body">
                     <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--fo-sidebar-border);">
-                        <div class="fo-account-avatar-sm">
-                            <i class="bi bi-person"></i>
+                        <div class="fo-account-avatar-sm" style="overflow:hidden;">
+                            {% if app.user.profile and app.user.profile.photo %}
+                                <img src="{{ vich_uploader_asset(app.user.profile, 'photoFile') }}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                            {% elseif app.user.profile and app.user.profile.avatarFilename %}
+                                <img src="{{ asset(app.user.profile.avatarFilename) }}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                            {% else %}
+                                <i class="bi bi-person"></i>
+                            {% endif %}
                         </div>
                         <div class="overflow-hidden">
                             <div class="fw-semibold text-truncate" style="font-size:0.95rem;">

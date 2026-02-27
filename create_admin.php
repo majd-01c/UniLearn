@@ -3,6 +3,7 @@
 require __DIR__.'/vendor/autoload.php';
 
 use App\Entity\User;
+use App\Entity\Profile;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -36,6 +37,14 @@ $hashedPassword = $passwordHasher->hashPassword($admin, 'admin123');
 $admin->setPassword($hashedPassword);
 
 $entityManager->persist($admin);
+$entityManager->flush();
+
+// Create profile for admin
+$profile = new Profile();
+$profile->setFirstName('Admin');
+$profile->setLastName('User');
+$profile->setUser($admin);
+$entityManager->persist($profile);
 $entityManager->flush();
 
 echo "✅ Admin user created successfully!\n";

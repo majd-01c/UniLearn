@@ -37,11 +37,11 @@ class ProfileController extends AbstractController
 
         // Auto-create a profile if one doesn't exist (e.g. admin created via CLI)
         if (!$profile) {
-            $profile = new Profile();
-            $profile->setFirstName('Admin');
-            $profile->setLastName('User');
+            // Auto-create profile if missing (e.g. admin created via script)
+            $profile = new \App\Entity\Profile();
+            $profile->setFirstName($user->getName() ?? 'User');
+            $profile->setLastName('');
             $profile->setUser($user);
-            $user->setProfile($profile);
             $this->entityManager->persist($profile);
             $this->entityManager->flush();
         }

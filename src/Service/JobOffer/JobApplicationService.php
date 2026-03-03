@@ -49,7 +49,7 @@ final class JobApplicationService
         $this->em->flush();
     }
 
-    public function updateStatus(JobApplication $application, JobApplicationStatus $status): void
+    public function updateStatus(JobApplication $application, JobApplicationStatus $status, ?string $customMessage = null): void
     {
         $oldStatus = $application->getStatus();
         $application->setStatus($status);
@@ -59,12 +59,16 @@ final class JobApplicationService
             $application->setStatusNotified(false);
             $application->setStatusNotifiedAt(null);
             
-            // Set appropriate status message
-            $statusMessage = match($status) {
-                JobApplicationStatus::ACCEPTED => 'Congratulations! Your application has been accepted.',
-                JobApplicationStatus::REJECTED => 'Thank you for your interest. Unfortunately, your application was not selected for this position.',
-                default => null
-            };
+            // Use custom message if provided, otherwise use default
+            if ($customMessage !== null && trim($customMessage) !== '') {
+                $statusMessage = trim($customMessage);
+            } else {
+                $statusMessage = match($status) {
+                    JobApplicationStatus::ACCEPTED => 'Congratulations! Your application has been accepted.',
+                    JobApplicationStatus::REJECTED => 'Thank you for your interest. Unfortunately, your application was not selected for this position.',
+                    default => null
+                };
+            }
             $application->setStatusMessage($statusMessage);
         }
         

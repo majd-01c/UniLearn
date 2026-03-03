@@ -10,6 +10,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -91,6 +92,18 @@ class JobOfferFormType extends AbstractType
                         'max' => 255,
                         'maxMessage' => 'The location cannot exceed {{ limit }} characters.',
                     ]),
+                ],
+            ])
+            ->add('latitude', HiddenType::class, [
+                'required' => false,
+                'attr' => [
+                    'class' => 'job-location-latitude',
+                ],
+            ])
+            ->add('longitude', HiddenType::class, [
+                'required' => false,
+                'attr' => [
+                    'class' => 'job-location-longitude',
                 ],
             ])
             ->add('description', TextareaType::class, [

@@ -57,6 +57,23 @@
                         </div>
                     {% endif %}
 
+                    {# Job Location Map Display #}
+                    {% if offer.latitude and offer.longitude %}
+                        <div class="card mb-3">
+                            <div class="card-header bg-info bg-opacity-10">
+                                <h6 class="mb-0 text-info">
+                                    <i class="bi bi-map"></i> Job Location on Map
+                                </h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="job-offer-map" 
+                                     data-job-lat="{{ offer.latitude }}" 
+                                     data-job-lon="{{ offer.longitude }}"
+                                     style="width: 100%; height: 350px; border-radius: 0 0 5px 5px;"></div>
+                            </div>
+                        </div>
+                    {% endif %}
+
                     <div class="mb-3">
                         <h5 class="text-muted mb-2">
                             <i class="bi bi-file-text-fill"></i> Description
@@ -175,7 +192,25 @@
                             {# Application Form #}
                             {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
                                 <div class="mb-3">
-                                    {{ form_row(form.message) }}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        {{ form_label(form.message) }}
+                                        <button type="button" id="btn-generate-motivation" class="btn btn-outline-info btn-sm"
+                                                data-offer-id="{{ offer.id }}"
+                                                data-textarea-id="{{ form.message.vars.id }}">
+                                            <i class="bi bi-stars"></i> Generate with AI
+                                        </button>
+                                    </div>
+                                    {{ form_widget(form.message, {'attr': {'rows': 10}}) }}
+                                    {{ form_errors(form.message) }}
+                                    <div id="ai-generation-status" class="mt-2" style="display:none;">
+                                        <div class="d-flex align-items-center text-info">
+                                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                            <span>Generating your motivation letter with AI...</span>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="bi bi-info-circle"></i> Click <strong>"Generate with AI"</strong> to create a personalized motivation letter based on your profile and this job offer. You can edit it afterwards.
+                                    </small>
                                 </div>
 
                                 <div class="mb-3">
@@ -198,4 +233,133 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function initShowPage() {
+    const btn = document.getElementById('btn-generate-motivation');
+    if (!btn) return;
+
+    btn.addEventListener('click', async function() {
+        const offerId = this.dataset.offerId;
+        const textareaId = this.dataset.textareaId;
+        const textarea = document.getElementById(textareaId);
+        const status = document.getElementById('ai-generation-status');
+
+        if (!textarea) {
+            console.error('Textarea not found with id:', textareaId);
+            return;
+        }
+
+        // Confirm if textarea already has content
+        if (textarea.value.trim().length > 0) {
+            if (!confirm('This will replace your current text. Continue?')) return;
+        }
+
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Generating...';
+        status.style.display = 'block';
+
+        try {
+            const response = await fetch('/job-offers/' + offerId + '/generate-motivation', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.letter) {
+                textarea.value = data.letter;
+                textarea.style.height = 'auto';
+                textarea.style.height = textarea.scrollHeight + 'px';
+                status.innerHTML = '<div class="text-success"><i class="bi bi-check-circle"></i> Motivation letter generated! Feel free to edit it before submitting.</div>';
+            } else {
+                status.innerHTML = '<div class="text-danger"><i class="bi bi-exclamation-triangle"></i> ' + (data.error || 'Failed to generate. Please try again.') + '</div>';
+            }
+        } catch (err) {
+            status.innerHTML = '<div class="text-danger"><i class="bi bi-exclamation-triangle"></i> Network error. Please try again.</div>';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-stars"></i> Generate with AI';
+            setTimeout(function() {
+                status.style.display = 'none';
+                status.innerHTML = '<div class="d-flex align-items-center text-info"><div class="spinner-border spinner-border-sm me-2" role="status"></div><span>Generating your motivation letter with AI...</span></div>';
+            }, 5000);
+        }
+    });
+}
+
+// Turbo-compatible initialization
+document.addEventListener('turbo:load', initShowPage);
+
+// Load and initialize Leaflet map
+document.addEventListener('turbo:load', function() {
+    if (document.querySelector('#job-offer-map')) {
+        initJobOfferMap();
+    }
+});
+
+// ========== JOB OFFER MAP DISPLAY ==========
+
+function initJobOfferMap() {
+    // Leaflet CDN URLs
+    const leafletCssUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    const leafletJsUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+
+    // Load Leaflet CSS if not already loaded
+    if (!document.querySelector(`link[href="${leafletCssUrl}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = leafletCssUrl;
+        document.head.appendChild(link);
+    }
+
+    // Load Leaflet JS if not already loaded
+    if (typeof L === 'undefined') {
+        const script = document.createElement('script');
+        script.src = leafletJsUrl;
+        script.onload = () => {
+            displayJobOfferMap();
+        };
+        document.head.appendChild(script);
+    } else {
+        displayJobOfferMap();
+    }
+
+    function displayJobOfferMap() {
+        const mapContainer = document.querySelector('#job-offer-map');
+        if (!mapContainer) return;
+
+        // Get coordinates from data attributes
+        const lat = parseFloat(mapContainer.dataset.jobLat);
+        const lon = parseFloat(mapContainer.dataset.jobLon);
+
+        // Make sure we have valid coordinates
+        if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
+            console.warn('Invalid coordinates for job offer map');
+            return;
+        }
+
+        // Initialize map
+        const map = L.map(mapContainer).setView([lat, lon], 10);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Add marker for job location
+        L.marker([lat, lon])
+            .addTo(map)
+            .bindPopup(`<strong>Job Location</strong><br>Coordinates: ${lat.toFixed(4)}, ${lon.toFixed(4)}`)
+            .openPopup();
+    }
+}
+</script>
 {% endblock %}

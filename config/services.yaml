@@ -40,3 +40,7 @@ services:
     App\Service\AvatarGeneratorClient:
         arguments:
             $avatarServiceUrl: '%avatar_service_url%'
+
+    App\Service\JobOffer\MotivationLetterService:
+        arguments:
+            $geminiApiKey: '%gemini_api_key%'

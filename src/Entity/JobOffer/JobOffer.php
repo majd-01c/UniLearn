@@ -38,6 +38,12 @@ class JobOffer
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $location = null;
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    private ?string $latitude = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
+    private ?string $longitude = null;
+
     #[Assert\NotBlank(message: 'Description is required.')]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
@@ -143,6 +149,28 @@ class JobOffer
     public function setLocation(?string $location): static
     {
         $this->location = $location;
+        return $this;
+    }
+
+    public function getLatitude(): ?string
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(?string $latitude): static
+    {
+        $this->latitude = $latitude;
+        return $this;
+    }
+
+    public function getLongitude(): ?string
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(?string $longitude): static
+    {
+        $this->longitude = $longitude;
         return $this;
     }
 

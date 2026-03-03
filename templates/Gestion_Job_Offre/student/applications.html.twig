@@ -6,8 +6,8 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1><i class="bi bi-file-text-fill text-primary"></i> My Applications</h1>
-            <p class="text-muted mb-0">View the status of your job applications</p>
+            <h1><i class="bi bi-clock-history text-primary"></i> My Applications</h1>
+            <p class="text-muted mb-0">Track the status of all your job applications</p>
         </div>
         <a href="{{ path('app_job_offer_index') }}" class="btn btn-outline-primary">
             <i class="bi bi-briefcase"></i> Browse Jobs
@@ -25,40 +25,127 @@
     {% endfor %}
 
     {% if applications|length > 0 %}
+        {# Stats Summary #}
+        {% set submitted = 0 %}
+        {% set reviewed = 0 %}
+        {% set accepted = 0 %}
+        {% set rejected = 0 %}
+        {% for app in applications %}
+            {% if app.status.value == 'SUBMITTED' %}{% set submitted = submitted + 1 %}
+            {% elseif app.status.value == 'REVIEWED' %}{% set reviewed = reviewed + 1 %}
+            {% elseif app.status.value == 'ACCEPTED' %}{% set accepted = accepted + 1 %}
+            {% elseif app.status.value == 'REJECTED' %}{% set rejected = rejected + 1 %}
+            {% endif %}
+        {% endfor %}
+
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card text-center border-primary">
+                    <div class="card-body py-3">
+                        <h3 class="mb-0 text-primary">{{ applications|length }}</h3>
+                        <small class="text-muted">Total</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card text-center border-info">
+                    <div class="card-body py-3">
+                        <h3 class="mb-0 text-info">{{ submitted + reviewed }}</h3>
+                        <small class="text-muted">Pending</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card text-center border-success">
+                    <div class="card-body py-3">
+                        <h3 class="mb-0 text-success">{{ accepted }}</h3>
+                        <small class="text-muted">Accepted</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card text-center border-danger">
+                    <div class="card-body py-3">
+                        <h3 class="mb-0 text-danger">{{ rejected }}</h3>
+                        <small class="text-muted">Rejected</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Applications List #}
         <div class="row">
             {% for application in applications %}
                 <div class="col-12 mb-3">
-                    <div class="card h-100">
+                    <div class="card h-100 {% if application.status.value == 'ACCEPTED' %}border-success{% elseif application.status.value == 'REJECTED' %}border-danger{% endif %}">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-lg-8">
-                                    <h5 class="card-title">
+                                    <h5 class="card-title mb-1">
                                         <a href="{{ path('app_job_offer_show', {'id': application.offer.id}) }}" 
                                            class="text-decoration-none">
                                             {{ application.offer.title }}
                                         </a>
                                     </h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">{{ application.offer.partner.name }}</h6>
+                                    <h6 class="card-subtitle mb-2 text-muted">
+                                        <i class="bi bi-building"></i> {{ application.offer.partner.name }}
+                                    </h6>
                                     
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            <i class="bi bi-geo-alt"></i> {{ application.offer.location ?? 'Location not specified' }}
-                                            &nbsp;&nbsp;
-                                            <i class="bi bi-tags"></i> {{ application.offer.type.value|replace({'_': ' '})|title }}
-                                        </small>
+                                    <p class="card-text mb-2">
+                                        <span class="me-3">
+                                            <i class="bi bi-geo-alt"></i> {{ application.offer.location ?? 'Not specified' }}
+                                        </span>
+                                        <span class="badge bg-info">
+                                            {{ application.offer.type.value|replace({'_': ' '})|title }}
+                                        </span>
                                     </p>
 
+                                    {# Progress Steps #}
+                                    <div class="d-flex align-items-center gap-1 mt-3 mb-2 flex-wrap">
+                                        {% set steps = ['SUBMITTED', 'REVIEWED', 'ACCEPTED'] %}
+                                        {% set currentStep = application.status.value %}
+                                        {% set isRejected = currentStep == 'REJECTED' %}
+
+                                        {% for step in steps %}
+                                            {% set stepDone = false %}
+                                            {% if step == 'SUBMITTED' and currentStep in ['SUBMITTED','REVIEWED','ACCEPTED'] %}
+                                                {% set stepDone = true %}
+                                            {% elseif step == 'REVIEWED' and currentStep in ['REVIEWED','ACCEPTED'] %}
+                                                {% set stepDone = true %}
+                                            {% elseif step == 'ACCEPTED' and currentStep == 'ACCEPTED' %}
+                                                {% set stepDone = true %}
+                                            {% endif %}
+
+                                            <span class="badge {{ stepDone ? 'bg-success' : (isRejected and step != 'SUBMITTED' and step != 'REVIEWED' ? 'bg-danger' : 'bg-secondary bg-opacity-25 text-muted') }} px-2 py-1" style="font-size: 0.75rem;">
+                                                {% if stepDone %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-circle"></i>{% endif %}
+                                                {{ step|lower|title }}
+                                            </span>
+                                            {% if not loop.last %}
+                                                <i class="bi bi-chevron-right text-muted" style="font-size: 0.6rem;"></i>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% if isRejected %}
+                                            <i class="bi bi-chevron-right text-muted" style="font-size: 0.6rem;"></i>
+                                            <span class="badge bg-danger px-2 py-1" style="font-size: 0.75rem;">
+                                                <i class="bi bi-x-circle-fill"></i> Rejected
+                                            </span>
+                                        {% endif %}
+                                    </div>
+
                                     {% if application.statusMessage %}
-                                        <div class="mt-3">
-                                            <div class="alert {{ application.status.value == 'ACCEPTED' ? 'alert-success' : 'alert-info' }} mb-0" role="alert">
-                                                <i class="bi bi-{{ application.status.value == 'ACCEPTED' ? 'check-circle' : 'info-circle' }}"></i>
-                                                {{ application.statusMessage }}
+                                        <div class="mt-2">
+                                            <div class="alert {{ application.status.value == 'ACCEPTED' ? 'alert-success' : 'alert-info' }} py-2 mb-0" role="alert">
+                                                <small>
+                                                    <i class="bi bi-{{ application.status.value == 'ACCEPTED' ? 'check-circle' : 'info-circle' }}"></i>
+                                                    {{ application.statusMessage }}
+                                                </small>
                                             </div>
                                         </div>
                                     {% endif %}
                                 </div>
                                 
-                                <div class="col-lg-4 text-lg-end">
+                                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                                     <div class="mb-2">
                                         {% set statusClass = 'secondary' %}
                                         {% set statusIcon = 'hourglass-split' %}
@@ -84,14 +171,14 @@
                                     </div>
                                     
                                     <div class="text-muted">
-                                        <small>Applied: {{ application.createdAt|date('M d, Y') }}</small>
+                                        <small><i class="bi bi-calendar-plus"></i> Applied: {{ application.createdAt|date('M d, Y') }}</small>
                                         {% if application.updatedAt and application.updatedAt != application.createdAt %}
-                                            <br><small>Updated: {{ application.updatedAt|date('M d, Y') }}</small>
+                                            <br><small><i class="bi bi-calendar-check"></i> Updated: {{ application.updatedAt|date('M d, Y') }}</small>
                                         {% endif %}
                                         {% if application.statusNotifiedAt %}
-                                            <br><small class="text-success">Notification viewed</small>
+                                            <br><small class="text-success"><i class="bi bi-bell-fill"></i> Notification viewed</small>
                                         {% elseif application.hasDecision and not application.isStatusNotified %}
-                                            <br><small class="text-warning fw-bold">New status!</small>
+                                            <br><span class="badge bg-warning text-dark"><i class="bi bi-bell"></i> New status!</span>
                                         {% endif %}
                                     </div>
 
@@ -101,18 +188,33 @@
                                                     data-bs-toggle="collapse" 
                                                     data-bs-target="#message-{{ application.id }}" 
                                                     aria-expanded="false">
-                                                <i class="bi bi-chat-left-text"></i> View Message
+                                                <i class="bi bi-chat-left-text"></i> View Cover Letter
                                             </button>
                                         </div>
                                     {% endif %}
+
+                                    <div class="mt-2">
+                                        <a href="{{ path('app_job_offer_show', {'id': application.offer.id}) }}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-eye"></i> View Offer
+                                        </a>
+                                        {% if application.status.value == 'REJECTED' or application.status.value == 'ACCEPTED' %}
+                                            <button type="button" 
+                                                    class="btn btn-{{ application.status.value == 'REJECTED' ? 'outline-warning' : 'outline-success' }} btn-sm btn-ai-advice"
+                                                    data-application-id="{{ application.id }}"
+                                                    data-url="{{ path('app_student_application_ai_advice', {id: application.id}) }}">
+                                                <i class="bi bi-stars"></i> AI Advice
+                                            </button>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
 
                             {% if application.message %}
                                 <div class="collapse mt-3" id="message-{{ application.id }}">
-                                    <div class="card card-body bg-light">
-                                        <h6>Your Application Message:</h6>
-                                        <p class="mb-0">{{ application.message|nl2br }}</p>
+                                    <div class="card card-body" style="background: var(--surface-elevated, #f8f9fa);">
+                                        <h6 class="mb-2"><i class="bi bi-chat-left-text"></i> Your Cover Letter:</h6>
+                                        <p class="mb-0" style="white-space: pre-wrap;">{{ application.message }}</p>
                                     </div>
                                 </div>
                             {% endif %}
@@ -125,11 +227,164 @@
         <div class="text-center py-5">
             <i class="bi bi-inbox display-1 text-muted"></i>
             <h3 class="mt-3">No Applications Yet</h3>
-            <p class="text-muted">You haven't applied to any job offers yet.</p>
+            <p class="text-muted">You haven't applied to any job offers yet. Start exploring opportunities!</p>
             <a href="{{ path('app_job_offer_index') }}" class="btn btn-primary">
                 <i class="bi bi-briefcase"></i> Browse Available Jobs
             </a>
         </div>
     {% endif %}
 </div>
+
+{# AI Advice Modal #}
+<div class="modal fade" id="aiAdviceModal" tabindex="-1" aria-labelledby="aiAdviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary bg-opacity-10">
+                <h5 class="modal-title" id="aiAdviceModalLabel">
+                    <i class="bi bi-stars text-primary"></i> AI Career Advice
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="aiAdviceContent" style="max-height: 70vh; overflow-y: auto;">
+                <div class="text-center py-5" id="aiAdviceLoading">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="text-muted">Analyzing your application...</h5>
+                    <p class="text-muted small">Our AI is reviewing your score, skills, and the job requirements to give you personalized advice.</p>
+                </div>
+                <div id="aiAdviceResult" class="d-none"></div>
+                <div id="aiAdviceError" class="d-none">
+                    <div class="text-center py-4">
+                        <i class="bi bi-exclamation-triangle display-4 text-danger"></i>
+                        <h5 class="mt-3">Something went wrong</h5>
+                        <p class="text-muted" id="aiAdviceErrorMsg"></p>
+                        <button type="button" class="btn btn-outline-primary btn-retry-advice">
+                            <i class="bi bi-arrow-clockwise"></i> Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function initMyApplicationsPage() {
+    const modalEl = document.getElementById('aiAdviceModal');
+    if (!modalEl) return;
+
+    // Reuse existing Bootstrap modal instance or create one
+    let bsModal = bootstrap.Modal.getInstance(modalEl);
+    if (!bsModal) {
+        bsModal = new bootstrap.Modal(modalEl);
+    }
+
+    const loadingEl = document.getElementById('aiAdviceLoading');
+    const resultEl = document.getElementById('aiAdviceResult');
+    const errorEl = document.getElementById('aiAdviceError');
+    const errorMsgEl = document.getElementById('aiAdviceErrorMsg');
+    let currentUrl = null;
+
+    function showLoading() {
+        loadingEl.classList.remove('d-none');
+        resultEl.classList.add('d-none');
+        errorEl.classList.add('d-none');
+        resultEl.innerHTML = '';
+    }
+
+    function showResult(html) {
+        loadingEl.classList.add('d-none');
+        resultEl.classList.remove('d-none');
+        errorEl.classList.add('d-none');
+        resultEl.innerHTML = html;
+    }
+
+    function showError(msg) {
+        loadingEl.classList.add('d-none');
+        resultEl.classList.add('d-none');
+        errorEl.classList.remove('d-none');
+        errorMsgEl.textContent = msg;
+    }
+
+    // Simple markdown to HTML converter for the AI response
+    function markdownToHtml(text) {
+        let html = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        html = html.replace(/^## (.+)$/gm, '<h5 class="mt-4 mb-2">$1</h5>');
+        html = html.replace(/^### (.+)$/gm, '<h6 class="mt-3 mb-2">$1</h6>');
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        html = html.replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
+        html = html.replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
+        html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul class="mb-3">$1</ul>');
+        html = html.replace(/^(?!<[hul]|<li)(.+)$/gm, '<p>$1</p>');
+        html = html.replace(/<p>\s*<\/p>/g, '');
+
+        return html;
+    }
+
+    async function fetchAdvice(url) {
+        showLoading();
+        bsModal.show();
+        currentUrl = url;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.advice) {
+                showResult(markdownToHtml(data.advice));
+            } else {
+                showError(data.error || 'Failed to generate advice. Please try again.');
+            }
+        } catch (err) {
+            showError('Network error. Please check your connection and try again.');
+        }
+    }
+
+    // Bind click handlers to AI Advice buttons
+    document.querySelectorAll('.btn-ai-advice').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            fetchAdvice(this.dataset.url);
+        });
+    });
+
+    // Retry button
+    modalEl.querySelector('.btn-retry-advice')?.addEventListener('click', function() {
+        if (currentUrl) {
+            fetchAdvice(currentUrl);
+        }
+    });
+
+    // Clean up modal state on Turbo navigation to prevent stuck page
+    document.addEventListener('turbo:before-visit', function cleanupModal() {
+        bsModal.hide();
+        // Remove any leftover backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+        document.removeEventListener('turbo:before-visit', cleanupModal);
+    });
+}
+
+// Turbo-compatible initialization
+document.addEventListener('turbo:load', initMyApplicationsPage);
+</script>
 {% endblock %}

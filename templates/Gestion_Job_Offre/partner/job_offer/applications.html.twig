@@ -87,12 +87,12 @@
 
         {# Applications Table #}
         <div class="card">
-            <div class="card-body">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover align-middle mb-0">
                         <thead>
                             <tr>
-                                <th style="width: 80px;">
+                                <th style="width: 80px;" class="ps-3">
                                     <a href="{{ path('app_partner_job_offer_applications', {id: offer.id, sort: 'score'}) }}" 
                                        class="text-decoration-none {{ currentSort|default('score') == 'score' ? 'fw-bold' : '' }}">
                                         Score <i class="bi bi-sort-down"></i>
@@ -100,17 +100,17 @@
                                 </th>
                                 <th>Candidat</th>
                                 <th>Compétences détectées</th>
-                                <th>CV</th>
-                                <th>Date</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
+                                <th style="width: 60px;">CV</th>
+                                <th style="width: 90px;">Date</th>
+                                <th style="width: 100px;">Statut</th>
+                                <th style="width: 60px;" class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for application in applications %}
                                 <tr>
                                     {# Score Column #}
-                                    <td>
+                                    <td class="ps-3">
                                         {% if application.score is not null %}
                                             {% set scoreClass = application.score >= 75 ? 'success' : (application.score >= 50 ? 'warning' : 'danger') %}
                                             <span class="badge bg-{{ scoreClass }} fs-6" style="min-width: 50px;">
@@ -190,22 +190,91 @@
                                         {% include 'Gestion_Job_Offre/job_offer/_application_status_badge.html.twig' with {status: application.status} only %}
                                     </td>
                                     
-                                    {# Actions #}
-                                    <td>
-                                        <form method="post" action="{{ path('app_partner_job_application_status', {id: application.id}) }}" class="d-inline">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('status-' ~ application.id) }}">
-                                            <div class="input-group input-group-sm" style="min-width: 150px;">
-                                                <select name="status" class="form-select form-select-sm" required>
-                                                    <option value="">Statut...</option>
-                                                    <option value="REVIEWED" {{ application.status.value == 'REVIEWED' ? 'selected' : '' }}>Examiné</option>
-                                                    <option value="ACCEPTED" {{ application.status.value == 'ACCEPTED' ? 'selected' : '' }}>Accepté</option>
-                                                    <option value="REJECTED" {{ application.status.value == 'REJECTED' ? 'selected' : '' }}>Rejeté</option>
-                                                </select>
-                                                <button type="submit" class="btn btn-sm btn-primary" title="Mettre à jour">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </button>
+                                    {# Actions Toggle #}
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary" type="button"
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#action-panel-{{ application.id }}"
+                                                aria-expanded="false"
+                                                title="Gérer la candidature">
+                                            <i class="bi bi-gear"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                {# Expandable Action Panel #}
+                                <tr class="collapse-row">
+                                    <td colspan="7" class="p-0 border-0">
+                                        <div class="collapse" id="action-panel-{{ application.id }}">
+                                            <div class="p-3 m-2 rounded" style="background: var(--surface-elevated, #f8f9fa); border: 1px solid rgba(255,255,255,0.08);">
+                                                <div class="row g-3">
+                                                    {# Left: Status Update #}
+                                                    <div class="col-md-4">
+                                                        <h6 class="fw-bold mb-2">
+                                                            <i class="bi bi-arrow-left-right text-primary"></i> Update Status
+                                                        </h6>
+                                                        <form method="post" action="{{ path('app_partner_job_application_status', {id: application.id}) }}" class="status-form">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('status-' ~ application.id) }}">
+                                                            
+                                                            <div class="d-flex gap-1 flex-wrap mb-2">
+                                                                <label class="btn btn-sm {{ application.status.value == 'REVIEWED' ? 'btn-info' : 'btn-outline-info' }}">
+                                                                    <input type="radio" name="status" value="REVIEWED" class="btn-check status-radio" 
+                                                                           data-app-id="{{ application.id }}"
+                                                                           {{ application.status.value == 'REVIEWED' ? 'checked' : '' }} autocomplete="off">
+                                                                    <i class="bi bi-eye"></i> Reviewed
+                                                                </label>
+                                                                <label class="btn btn-sm {{ application.status.value == 'ACCEPTED' ? 'btn-success' : 'btn-outline-success' }}">
+                                                                    <input type="radio" name="status" value="ACCEPTED" class="btn-check status-radio"
+                                                                           data-app-id="{{ application.id }}"
+                                                                           {{ application.status.value == 'ACCEPTED' ? 'checked' : '' }} autocomplete="off">
+                                                                    <i class="bi bi-check-circle"></i> Accept
+                                                                </label>
+                                                                <label class="btn btn-sm {{ application.status.value == 'REJECTED' ? 'btn-danger' : 'btn-outline-danger' }}">
+                                                                    <input type="radio" name="status" value="REJECTED" class="btn-check status-radio"
+                                                                           data-app-id="{{ application.id }}"
+                                                                           {{ application.status.value == 'REJECTED' ? 'checked' : '' }} autocomplete="off">
+                                                                    <i class="bi bi-x-circle"></i> Reject
+                                                                </label>
+                                                            </div>
+
+                                                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                                                <i class="bi bi-check-lg"></i> Confirm Update
+                                                            </button>
+
+                                                            {# Hidden message field - populated from the right panel #}
+                                                            <input type="hidden" name="status_message" id="hidden-msg-{{ application.id }}" value="">
+                                                        </form>
+                                                    </div>
+
+                                                    {# Right: Message to Candidate #}
+                                                    <div class="col-md-8">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <h6 class="fw-bold mb-0">
+                                                                <i class="bi bi-chat-left-text text-info"></i> Message to Candidate
+                                                            </h6>
+                                                            <button type="button" class="btn btn-outline-info btn-sm btn-ai-msg"
+                                                                    data-app-id="{{ application.id }}"
+                                                                    title="Generate message with AI">
+                                                                <i class="bi bi-stars"></i> Generate with AI
+                                                            </button>
+                                                        </div>
+                                                        <textarea id="msg-textarea-{{ application.id }}" 
+                                                                  class="form-control form-control-sm msg-textarea" rows="3"
+                                                                  placeholder="Write a message to explain your decision..."
+                                                                  maxlength="2000"
+                                                                  data-app-id="{{ application.id }}">{{ application.statusMessage }}</textarea>
+                                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                                            <small class="text-muted">
+                                                                <i class="bi bi-info-circle"></i> This message will be visible to the student.
+                                                            </small>
+                                                            <small id="ai-status-{{ application.id }}" class="text-info" style="display:none;">
+                                                                <span class="spinner-border spinner-border-sm me-1"></span> Generating...
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </form>
+                                        </div>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -220,4 +289,103 @@
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function initApplicationsPage() {
+
+    // Sync textarea content to hidden form field before submit
+    document.querySelectorAll('.status-form').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            var hiddenInput = form.querySelector('input[name="status_message"]');
+            var appId = hiddenInput.id.replace('hidden-msg-', '');
+            var textarea = document.getElementById('msg-textarea-' + appId);
+            if (textarea) {
+                hiddenInput.value = textarea.value;
+            }
+        });
+    });
+
+    // Update radio button visual styles on change
+    document.querySelectorAll('.status-radio').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var form = this.closest('form');
+            form.querySelectorAll('.status-radio').forEach(function(r) {
+                var label = r.closest('label');
+                var cls = label.className;
+                // Reset to outline variant
+                label.className = cls.replace(/btn-(info|success|danger)\b/g, function(match) {
+                    return 'btn-outline-' + match.replace('btn-', '');
+                });
+            });
+            // Activate selected
+            var myLabel = this.closest('label');
+            myLabel.className = myLabel.className.replace(/btn-outline-(info|success|danger)\b/, function(match) {
+                return match.replace('btn-outline-', 'btn-');
+            });
+        });
+    });
+
+    // AI Generate Message
+    document.querySelectorAll('.btn-ai-msg').forEach(function(btn) {
+        btn.addEventListener('click', async function() {
+            var appId = this.dataset.appId;
+            var textarea = document.getElementById('msg-textarea-' + appId);
+            var aiStatus = document.getElementById('ai-status-' + appId);
+            var form = document.querySelector('#action-panel-' + appId + ' .status-form');
+            
+            // Get selected decision
+            var selectedRadio = form ? form.querySelector('.status-radio:checked') : null;
+            var decision = selectedRadio ? selectedRadio.value : null;
+
+            if (!decision || (decision !== 'ACCEPTED' && decision !== 'REJECTED')) {
+                alert('Please select Accept or Reject first before generating a message.');
+                return;
+            }
+
+            // Confirm overwrite
+            if (textarea.value.trim().length > 0) {
+                if (!confirm('This will replace the current message. Continue?')) return;
+            }
+
+            // Loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            aiStatus.style.display = 'inline';
+
+            try {
+                var formData = new FormData();
+                formData.append('decision', decision);
+
+                var response = await fetch('/partner/job-applications/' + appId + '/generate-message', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                var data = await response.json();
+
+                if (data.success && data.message) {
+                    textarea.value = data.message;
+                    textarea.style.height = 'auto';
+                    textarea.style.height = textarea.scrollHeight + 'px';
+                    aiStatus.innerHTML = '<i class="bi bi-check-circle text-success"></i> Done!';
+                } else {
+                    aiStatus.innerHTML = '<i class="bi bi-exclamation-triangle text-danger"></i> ' + (data.error || 'Failed');
+                }
+            } catch (err) {
+                aiStatus.innerHTML = '<i class="bi bi-exclamation-triangle text-danger"></i> Network error';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-stars"></i> Generate with AI';
+                setTimeout(function() { aiStatus.style.display = 'none'; aiStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Generating...'; }, 4000);
+            }
+        });
+    });
+}
+
+// Turbo-compatible initialization
+document.addEventListener('turbo:load', initApplicationsPage);
+</script>
 {% endblock %}

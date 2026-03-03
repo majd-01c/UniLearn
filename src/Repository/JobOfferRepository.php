@@ -35,6 +35,7 @@ class JobOfferRepository extends ServiceEntityRepository
         ?JobOfferStatus $status = JobOfferStatus::ACTIVE,
         int $page = 1,
         int $limit = 12,
+        array $excludeOfferIds = [],
     ): Paginator {
         $qb = $this->createQueryBuilder('o');
 
@@ -51,6 +52,10 @@ class JobOfferRepository extends ServiceEntityRepository
         if ($location !== null && $location !== '') {
             $qb->andWhere('o.location LIKE :location')
                 ->setParameter('location', '%' . $location . '%');
+        }
+        if (!empty($excludeOfferIds)) {
+            $qb->andWhere('o.id NOT IN (:excludeIds)')
+                ->setParameter('excludeIds', $excludeOfferIds);
         }
 
         $qb->orderBy('o.createdAt', 'DESC')
@@ -151,5 +156,24 @@ class JobOfferRepository extends ServiceEntityRepository
             ->setParameter('student', $student)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * Get IDs of all offers a student has already applied to
+     *
+     * @return int[]
+     */
+    public function getAppliedOfferIds(User $student): array
+    {
+        $rows = $this->getEntityManager()
+            ->getRepository(JobApplication::class)
+            ->createQueryBuilder('a')
+            ->select('IDENTITY(a.offer) AS offerId')
+            ->andWhere('a.student = :student')
+            ->setParameter('student', $student)
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_map(fn(array $row) => (int) $row['offerId'], $rows);
     }
 }

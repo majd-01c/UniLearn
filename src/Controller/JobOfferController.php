@@ -14,7 +14,9 @@ use App\Security\Voter\JobOfferVoter;
 use App\Service\JobOffer\ATSScoringService;
 use App\Service\JobOffer\JobApplicationService;
 use App\Service\JobOffer\JobOfferService;
+use App\Service\JobOffer\MotivationLetterService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -31,6 +33,7 @@ class JobOfferController extends AbstractController
         private readonly JobOfferService $jobOfferService,
         private readonly JobApplicationService $applicationService,
         private readonly ATSScoringService $scoringService,
+        private readonly MotivationLetterService $motivationLetterService,
     ) {
     }
 
@@ -55,9 +58,19 @@ class JobOfferController extends AbstractController
             $typeEnum = JobOfferType::from($type);
         }
 
-        // Search only ACTIVE offers with pagination
+        // For students: exclude offers they already applied to
+        $excludeOfferIds = [];
+        $appliedCount = 0;
+        if ($this->isGranted('ROLE_STUDENT')) {
+            /** @var \App\Entity\User $user */
+            $user = $this->getUser();
+            $excludeOfferIds = $this->jobOfferRepository->getAppliedOfferIds($user);
+            $appliedCount = count($excludeOfferIds);
+        }
+
+        // Search only ACTIVE offers with pagination (excluding applied ones for students)
         $paginator = $this->jobOfferRepository->searchPaginated(
-            $q, $typeEnum, $location, JobOfferStatus::ACTIVE, $page, $limit
+            $q, $typeEnum, $location, JobOfferStatus::ACTIVE, $page, $limit, $excludeOfferIds
         );
 
         $totalItems = count($paginator);
@@ -72,6 +85,7 @@ class JobOfferController extends AbstractController
             'currentType' => $type,
             'currentLocation' => $location,
             'jobOfferTypes' => JobOfferType::cases(),
+            'appliedCount' => $appliedCount,
         ]);
     }
 
@@ -160,6 +174,59 @@ class JobOfferController extends AbstractController
         return $this->render('Gestion_Job_Offre/student/applications.html.twig', [
             'applications' => $applications,
         ]);
+    }
+
+    /**
+     * Generate AI improvement advice for a student's application (AJAX)
+     */
+    #[Route('/my-applications/{id}/ai-advice', name: 'app_student_application_ai_advice', methods: ['POST'])]
+    #[IsGranted('ROLE_STUDENT')]
+    public function generateApplicationAdvice(JobApplication $application): JsonResponse
+    {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        // Ensure the student owns this application
+        if ($application->getStudent() !== $user) {
+            return $this->json(['success' => false, 'error' => 'Access denied.'], 403);
+        }
+
+        // Only allow advice for applications that have a decision
+        if (!$application->hasDecision()) {
+            return $this->json(['success' => false, 'error' => 'Advice is only available for reviewed applications.'], 400);
+        }
+
+        try {
+            $advice = $this->motivationLetterService->generateImprovementAdvice($application);
+            return $this->json(['success' => true, 'advice' => $advice]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Generate a motivation letter using AI based on student profile & job offer (AJAX)
+     */
+    #[Route('/job-offers/{id}/generate-motivation', name: 'app_job_offer_generate_motivation', methods: ['POST'])]
+    #[IsGranted('ROLE_STUDENT')]
+    public function generateMotivationLetter(JobOffer $offer): JsonResponse
+    {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        try {
+            $letter = $this->motivationLetterService->generate($user, $offer);
+
+            return $this->json([
+                'success' => true,
+                'letter' => $letter,
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     // === PARTNER ROUTES ===
@@ -420,7 +487,8 @@ class JobOfferController extends AbstractController
 
         // Update application status
         try {
-            $this->applicationService->updateStatus($application, $newStatus);
+            $customMessage = $request->request->get('status_message');
+            $this->applicationService->updateStatus($application, $newStatus, $customMessage);
             $statusLabel = ucfirst(strtolower($newStatus->value));
             $this->addFlash('success', sprintf('Application status updated to %s successfully!', $statusLabel));
         } catch (\Exception $e) {
@@ -456,6 +524,28 @@ class JobOfferController extends AbstractController
         }
 
         return $this->redirectToApplicationsList($application);
+    }
+
+    /**
+     * Generate AI status message for a candidate (AJAX)
+     */
+    #[Route('/partner/job-applications/{id}/generate-message', name: 'app_partner_job_application_generate_message', methods: ['POST'])]
+    #[IsGranted('ROLE_BUSINESS_PARTNER')]
+    public function generateApplicationMessage(Request $request, JobApplication $application): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(JobOfferVoter::VIEW_APPLICATIONS, $application->getOffer());
+
+        $decision = $request->request->get('decision', 'REJECTED');
+        if (!in_array($decision, ['ACCEPTED', 'REJECTED'], true)) {
+            return $this->json(['success' => false, 'error' => 'Invalid decision value.'], 400);
+        }
+
+        try {
+            $message = $this->motivationLetterService->generateStatusMessage($application, $decision);
+            return $this->json(['success' => true, 'message' => $message]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 
     /**

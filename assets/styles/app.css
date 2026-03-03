@@ -7418,3 +7418,63 @@ body:not(.back-office) .table thead th {
     border-color: rgba(248, 113, 113, 0.3);
     color: #f87171;
 }
+
+/* File Input Styling for Dark Mode */
+input[type="file"].form-control {
+    color: var(--text-primary) !important;
+    background: var(--surface-elevated) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+input[type="file"].form-control:focus {
+    background: var(--surface-elevated) !important;
+    border-color: var(--primary-500) !important;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1) !important;
+}
+
+input[type="file"].form-control::-webkit-file-upload-button {
+    background: var(--primary-500) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+    padding: var(--space-2) var(--space-3) !important;
+    margin-right: var(--space-3) !important;
+    font-size: 0.875rem !important;
+    cursor: pointer !important;
+    transition: var(--transition-normal) !important;
+}
+
+input[type="file"].form-control::-webkit-file-upload-button:hover {
+    background: var(--primary-600) !important;
+}
+
+/* Firefox file input button */
+input[type="file"].form-control::file-selector-button {
+    background: var(--primary-500) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+    padding: var(--space-2) var(--space-3) !important;
+    margin-right: var(--space-3) !important;
+    font-size: 0.875rem !important;
+    cursor: pointer !important;
+    transition: var(--transition-normal) !important;
+}
+
+input[type="file"].form-control::file-selector-button:hover {
+    background: var(--primary-600) !important;
+}
+
+/* Light mode overrides for file inputs */
+[data-theme="light"] input[type="file"].form-control {
+    background: #ffffff !important;
+    border: 1px solid var(--gray-300) !important;
+    color: var(--gray-900) !important;
+}
+
+[data-theme="light"] input[type="file"].form-control::-webkit-file-upload-button,
+[data-theme="light"] input[type="file"].form-control::file-selector-button {
+    background: var(--primary-500) !important;
+    color: white !important;
+}
+

@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserAnswerRepository::class)]
 #[ORM\UniqueConstraint(name: 'user_quiz_unique', columns: ['user_id', 'quiz_id'])]
@@ -21,16 +22,20 @@ class UserAnswer
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'User is required')]
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Quiz::class, inversedBy: 'userAnswers')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Quiz is required')]
     private ?Quiz $quiz = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Score must be zero or positive')]
     private ?int $score = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Total points must be zero or positive')]
     private ?int $totalPoints = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]

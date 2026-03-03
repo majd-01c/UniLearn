@@ -66,6 +66,24 @@ Password: admin123
 Role: ADMIN
 ```
 
+## 👥 Create Access Users (Admin + 2 Students + Teacher + Business Partner)
+
+Run this command to create/update a ready-to-test access set:
+
+```bash
+php bin/console app:create-access-users
+```
+
+It creates these accounts:
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@unilearn.com | admin123 | ADMIN |
+| student1@unilearn.com | student123 | STUDENT |
+| student2@unilearn.com | student123 | STUDENT |
+| teacher@unilearn.com | teacher123 | TEACHER |
+| partner@unilearn.com | partner123 | BUSINESS_PARTNER |
+
 ## 🎨 User Interface
 
 ### Bootstrap 5 Components Used

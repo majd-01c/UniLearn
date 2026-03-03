@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Face Verification - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center" style="min-height: 85vh; align-items: center;">
+        <div class="col-lg-7 col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header text-center">
+                    <h2 class="mb-0"><i class="bi bi-shield-lock"></i> Face ID Verification</h2>
+                    <p class="text-muted mb-0 mt-1">Please verify your identity to continue</p>
+                </div>
+                <div class="card-body">
+
+                    {# Step 1: Loading models #}
+                    <div id="step-loading" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <h5>Loading face detection models...</h5>
+                        <p class="text-muted">This may take a moment on the first load.</p>
+                        <div class="progress mx-auto" style="max-width: 400px; height: 6px;">
+                            <div id="model-progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    {# Step 2: Camera / Upload #}
+                    <div id="step-capture" class="d-none">
+                        {# Camera view #}
+                        <div id="camera-section">
+                            <div class="text-center mb-3">
+                                <p class="text-muted">Position your face within the frame. A single capture will be taken.</p>
+                            </div>
+                            <div class="position-relative mx-auto" style="max-width: 480px;">
+                                <video id="video" autoplay muted playsinline
+                                       class="w-100 rounded border" style="transform: scaleX(-1);"></video>
+                                <canvas id="overlay" class="position-absolute top-0 start-0 w-100 h-100"
+                                        style="pointer-events: none; transform: scaleX(-1);"></canvas>
+                            </div>
+                            <div class="text-center mt-3">
+                                <h5 id="capture-status" class="text-primary">
+                                    <i class="bi bi-camera-video"></i> Preparing camera...
+                                </h5>
+                                <button id="btn-capture" class="btn btn-primary btn-lg mt-2 d-none">
+                                    <i class="bi bi-camera"></i> Capture &amp; Verify
+                                </button>
+                            </div>
+                        </div>
+
+                        {# Upload fallback #}
+                        <div id="upload-section" class="d-none">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Camera is unavailable. Upload a photo of your face instead.
+                            </div>
+                            <div class="mb-3">
+                                <label for="face-upload" class="form-label">Upload a face photo</label>
+                                <input type="file" id="face-upload" class="form-control" accept="image/*">
+                            </div>
+                            <div id="upload-previews" class="d-flex flex-wrap gap-2 mb-3"></div>
+                            <button id="btn-process-uploads" class="btn btn-primary" disabled>
+                                <i class="bi bi-cpu"></i> Verify Face
+                            </button>
+                            <div id="upload-status" class="mt-2"></div>
+                        </div>
+
+                        {# Attempts info #}
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                Attempts remaining: <strong id="attempts-left">{{ attemptsLeft }}</strong>
+                            </small>
+                        </div>
+                    </div>
+
+                    {# Verification result feedback #}
+                    <div id="verify-result" class="d-none text-center py-4">
+                        <div id="verify-spinner" class="d-none">
+                            <div class="spinner-border text-primary mb-2" role="status"></div>
+                            <p>Verifying your face...</p>
+                        </div>
+                        <div id="verify-success" class="d-none">
+                            <div class="text-success mb-3">
+                                <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
+                            </div>
+                            <h3 class="text-success">Identity Verified!</h3>
+                            <p class="text-muted">Redirecting you now...</p>
+                        </div>
+                        <div id="verify-fail" class="d-none">
+                            <div class="text-danger mb-3">
+                                <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="text-danger" id="verify-fail-msg">Face not recognized.</h4>
+                            <button class="btn btn-outline-primary mt-2" id="btn-retry">
+                                <i class="bi bi-arrow-clockwise"></i> Try Again
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {# Fallback options — always visible #}
+                    <div class="text-center">
+                        <a href="{{ path('face_verify_skip') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-skip-forward"></i> Skip Face ID — use password only
+                        </a>
+                        <div class="mt-2">
+                            <a href="{{ path('app_logout') }}" class="text-muted small text-decoration-none">
+                                <i class="bi bi-box-arrow-left"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# face-api.js loaded locally #}
+<script src="{{ asset('face-api/face-api.min.js') }}"></script>
+<script>
+    const FACE_API_MODEL_URL = '{{ asset("face-api/models") }}';
+    const VERIFY_URL = '{{ path("face_verify") }}';
+    const CSRF_TOKEN = '{{ csrf_token("face_verify") }}';
+    const MODE = 'verify';
+    let attemptsLeft = {{ attemptsLeft }};
+</script>
+<script src="{{ asset('face-api/face-id.js') }}"></script>
+{% endblock %}

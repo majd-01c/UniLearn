@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Profile;
 use App\Form\ChangePasswordType;
 use App\Form\ProfileType;
 use App\Service\AvatarGeneratorClient;
@@ -34,9 +35,15 @@ class ProfileController extends AbstractController
         $user = $this->getUser();
         $profile = $user->getProfile();
 
+        // Auto-create a profile if one doesn't exist (e.g. admin created via CLI)
         if (!$profile) {
-            $this->addFlash('error', 'Profile not found.');
-            return $this->redirectToRoute('app_home');
+            // Auto-create profile if missing (e.g. admin created via script)
+            $profile = new \App\Entity\Profile();
+            $profile->setFirstName($user->getName() ?? 'User');
+            $profile->setLastName('');
+            $profile->setUser($user);
+            $this->entityManager->persist($profile);
+            $this->entityManager->flush();
         }
 
         $form = $this->createForm(ProfileType::class, $profile);

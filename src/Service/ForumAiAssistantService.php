@@ -20,6 +20,14 @@ class ForumAiAssistantService
     ) {}
 
     /**
+     * Get the underlying AI API service
+     */
+    public function getGeminiApi(): GeminiApiService
+    {
+        return $this->geminiApi;
+    }
+
+    /**
      * Get similar topics for a question (with caching)
      */
     public function getSimilarTopics(string $question, ?int $categoryId = null): array

@@ -7,17 +7,15 @@ use App\Repository\GradeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * AI-powered recommendation service that analyzes student performance.
- * Uses Groq (LLaMA 3.3 70B) for real personalized recommendations.
- * Falls back to rule-based logic when Groq is unavailable.
+ * AI-powered recommendation service that analyzes student performance
+ * and suggests online courses for improvement
  */
 class AIRecommendationService
 {
-    private const PASSING_THRESHOLD   = 10.0;
+    private const PASSING_THRESHOLD = 10.0; // Out of 20
     private const EXCELLENT_THRESHOLD = 15.0;
-    private const GOOD_THRESHOLD      = 12.0;
-
-    // Fallback static recommendations (used only when Groq is unavailable)
+    private const GOOD_THRESHOLD = 12.0;
+    
     private array $courseRecommendations = [
         'Mathématiques' => [
             'Khan Academy - Mathématiques' => 'https://www.khanacademy.org/math',
@@ -63,19 +61,20 @@ class AIRecommendationService
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private GradeRepository        $gradeRepository,
-        private GroqApiService         $groq
+        private GradeRepository $gradeRepository
     ) {}
 
     /**
-     * Generate personalized AI recommendations using Groq (LLaMA 3.3 70B).
-     * Falls back to rule-based logic if Groq is unavailable.
+     * Generate personalized AI recommendations for a student
+     *
+     * @param User $student The student to analyze
+     * @return array Array of recommendations with priority levels
      */
     public function generateRecommendations(User $student): array
     {
         $grades = $this->gradeRepository->createQueryBuilder('g')
             ->join('g.assessment', 'a')
-            ->leftJoin('a.course', 'c')
+            ->join('a.course', 'c')
             ->where('g.student = :student')
             ->setParameter('student', $student)
             ->getQuery()
@@ -85,230 +84,54 @@ class AIRecommendationService
             return [];
         }
 
-        // Build per-course summary
+        // Group grades by course
         $courseGrades = [];
         foreach ($grades as $grade) {
-            $assessment = $grade->getAssessment();
-            $course     = $assessment->getCourse();
-            // Use course title → assessment title → type label as fallback (never "Cours sans titre")
-            if ($course && $course->getTitle()) {
-                $courseName = $course->getTitle();
-            } elseif ($assessment->getTitle()) {
-                $courseName = $assessment->getTitle();
-            } else {
-                $type = $assessment->getType();
-                $courseName = $type ? $type->value : 'Module sans titre';
-            }
+            $courseName = $grade->getAssessment()->getCourse()->getTitle();
             if (!isset($courseGrades[$courseName])) {
                 $courseGrades[$courseName] = [];
             }
             $courseGrades[$courseName][] = $grade;
         }
 
-        $courseSummaries = [];
-        foreach ($courseGrades as $courseName => $cGrades) {
-            $avg = $this->calculateAverage($cGrades);
-            $courseSummaries[] = [
-                'name'    => $courseName,
-                'average' => round($avg, 2),
-                'grades'  => count($cGrades),
-                'status'  => $this->getStatusLabel($avg),
-                'priority'=> $this->calculatePriority($avg),
-            ];
-        }
-
-        // Filter only struggling courses
-        $struggling = array_filter($courseSummaries, fn($c) => $c['average'] < self::GOOD_THRESHOLD);
-
-        if (empty($struggling)) {
-            return [];
-        }
-
-        // Try Groq first
-        if ($this->groq->isAvailable()) {
-            $groqResults = $this->fetchGroqRecommendations(array_values($struggling));
-            if (!empty($groqResults)) {
-                return $groqResults;
-            }
-        }
-
-        // Fallback: rule-based
+        // Calculate averages and generate recommendations
         $recommendations = [];
-        foreach ($struggling as $course) {
-            $recommendations[] = [
-                'courseName'         => $course['name'],
-                'average'            => $course['average'],
-                'status'             => $course['status'],
-                'priority'           => $course['priority'],
-                'aiInsight'          => $this->generateAIInsight($course['average'], $course['grades']),
-                'platforms'          => $this->buildFallbackPlatforms($course['name']),
-                'youtubeSearches'    => $this->buildYoutubeSearches($course['name']),
-                'recommendedCourses' => $this->getRecommendedCourses($course['name']), // kept for back-compat
-            ];
-        }
-
-        usort($recommendations, function ($a, $b) {
-            $order = ['HIGH' => 0, 'MEDIUM' => 1, 'LOW' => 2];
-            return $order[$a['priority']] <=> $order[$b['priority']];
-        });
-
-        return $recommendations;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // GROQ integration
-    // ─────────────────────────────────────────────────────────────
-
-    private function fetchGroqRecommendations(array $strugglingCourses): array
-    {
-        $courseList = implode("\n", array_map(
-            fn($c) => "- {$c['name']}: {$c['average']}/20 ({$c['status']})",
-            $strugglingCourses
-        ));
-
-        $system = <<<SYS
-You are an expert academic advisor for university students.
-You must respond ONLY with a valid JSON array — no markdown, no extra text.
-SYS;
-
-        $user = <<<USR
-A university student is struggling in the following modules:
-{$courseList}
-
-For EACH module, provide a JSON object with this EXACT structure:
-{
-  "courseName": "exact module name from the list",
-  "insight": "2-3 sentence personalized analysis of why students struggle in this module and the key areas to focus on",
-  "platforms": [
-    {"name": "Platform Name", "url": "https://...", "icon": "one of: youtube/khan/coursera/udemy/openclassrooms/edx/mit/web", "description": "what this platform offers for this specific topic"},
-    ... (3-5 platforms)
-  ],
-  "youtubeSearches": [
-    {"query": "exact youtube search query for this topic", "label": "short label describing what this search covers"},
-    ... (3-4 searches)
-  ]
-}
-
-Return a JSON ARRAY: [ {...}, {...} ]
-Choose platform URLs that are specific to the subject (not generic homepages).
-YouTube queries must be specific, targeted, and in the student's language (French if course name is French).
-USR;
-
-        $raw = $this->groq->chat($system, $user, 0.5);
-        if (!$raw) {
-            return [];
-        }
-
-        $parsed = $this->groq->parseJson($raw);
-        if (!is_array($parsed) || empty($parsed)) {
-            return [];
-        }
-
-        // Merge Groq data with calculated stats
-        $recommendations = [];
-        foreach ($parsed as $item) {
-            $matchedCourse = null;
-            foreach ($strugglingCourses as $c) {
-                if (strtolower($c['name']) === strtolower($item['courseName'] ?? '')) {
-                    $matchedCourse = $c;
-                    break;
-                }
-                // Fuzzy: check if one contains the other
-                if (!empty($item['courseName']) &&
-                    (str_contains(strtolower($c['name']), strtolower($item['courseName'])) ||
-                    str_contains(strtolower($item['courseName']), strtolower($c['name'])))) {
-                    $matchedCourse = $c;
-                    break;
-                }
-            }
-
-            if (!$matchedCourse) {
-                // Still include it with defaults
-                $matchedCourse = ['average' => 0, 'status' => 'Insuffisant', 'priority' => 'HIGH', 'grades' => 0];
-            }
-
-            // Build YouTube URLs from search queries
-            $youtubeSearches = [];
-            foreach (($item['youtubeSearches'] ?? []) as $yt) {
-                $youtubeSearches[] = [
-                    'label' => $yt['label'] ?? $yt['query'],
-                    'query' => $yt['query'],
-                    'url'   => 'https://www.youtube.com/results?search_query=' . urlencode($yt['query']),
+        foreach ($courseGrades as $courseName => $grades) {
+            $average = $this->calculateAverage($grades);
+            
+            // Only recommend if performance is below good threshold
+            if ($average < self::GOOD_THRESHOLD) {
+                $recommendations[] = [
+                    'courseName' => $courseName,
+                    'average' => round($average, 2),
+                    'status' => $this->getStatusLabel($average),
+                    'priority' => $this->calculatePriority($average),
+                    'recommendedCourses' => $this->getRecommendedCourses($courseName),
+                    'aiInsight' => $this->generateAIInsight($average, count($grades)),
                 ];
             }
-
-            $recommendations[] = [
-                'courseName'         => $item['courseName'] ?? $matchedCourse['name'] ?? 'Inconnu',
-                'average'            => $matchedCourse['average'],
-                'status'             => $matchedCourse['status'],
-                'priority'           => $matchedCourse['priority'],
-                'aiInsight'          => $item['insight'] ?? '',
-                'platforms'          => $item['platforms'] ?? [],
-                'youtubeSearches'    => $youtubeSearches,
-                'recommendedCourses' => [], // replaced by platforms
-                'fromGroq'           => true,
-            ];
         }
 
-        // Sort HIGH → MEDIUM → LOW
-        usort($recommendations, function ($a, $b) {
-            $order = ['HIGH' => 0, 'MEDIUM' => 1, 'LOW' => 2];
-            return ($order[$a['priority']] ?? 3) <=> ($order[$b['priority']] ?? 3);
+        // Sort by priority (HIGH first)
+        usort($recommendations, function($a, $b) {
+            $priorityOrder = ['HIGH' => 0, 'MEDIUM' => 1, 'LOW' => 2];
+            return $priorityOrder[$a['priority']] <=> $priorityOrder[$b['priority']];
         });
 
         return $recommendations;
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // Fallback helpers (used when Groq unavailable)
-    // ─────────────────────────────────────────────────────────────
-
-    private function buildFallbackPlatforms(string $courseName): array
-    {
-        $map = [
-            'math'      => [
-                ['name' => 'Khan Academy', 'url' => 'https://fr.khanacademy.org/math', 'icon' => 'khan', 'description' => 'Cours vidéos interactifs de mathématiques'],
-                ['name' => 'Coursera - Calculus', 'url' => 'https://www.coursera.org/learn/calculus1', 'icon' => 'coursera', 'description' => 'Cours de calcul de l\'université Michigan'],
-                ['name' => 'MIT OpenCourseWare', 'url' => 'https://ocw.mit.edu/courses/mathematics/', 'icon' => 'mit', 'description' => 'Cours gratuits du MIT'],
-            ],
-            'physique'  => [
-                ['name' => 'Khan Academy Physique', 'url' => 'https://fr.khanacademy.org/science/physics', 'icon' => 'khan', 'description' => 'Physique niveau lycée/université'],
-                ['name' => 'MIT Physics', 'url' => 'https://ocw.mit.edu/courses/physics/', 'icon' => 'mit', 'description' => 'Cours de physique du MIT'],
-            ],
-            'info'      => [
-                ['name' => 'OpenClassrooms', 'url' => 'https://openclassrooms.com/fr/paths/185-developpeur-web', 'icon' => 'openclassrooms', 'description' => 'Formation développeur web francophone'],
-                ['name' => 'freeCodeCamp', 'url' => 'https://www.freecodecamp.org/', 'icon' => 'web', 'description' => 'Apprentissage gratuit de la programmation'],
-                ['name' => 'Codecademy', 'url' => 'https://www.codecademy.com/', 'icon' => 'web', 'description' => 'Cours interactifs de programmation'],
-            ],
-        ];
-        $lower = strtolower($courseName);
-        foreach ($map as $key => $platforms) {
-            if (str_contains($lower, $key)) return $platforms;
-        }
-        return [
-            ['name' => 'Khan Academy', 'url' => 'https://fr.khanacademy.org/', 'icon' => 'khan', 'description' => 'Cours gratuits tous niveaux'],
-            ['name' => 'OpenClassrooms', 'url' => 'https://openclassrooms.com/fr/', 'icon' => 'openclassrooms', 'description' => 'Formations en ligne francophones'],
-            ['name' => 'Coursera', 'url' => 'https://www.coursera.org/', 'icon' => 'coursera', 'description' => 'Cours universitaires en ligne'],
-        ];
-    }
-
-    private function buildYoutubeSearches(string $courseName): array
-    {
-        $query = urlencode("cours $courseName débutant explication");
-        return [
-            ['label' => "Cours $courseName", 'query' => "cours $courseName explication", 'url' => "https://www.youtube.com/results?search_query=" . $query],
-            ['label' => "Exercices résolus $courseName", 'query' => "exercices résolus $courseName", 'url' => "https://www.youtube.com/results?search_query=" . urlencode("exercices résolus $courseName")],
-        ];
     }
 
     /**
      * Calculate semester results for a student
+     *
+     * @param User $student The student to analyze
+     * @return array Complete semester results with statistics
      */
     public function calculateSemesterResults(User $student): array
     {
         $grades = $this->gradeRepository->createQueryBuilder('g')
             ->join('g.assessment', 'a')
-            ->leftJoin('a.course', 'c')
+            ->join('a.course', 'c')
             ->where('g.student = :student')
             ->setParameter('student', $student)
             ->getQuery()
@@ -326,8 +149,7 @@ USR;
         // Group grades by course
         $courseGrades = [];
         foreach ($grades as $grade) {
-            $course = $grade->getAssessment()->getCourse();
-            $courseName = $course ? $course->getTitle() : 'Cours sans titre';
+            $courseName = $grade->getAssessment()->getCourse()->getTitle();
             if (!isset($courseGrades[$courseName])) {
                 $courseGrades[$courseName] = [];
             }
@@ -365,7 +187,6 @@ USR;
             $courses[$courseName] = [
                 'name' => $courseName,
                 'average' => round($average, 2),
-                'averagePercentage' => round(($average / 20) * 100, 2),
                 'status' => $isPassed ? 'Réussi' : 'Échoué',
                 'grades' => $gradeDetails,
             ];

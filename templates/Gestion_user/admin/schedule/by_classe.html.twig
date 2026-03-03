@@ -52,7 +52,7 @@
                                                 <small><i class="bi bi-door-open"></i> {{ schedule.room }}</small><br>
                                             {% endif %}
                                             {% if schedule.teacher %}
-                                                <small><i class="bi bi-person"></i> {{ schedule.teacher.name ?? 'Enseignant' }}</small>
+                                                <small><i class="bi bi-person"></i> {{ schedule.teacher.name }}</small>
                                             {% endif %}
                                             <div class="mt-2">
                                                 <a href="{{ path('app_admin_schedule_edit', {id: schedule.id}) }}" class="btn btn-sm btn-light">

@@ -57,6 +57,20 @@ class UserMailerService
     }
 
     /**
+     * Send password reset link email when user requests password recovery
+     */
+    public function sendPasswordResetLinkEmail(User $user, string $resetUrl): void
+    {
+        $email = (new Email())
+            ->from(new Address($this->fromEmail, $this->fromName))
+            ->to($user->getEmail())
+            ->subject('🔐 UniLearn Platform - Password Reset Request')
+            ->html($this->getPasswordResetLinkEmailHtml($user, $resetUrl));
+
+        $this->sendEmail($email, 'password-reset-link', $user->getEmail());
+    }
+
+    /**
      * Send a simple notification email
      */
     public function sendNotificationEmail(string $to, string $subject, string $message): void
@@ -218,6 +232,57 @@ HTML;
             </div>
             
             <p>If you did not request this password reset, please contact your administrator immediately.</p>
+            <p>Best regards,<br><strong>The UniLearn Team</strong></p>
+        </div>
+        <div class="footer">
+            <p>UniLearn Platform - Education Management System</p>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+    }
+
+    private function getPasswordResetLinkEmailHtml(User $user, string $resetUrl): string
+    {
+        $userName = $user->getProfile()?->getFirstName() ?? 'User';
+        return <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; }
+        .content { background: #ffffff; padding: 30px; }
+        .info { background: #d1ecf1; border: 1px solid #0c5460; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .btn { display: inline-block; background: #f5576c; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .warning { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Reset Your Password</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{$userName}</strong>,</p>
+            <p>We received a request to reset your password. Click the button below to proceed:</p>
+            
+            <p style="text-align: center;">
+                <a href="{$resetUrl}" class="btn">Reset Password</a>
+            </p>
+            
+            <div class="info">
+                <strong>⏱️ Time Limit:</strong> This link will expire in 2 hours. After that, you'll need to request a new password reset.
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Security Notice:</strong> If you did not request a password reset, please ignore this email or contact support if you believe your account is at risk.
+            </div>
+            
             <p>Best regards,<br><strong>The UniLearn Team</strong></p>
         </div>
         <div class="footer">

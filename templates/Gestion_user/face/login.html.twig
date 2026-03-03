@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Face ID Login - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center" style="min-height: 100vh; align-items: center;">
+        <div class="col-md-7 col-lg-6">
+            <div class="card login-card animate-scale-in">
+                <div class="card-body p-4">
+                    {# Logo & Header #}
+                    <div class="text-center mb-4">
+                        <div class="login-logo">
+                            <i class="bi bi-person-bounding-box"></i>
+                        </div>
+                        <h1 class="h3 mb-2 fw-bold gradient-text">Face ID Login</h1>
+                        <p class="text-muted">Look at the camera or upload a photo to sign in</p>
+                    </div>
+
+                    {# Step 1: Loading models #}
+                    <div id="step-loading" class="text-center py-4">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <h5>Loading face detection models...</h5>
+                        <p class="text-muted small">This may take a moment on the first load.</p>
+                        <div class="progress mx-auto" style="max-width: 400px; height: 6px;">
+                            <div id="model-progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    {# Step 2: Camera / Upload #}
+                    <div id="step-capture" class="d-none">
+                        {# Camera view #}
+                        <div id="camera-section">
+                            <div class="position-relative mx-auto" style="max-width: 420px;">
+                                <video id="video" autoplay muted playsinline
+                                       class="w-100 rounded border" style="transform: scaleX(-1);"></video>
+                                <canvas id="overlay" class="position-absolute top-0 start-0 w-100 h-100"
+                                        style="pointer-events: none; transform: scaleX(-1);"></canvas>
+                            </div>
+                            <div class="text-center mt-3">
+                                <h6 id="capture-status" class="text-primary">
+                                    <i class="bi bi-camera-video"></i> Preparing camera...
+                                </h6>
+                                <button id="btn-capture" class="btn btn-primary btn-lg mt-2 d-none">
+                                    <i class="bi bi-box-arrow-in-right"></i> Sign In with Face
+                                </button>
+                            </div>
+                        </div>
+
+                        {# Upload fallback #}
+                        <div id="upload-section" class="d-none">
+                            <div class="alert alert-warning py-2">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Camera unavailable. Upload a photo of your face instead.
+                            </div>
+                            <div class="mb-3">
+                                <label for="face-upload" class="form-label">Upload a face photo</label>
+                                <input type="file" id="face-upload" class="form-control" accept="image/*">
+                            </div>
+                            <div id="upload-previews" class="d-flex flex-wrap gap-2 mb-3"></div>
+                            <button id="btn-process-uploads" class="btn btn-primary" disabled>
+                                <i class="bi bi-box-arrow-in-right"></i> Sign In with Face
+                            </button>
+                            <div id="upload-status" class="mt-2"></div>
+                        </div>
+                    </div>
+
+                    {# Verification result #}
+                    <div id="verify-result" class="d-none text-center py-4">
+                        <div id="verify-spinner" class="d-none">
+                            <div class="spinner-border text-primary mb-2" role="status"></div>
+                            <p>Recognizing your face...</p>
+                        </div>
+                        <div id="verify-success" class="d-none">
+                            <div class="text-success mb-3">
+                                <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
+                            </div>
+                            <h3 class="text-success" id="welcome-msg">Identity Verified!</h3>
+                            <p class="text-muted">Redirecting you now...</p>
+                        </div>
+                        <div id="verify-fail" class="d-none">
+                            <div class="text-danger mb-3">
+                                <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="text-danger" id="verify-fail-msg">Face not recognized.</h5>
+                            <button class="btn btn-outline-primary mt-2" id="btn-retry">
+                                <i class="bi bi-arrow-clockwise"></i> Try Again
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {# Back to normal login #}
+                    <div class="text-center">
+                        <a href="{{ path('app_login') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-envelope"></i> Sign in with Email &amp; Password
+                        </a>
+                    </div>
+
+                    {# Footer #}
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-shield-check"></i> 
+                            Face data is processed locally in your browser
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <small class="text-white-50">© 2026 UniLearn. All rights reserved.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ asset('face-api/face-api.min.js') }}"></script>
+<script>
+    const FACE_API_MODEL_URL = '{{ asset("face-api/models") }}';
+    const VERIFY_URL = '{{ path("face_login") }}';
+    const CSRF_TOKEN = '{{ csrf_token("face_login") }}';
+    const MODE = 'login';
+    let attemptsLeft = 5;
+</script>
+<script src="{{ asset('face-api/face-id.js') }}"></script>
+{% endblock %}

@@ -29,7 +29,6 @@
                             <th>Note</th>
                             <th>Pourcentage</th>
                             <th>Date</th>
-                            <th>Commentaire</th>
                             <th>Statut</th>
                         </tr>
                     </thead>
@@ -39,6 +38,7 @@
                         {% set percentage = (grade.score / maxScore) * 100 %}
                         <tr>
                             <td><strong>{{ grade.assessment.course ? grade.assessment.course.title : 'N/A' }}</strong></td>
+                            <td><strong>{{ grade.assessment.course.title }}</strong></td>
                             <td><span class="badge bg-info">{{ grade.assessment.type.value }}</span></td>
                             <td>{{ grade.assessment.title }}</td>
                             <td><strong>{{ grade.score }}/{{ maxScore }}</strong></td>
@@ -51,13 +51,6 @@
                                 </div>
                             </td>
                             <td><small class="text-muted">{{ grade.assessment.date ? grade.assessment.date|date('d/m/Y') : 'N/A' }}</small></td>
-                            <td>
-                                {% if grade.comment %}
-                                    <span class="text-muted" data-bs-toggle="tooltip" title="{{ grade.comment }}">{{ grade.comment|slice(0, 40) }}{% if grade.comment|length > 40 %}...{% endif %}</span>
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
-                            </td>
                             <td>
                                 {% if percentage >= 50 %}
                                     <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Réussi</span>

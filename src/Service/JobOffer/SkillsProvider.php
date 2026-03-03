@@ -185,28 +185,5 @@ class SkillsProvider
         return $mergedSkills;
     }
 
-    /**
-     * Check if a skill is a custom skill for a partner
-     */
-    public function isCustomSkillForPartner(string $skillName, User $partner): bool
-    {
-        if (!in_array('ROLE_BUSINESS_PARTNER', $partner->getRoles(), true)) {
-            return false;
-        }
 
-        return $this->customSkillRepository->existsForPartner($partner, $skillName);
-    }
-
-    /**
-     * Get partner custom skills only
-     */
-    public function getCustomSkillsForPartner(User $partner): array
-    {
-        if (!in_array('ROLE_BUSINESS_PARTNER', $partner->getRoles(), true)) {
-            return [];
-        }
-
-        $customSkills = $this->customSkillRepository->findByPartner($partner);
-        return array_map(fn($skill) => $skill->getName(), $customSkills);
-    }
 }

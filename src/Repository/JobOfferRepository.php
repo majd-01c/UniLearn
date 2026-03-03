@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\JobApplication;
 use App\Entity\JobOffer;
 use App\Entity\User;
 use App\Enum\JobOfferStatus;
@@ -12,6 +13,8 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<JobOffer>
+ * 
+ * Repository for JobOffer entities with JobApplication query methods
  */
 class JobOfferRepository extends ServiceEntityRepository
 {
@@ -127,6 +130,25 @@ class JobOfferRepository extends ServiceEntityRepository
             ->select('COUNT(o.id)')
             ->andWhere('o.status = :status')
             ->setParameter('status', $status)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    // === JobApplication Methods ===
+
+    /**
+     * Check if a student has already applied to a specific job offer
+     */
+    public function hasStudentApplied(JobOffer $offer, User $student): bool
+    {
+        return (bool) $this->getEntityManager()
+            ->getRepository(JobApplication::class)
+            ->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->andWhere('a.offer = :offer')
+            ->andWhere('a.student = :student')
+            ->setParameter('offer', $offer)
+            ->setParameter('student', $student)
             ->getQuery()
             ->getSingleScalarResult();
     }

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ChoiceRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ChoiceRepository::class)]
 #[ORM\Index(columns: ['question_id'])]
@@ -16,15 +17,18 @@ class Choice
 
     #[ORM\ManyToOne(targetEntity: Question::class, inversedBy: 'choices')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Question is required')]
     private ?Question $question = null;
 
     #[ORM\Column(type: 'text')]
+    #[Assert\NotBlank(message: 'Choice text is required')]
     private ?string $choiceText = null;
 
     #[ORM\Column(options: ['default' => false])]
     private bool $isCorrect = false;
 
     #[ORM\Column]
+    #[Assert\PositiveOrZero(message: 'Position must be zero or positive')]
     private int $position = 0;
 
     public function getId(): ?int

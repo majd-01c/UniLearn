@@ -7,6 +7,7 @@ use App\Repository\QuestionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: QuestionRepository::class)]
 #[ORM\Index(columns: ['quiz_id'])]
@@ -19,21 +20,27 @@ class Question
 
     #[ORM\ManyToOne(targetEntity: Quiz::class, inversedBy: 'questions')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Quiz is required')]
     private ?Quiz $quiz = null;
 
     #[ORM\Column(type: 'string', length: 20, enumType: QuestionType::class)]
+    #[Assert\NotNull(message: 'Question type is required')]
     private ?QuestionType $type = null;
 
     #[ORM\Column(type: 'text')]
+    #[Assert\NotBlank(message: 'Question text is required')]
     private ?string $questionText = null;
 
     #[ORM\Column]
+    #[Assert\Positive(message: 'Points must be a positive number')]
     private int $points = 1;
 
     #[ORM\Column]
+    #[Assert\PositiveOrZero(message: 'Position must be zero or positive')]
     private int $position = 0;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Assert\Length(max: 2000, maxMessage: 'Explanation cannot exceed {{ limit }} characters')]
     private ?string $explanation = null;
 
     /**

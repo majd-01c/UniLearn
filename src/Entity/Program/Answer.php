@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\AnswerRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AnswerRepository::class)]
 #[ORM\Index(columns: ['user_answer_id'])]
@@ -17,10 +18,12 @@ class Answer
 
     #[ORM\ManyToOne(targetEntity: UserAnswer::class, inversedBy: 'answers')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'User answer is required')]
     private ?UserAnswer $userAnswer = null;
 
     #[ORM\ManyToOne(targetEntity: Question::class, inversedBy: 'answers')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Question is required')]
     private ?Question $question = null;
 
     #[ORM\ManyToOne(targetEntity: Choice::class)]
@@ -34,6 +37,7 @@ class Answer
     private bool $isCorrect = false;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Points earned must be zero or positive')]
     private ?int $pointsEarned = null;
 
     public function getId(): ?int

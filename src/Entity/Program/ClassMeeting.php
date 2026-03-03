@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ClassMeetingRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ClassMeetingRepository::class)]
 #[ORM\Index(columns: ['teacher_classe_id'])]
@@ -23,18 +24,26 @@ class ClassMeeting
 
     #[ORM\ManyToOne(targetEntity: TeacherClasse::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Teacher class is required')]
     private ?TeacherClasse $teacherClasse = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Meeting title is required')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Title must be at least {{ limit }} characters')]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 5000, maxMessage: 'Description cannot exceed {{ limit }} characters')]
     private ?string $description = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Room code is required')]
+    #[Assert\Length(max: 100)]
     private ?string $roomCode = null;
 
     #[ORM\Column(length: 20)]
+    #[Assert\NotBlank]
+    #[Assert\Choice(choices: ['scheduled', 'live', 'ended', 'cancelled'], message: 'Invalid meeting status')]
     private string $status = self::STATUS_SCHEDULED;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]

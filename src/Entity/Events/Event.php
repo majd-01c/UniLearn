@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 #[ORM\Index(columns: ['status'])]
@@ -20,21 +21,29 @@ class Event
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Event title is required')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Title must be at least {{ limit }} characters')]
     private ?string $title = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Event type is required')]
+    #[Assert\Length(max: 100)]
     private ?string $type = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 5000, maxMessage: 'Description cannot exceed {{ limit }} characters')]
     private ?string $description = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
     private ?string $location = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Assert\NotNull(message: 'Start date is required')]
     private ?\DateTimeInterface $startAt = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Positive(message: 'Capacity must be a positive number')]
     private ?int $capacity = null;
 
     #[ORM\Column(type: 'string', enumType: EventStatus::class)]

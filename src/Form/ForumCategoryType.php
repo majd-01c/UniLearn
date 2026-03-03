@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\ForumCategory;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -48,18 +49,55 @@ class ForumCategoryType extends AbstractType
                     ]),
                 ],
             ])
-            ->add('icon', TextType::class, [
-                'label' => 'Icon (Bootstrap Icon class)',
+            ->add('icon', ChoiceType::class, [
+                'label' => 'Icon',
                 'required' => false,
+                'placeholder' => '-- Select an icon --',
                 'attr' => [
-                    'placeholder' => 'e.g. bi-chat-dots',
-                    'class' => 'form-control'
+                    'class' => 'form-select'
                 ],
-                'constraints' => [
-                    new Assert\Length([
-                        'max' => 100,
-                        'maxMessage' => 'The icon class cannot exceed {{ limit }} characters.',
-                    ]),
+                'choices' => [
+                    'Chat & Communication' => [
+                        'Chat Dots' => 'bi-chat-dots',
+                        'Chat Left Text' => 'bi-chat-left-text',
+                        'Chat Square' => 'bi-chat-square',
+                        'Megaphone' => 'bi-megaphone',
+                        'Envelope' => 'bi-envelope',
+                        'Bell' => 'bi-bell',
+                        'Broadcast' => 'bi-broadcast',
+                    ],
+                    'Education' => [
+                        'Book' => 'bi-book',
+                        'Mortarboard' => 'bi-mortarboard',
+                        'Journal' => 'bi-journal-text',
+                        'Pencil Square' => 'bi-pencil-square',
+                        'Clipboard' => 'bi-clipboard-check',
+                        'Award' => 'bi-award',
+                        'Lightbulb' => 'bi-lightbulb',
+                    ],
+                    'Technology' => [
+                        'Code Slash' => 'bi-code-slash',
+                        'Terminal' => 'bi-terminal',
+                        'Laptop' => 'bi-laptop',
+                        'CPU' => 'bi-cpu',
+                        'Database' => 'bi-database',
+                        'Globe' => 'bi-globe',
+                        'Bug' => 'bi-bug',
+                    ],
+                    'General' => [
+                        'Question Circle' => 'bi-question-circle',
+                        'Info Circle' => 'bi-info-circle',
+                        'Star' => 'bi-star',
+                        'Heart' => 'bi-heart',
+                        'People' => 'bi-people',
+                        'Flag' => 'bi-flag',
+                        'Folder' => 'bi-folder',
+                        'Gear' => 'bi-gear',
+                        'Shield' => 'bi-shield-check',
+                        'Trophy' => 'bi-trophy',
+                        'Calendar' => 'bi-calendar-event',
+                        'Lightning' => 'bi-lightning',
+                    ],
                 ],
             ])
             ->add('position', IntegerType::class, [

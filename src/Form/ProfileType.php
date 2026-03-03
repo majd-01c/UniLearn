@@ -62,8 +62,8 @@ class ProfileType extends AbstractType
                 'label' => 'Profile Photo',
                 'required' => false,
                 'allow_delete' => true,
-                'download_uri' => true,
-                'image_uri' => true,
+                'download_uri' => false,
+                'image_uri' => false,
                 'attr' => [
                     'class' => 'form-control',
                     'accept' => 'image/*',

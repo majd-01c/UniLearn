@@ -13,10 +13,12 @@ use App\Entity\Quiz;
 use App\Entity\StudentClasse;
 use App\Entity\User;
 use App\Entity\UserAnswer;
+use App\Enum\QuestionType;
 use App\Repository\ClassMeetingRepository;
 use App\Repository\QuizRepository;
 use App\Repository\StudentClasseRepository;
 use App\Repository\UserAnswerRepository;
+use App\Service\AI\GeminiAIService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +35,8 @@ class StudentLearningController extends AbstractController
         private StudentClasseRepository $studentClasseRepository,
         private QuizRepository $quizRepository,
         private UserAnswerRepository $userAnswerRepository,
-        private ClassMeetingRepository $classMeetingRepository
+        private ClassMeetingRepository $classMeetingRepository,
+        private GeminiAIService $geminiAIService
     ) {}
 
     #[Route('', name: 'app_student_learning_index')]
@@ -373,37 +376,135 @@ class StudentLearningController extends AbstractController
         $totalScore = 0;
         $totalPoints = 0;
         $answers = $request->request->all('answers');
+        $aiFeedback = []; // Store AI feedback for TEXT questions
 
         foreach ($quiz->getQuestions() as $question) {
             $totalPoints += $question->getPoints();
             $questionId = $question->getId();
-            $selectedChoiceId = $answers[$questionId] ?? null;
+            $selectedAnswer = $answers[$questionId] ?? null;
+            $questionType = $question->getType();
 
-            // Create Answer record
-            $answer = new Answer();
-            $answer->setUserAnswer($userAnswer);
-            $answer->setQuestion($question);
+            // Handle TEXT type questions with AI grading
+            if ($questionType === QuestionType::TEXT) {
+                $answer = new Answer();
+                $answer->setUserAnswer($userAnswer);
+                $answer->setQuestion($question);
+                $answer->setTextAnswer($selectedAnswer);
 
-            if ($selectedChoiceId) {
-                $choice = $this->entityManager->getRepository(Choice::class)->find($selectedChoiceId);
-                if ($choice && $choice->getQuestion()->getId() === $question->getId()) {
-                    $answer->setSelectedChoice($choice);
-                    
-                    if ($choice->isCorrect()) {
-                        $answer->setIsCorrect(true);
-                        $answer->setPointsEarned($question->getPoints());
-                        $totalScore += $question->getPoints();
-                    } else {
+                if (!empty(trim($selectedAnswer ?? ''))) {
+                    try {
+                        // Get expected answer from explanation if available
+                        $expectedAnswer = $question->getExplanation() ?? $question->getQuestionText();
+                        
+                        // Use AI to evaluate the answer
+                        $evaluation = $this->geminiAIService->evaluateTextAnswer(
+                            $question->getQuestionText(),
+                            $expectedAnswer,
+                            $selectedAnswer,
+                            $question->getPoints()
+                        );
+
+                        $answer->setIsCorrect($evaluation['isCorrect']);
+                        $answer->setPointsEarned($evaluation['score']);
+                        $totalScore += $evaluation['score'];
+                        
+                        // Store feedback for display
+                        $aiFeedback[$questionId] = $evaluation['feedback'];
+                    } catch (\Exception $e) {
+                        // If AI grading fails, mark for manual review (give 0 points)
                         $answer->setIsCorrect(false);
                         $answer->setPointsEarned(0);
+                        $aiFeedback[$questionId] = 'Pending manual review.';
                     }
+                } else {
+                    $answer->setIsCorrect(false);
+                    $answer->setPointsEarned(0);
                 }
-            } else {
-                $answer->setIsCorrect(false);
-                $answer->setPointsEarned(0);
+
+                $this->entityManager->persist($answer);
+                continue;
             }
 
-            $this->entityManager->persist($answer);
+            // Get correct choices for this question
+            $correctChoices = $question->getCorrectChoices();
+            $correctChoiceIds = array_map(fn($c) => $c->getId(), $correctChoices->toArray());
+            $totalCorrectChoices = count($correctChoiceIds);
+
+            // Check if this is a multi-select answer (array) or single (string/int)
+            if (is_array($selectedAnswer)) {
+                // Multi-select MCQ - calculate partial credit
+                $selectedIds = array_map('intval', $selectedAnswer);
+                $correctSelected = 0;
+                $incorrectSelected = 0;
+                
+                foreach ($selectedIds as $selectedId) {
+                    if (in_array($selectedId, $correctChoiceIds)) {
+                        $correctSelected++;
+                    } else {
+                        $incorrectSelected++;
+                    }
+                }
+                
+                // Calculate score: correct selections minus incorrect selections, minimum 0
+                // Full points only if ALL correct answers selected and NO incorrect answers
+                $questionScore = 0;
+                if ($totalCorrectChoices > 0) {
+                    if ($correctSelected === $totalCorrectChoices && $incorrectSelected === 0) {
+                        // Perfect answer - full points
+                        $questionScore = $question->getPoints();
+                    } else {
+                        // Partial credit: (correct - incorrect) / totalCorrect * points
+                        $netCorrect = max(0, $correctSelected - $incorrectSelected);
+                        $questionScore = (int) round(($netCorrect / $totalCorrectChoices) * $question->getPoints());
+                    }
+                }
+                
+                $totalScore += $questionScore;
+                
+                // Create Answer record with first selected choice for reference
+                $answer = new Answer();
+                $answer->setUserAnswer($userAnswer);
+                $answer->setQuestion($question);
+                
+                if (!empty($selectedIds)) {
+                    $firstChoice = $this->entityManager->getRepository(Choice::class)->find($selectedIds[0]);
+                    $answer->setSelectedChoice($firstChoice);
+                    // Store all selected IDs in textAnswer for reference
+                    $answer->setTextAnswer(json_encode($selectedIds));
+                }
+                
+                $isFullyCorrect = ($correctSelected === $totalCorrectChoices && $incorrectSelected === 0);
+                $answer->setIsCorrect($isFullyCorrect);
+                $answer->setPointsEarned($questionScore);
+                
+                $this->entityManager->persist($answer);
+            } else {
+                // Single select (radio button) - original logic
+                $answer = new Answer();
+                $answer->setUserAnswer($userAnswer);
+                $answer->setQuestion($question);
+
+                if ($selectedAnswer) {
+                    $choice = $this->entityManager->getRepository(Choice::class)->find($selectedAnswer);
+                    if ($choice && $choice->getQuestion()->getId() === $question->getId()) {
+                        $answer->setSelectedChoice($choice);
+                        
+                        if ($choice->isCorrect()) {
+                            $answer->setIsCorrect(true);
+                            $answer->setPointsEarned($question->getPoints());
+                            $totalScore += $question->getPoints();
+                        } else {
+                            $answer->setIsCorrect(false);
+                            $answer->setPointsEarned(0);
+                        }
+                    }
+                } else {
+                    $answer->setIsCorrect(false);
+                    $answer->setPointsEarned(0);
+                }
+
+                $this->entityManager->persist($answer);
+            }
         }
 
         // Update UserAnswer

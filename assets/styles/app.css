@@ -1618,24 +1618,31 @@ select.form-select:focus {
 .form-check-input {
     width: 1.25rem;
     height: 1.25rem;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.35);
     border-radius: var(--radius-sm);
     transition: var(--transition-fast);
     background: var(--surface-elevated);
+    cursor: pointer;
+}
+
+.form-check-input:hover {
+    border-color: var(--primary-400);
 }
 
 .form-check-input:checked {
-    background: var(--accent-gradient);
+    background: var(--primary-500);
     border-color: var(--primary-500);
 }
 
 .form-check-input:focus {
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
 }
 
 .form-check-label {
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
 }
 
 /* Fix browser autocomplete styles */
@@ -2701,6 +2708,97 @@ hr {
     box-shadow: 0 8px 25px rgba(76, 110, 245, 0.35);
 }
 
+[data-theme="light"] .btn-success {
+    background: var(--success-gradient);
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.25);
+}
+
+[data-theme="light"] .btn-success:hover {
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.35);
+}
+
+[data-theme="light"] .btn-danger {
+    background: var(--danger-gradient);
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);
+}
+
+[data-theme="light"] .btn-danger:hover {
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.35);
+}
+
+[data-theme="light"] .btn-warning {
+    background: var(--warning-gradient);
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);
+}
+
+[data-theme="light"] .btn-warning:hover {
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.35);
+}
+
+[data-theme="light"] .btn-info {
+    background: var(--info-gradient);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="light"] .btn-info:hover {
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+}
+
+[data-theme="light"] .btn-outline-primary {
+    border: 2px solid var(--primary-500);
+    color: var(--primary-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-primary:hover {
+    background: var(--primary-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-success {
+    border: 2px solid var(--success-500);
+    color: var(--success-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-success:hover {
+    background: var(--success-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-danger {
+    border: 2px solid var(--danger-500);
+    color: var(--danger-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-danger:hover {
+    background: var(--danger-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-warning {
+    border: 2px solid var(--warning-500);
+    color: var(--warning-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-warning:hover {
+    background: var(--warning-500);
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-info {
+    border: 2px solid var(--info-500);
+    color: var(--info-600) !important;
+    background: transparent;
+}
+
+[data-theme="light"] .btn-outline-info:hover {
+    background: var(--info-500);
+    color: white !important;
+}
+
 /* --- Forms --- */
 [data-theme="light"] .form-control,
 [data-theme="light"] .form-select {
@@ -2731,12 +2829,26 @@ hr {
 }
 
 [data-theme="light"] .form-check-input {
-    border: 2px solid rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--gray-400);
     background: #ffffff;
 }
 
+[data-theme="light"] .form-check-input:hover {
+    border-color: var(--primary-400);
+}
+
+[data-theme="light"] .form-check-input:checked {
+    background-color: var(--primary-500);
+    border-color: var(--primary-500);
+}
+
 [data-theme="light"] .form-check-input:focus {
-    box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.12);
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.15);
+}
+
+[data-theme="light"] .form-check-label {
+    color: var(--gray-700);
 }
 
 [data-theme="light"] .form-control:disabled,
@@ -2747,6 +2859,61 @@ hr {
 [data-theme="light"] .input-group-text {
     background: var(--gray-100);
     border: 1px solid rgba(0, 0, 0, 0.15);
+    color: var(--gray-700);
+}
+
+[data-theme="light"] .input-group-text .form-check-input {
+    border: 2px solid rgba(0, 0, 0, 0.25);
+    background: #ffffff;
+}
+
+[data-theme="light"] .input-group-text .form-check-input:checked {
+    background: var(--primary-500);
+    border-color: var(--primary-500);
+}
+
+[data-theme="light"] .input-group .form-control {
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .input-group .btn-outline-danger {
+    border-color: rgba(0, 0, 0, 0.15);
+    border-left: none;
+}
+
+/* --- Quiz Page Fixes --- */
+[data-theme="light"] .list-group-item {
+    background-color: var(--gray-50);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .list-group-item:hover {
+    background-color: #ffffff;
+}
+
+[data-theme="light"] .list-group-item .badge {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .list-group-item .text-success {
+    color: var(--success-600) !important;
+}
+
+[data-theme="light"] .list-group-item .text-muted {
+    color: var(--gray-500) !important;
+}
+
+[data-theme="light"] .list-group-item .fw-medium {
+    color: var(--gray-800);
+}
+
+[data-theme="light"] #choices-section label.form-label {
+    color: var(--gray-700);
+}
+
+[data-theme="light"] #choices-section small.text-muted {
+    color: var(--gray-500) !important;
 }
 
 /* --- Tables --- */
@@ -4084,6 +4251,67 @@ i.text-secondary {
     background: var(--gray-100);
     color: var(--gray-900) !important;
     border-color: rgba(0,0,0,0.25);
+}
+
+/* --- Light Mode Outline Button Icons --- */
+[data-theme="light"] .btn-outline-primary i,
+[data-theme="light"] .btn-outline-primary i.bi {
+    color: var(--primary-600) !important;
+}
+
+[data-theme="light"] .btn-outline-primary:hover i,
+[data-theme="light"] .btn-outline-primary:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-success i,
+[data-theme="light"] .btn-outline-success i.bi {
+    color: var(--success-600) !important;
+}
+
+[data-theme="light"] .btn-outline-success:hover i,
+[data-theme="light"] .btn-outline-success:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-danger i,
+[data-theme="light"] .btn-outline-danger i.bi {
+    color: var(--danger-600) !important;
+}
+
+[data-theme="light"] .btn-outline-danger:hover i,
+[data-theme="light"] .btn-outline-danger:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-warning i,
+[data-theme="light"] .btn-outline-warning i.bi {
+    color: var(--warning-600) !important;
+}
+
+[data-theme="light"] .btn-outline-warning:hover i,
+[data-theme="light"] .btn-outline-warning:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-info i,
+[data-theme="light"] .btn-outline-info i.bi {
+    color: var(--info-600) !important;
+}
+
+[data-theme="light"] .btn-outline-info:hover i,
+[data-theme="light"] .btn-outline-info:hover i.bi {
+    color: white !important;
+}
+
+[data-theme="light"] .btn-outline-secondary i,
+[data-theme="light"] .btn-outline-secondary i.bi {
+    color: var(--gray-600) !important;
+}
+
+[data-theme="light"] .btn-outline-secondary:hover i,
+[data-theme="light"] .btn-outline-secondary:hover i.bi {
+    color: var(--gray-900) !important;
 }
 
 /* --- Enhanced List Group Items --- */
@@ -7417,4 +7645,57 @@ body:not(.back-office) .table thead th {
     background: rgba(248, 113, 113, 0.1);
     border-color: rgba(248, 113, 113, 0.3);
     color: #f87171;
+}
+
+/* ── Quiz Dropdown Styles (Light/Dark Theme) ─────────────────────────────── */
+.quiz-dropdown {
+    min-width: 180px;
+    padding: 0.5rem 0;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quiz-dropdown .dropdown-item {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.quiz-dropdown .dropdown-item:hover {
+    background-color: var(--primary-500);
+    color: #fff;
+}
+
+.quiz-dropdown .dropdown-item:hover i {
+    color: #fff !important;
+}
+
+/* Light theme dropdown styles */
+[data-theme="light"] .quiz-dropdown {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+}
+
+[data-theme="light"] .quiz-dropdown .dropdown-item {
+    color: #333;
+}
+
+[data-theme="light"] .quiz-dropdown .dropdown-item:hover {
+    background-color: #4c6ef5;
+    color: #fff;
+}
+
+/* Dark theme dropdown styles */
+[data-theme="dark"] .quiz-dropdown {
+    background-color: var(--gray-200);
+    border: 1px solid var(--gray-300);
+}
+
+[data-theme="dark"] .quiz-dropdown .dropdown-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .quiz-dropdown .dropdown-item:hover {
+    background-color: var(--primary-500);
+    color: #fff;
 }

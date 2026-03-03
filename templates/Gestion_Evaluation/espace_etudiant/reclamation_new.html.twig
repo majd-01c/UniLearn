@@ -8,7 +8,7 @@
     
     <div class="card">
         <div class="card-body">
-            {{ form_start(form) }}
+            {{ form_start(form, {'method': 'POST', 'attr': {'data-turbo': 'false'}}) }}
                 <div class="mb-3">
                     {{ form_row(form.subject) }}
                 </div>

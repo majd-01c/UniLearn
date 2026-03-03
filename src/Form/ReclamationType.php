@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\Reclamation;
+use App\Entity\Evaluation\Reclamation;
 use App\Entity\Course;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;

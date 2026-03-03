@@ -13,6 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: AssessmentRepository::class)]
 #[ORM\Index(columns: ['type'])]
 #[ORM\Index(columns: ['teacher_id'])]
+#[ORM\Index(columns: ['classe_id'])]
 class Assessment
 {
     #[ORM\Id]
@@ -42,6 +43,9 @@ class Assessment
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $maxScore = 20.0;
+
     #[ORM\ManyToOne(targetEntity: Contenu::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Contenu $contenu = null;
@@ -49,6 +53,10 @@ class Assessment
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'assessmentsCreated')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $teacher = null;
+
+    #[ORM\ManyToOne(targetEntity: Classe::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Classe $classe = null;
 
     /**
      * @var Collection<int, Grade>
@@ -59,9 +67,10 @@ class Assessment
     public function __construct()
     {
         $this->grades = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
     }
+
 
     public function getId(): ?int
     {
@@ -182,19 +191,41 @@ class Assessment
         }
         return $this;
     }
+
+    public function getMaxScore(): float
+    {
+        return $this->maxScore;
+    }
+
+    public function setMaxScore(float $maxScore): static
+    {
+        $this->maxScore = $maxScore;
+        return $this;
+    }
+
+    public function getClasse(): ?Classe
+    {
+        return $this->classe;
+    }
+
+    public function setClasse(?Classe $classe): static
+    {
+        $this->classe = $classe;
+        return $this;
+    }
+
     #[ORM\ManyToOne(targetEntity: Course::class)]
-#[ORM\JoinColumn(nullable: false)]
-private ?Course $course = null;
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Course $course = null;
 
-public function getCourse(): ?Course
-{
-    return $this->course;
-}
+    public function getCourse(): ?Course
+    {
+        return $this->course;
+    }
 
-public function setCourse(?Course $course): self
-{
-    $this->course = $course;
-    return $this;
-}
-
+    public function setCourse(?Course $course): self
+    {
+        $this->course = $course;
+        return $this;
+    }
 }

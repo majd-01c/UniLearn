@@ -45,7 +45,7 @@
             <div class="card-body py-2">
                 <form method="GET" action="{{ path('app_forum_category', {id: category.id}) }}" class="d-flex">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
+                        <span class="input-group-text border-end-0">
                             <i class="bi bi-search"></i>
                         </span>
                         <input type="text" name="search" class="form-control border-start-0" 
@@ -62,7 +62,7 @@
 
         {# Topics List #}
         <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-list-ul"></i> Topics
                     {% if search %}
@@ -143,7 +143,7 @@
 
                     {# Pagination #}
                     {% if totalPages > 1 %}
-                    <div class="card-footer bg-white">
+                    <div class="card-footer">
                         <nav aria-label="Topics pagination">
                             <ul class="pagination justify-content-center mb-0">
                                 <li class="page-item {{ page <= 1 ? 'disabled' : '' }}">

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\ForumCategory;
 use App\Entity\ForumComment;
+use App\Entity\ForumCommentReaction;
 use App\Entity\ForumTopic;
 use App\Enum\TopicStatus;
 use App\Form\ForumCategoryType;
@@ -12,8 +13,10 @@ use App\Form\ForumTopicType;
 use App\Repository\ForumCategoryRepository;
 use App\Repository\ForumCommentRepository;
 use App\Repository\ForumTopicRepository;
+use App\Service\ForumAiAssistantService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,7 +32,8 @@ class ForumController extends AbstractController
         private ForumCategoryRepository $categoryRepository,
         private ForumTopicRepository $topicRepository,
         private ForumCommentRepository $commentRepository,
-        private RequestStack $requestStack
+        private RequestStack $requestStack,
+        private ForumAiAssistantService $aiAssistant
     ) {}
 
     /**
@@ -152,7 +156,179 @@ class ForumController extends AbstractController
 
         return $this->render('Gestion_Communication/forum/new_topic.html.twig', [
             'form' => $form,
+            'aiEnabled' => true,
         ]);
+    }
+
+    /**
+     * Get AI suggestions for similar topics (AJAX endpoint)
+     */
+    #[Route('/ai-suggestions', name: 'app_forum_ai_suggestions', methods: ['POST'])]
+    public function aiSuggestions(Request $request): JsonResponse
+    {
+        $question = $request->request->get('question', '');
+        $categoryId = $request->request->get('categoryId');
+
+        if (empty($question) || strlen($question) < 3) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Question too short. Please provide more details.'
+            ]);
+        }
+
+        try {
+            $result = $this->aiAssistant->getSimilarTopics($question, $categoryId ? (int) $categoryId : null);
+            
+            // When fromCache is true, topics are already formatted arrays
+            if ($result['fromCache']) {
+                $topics = array_map(function($topic) {
+                    return [
+                        'id' => $topic['id'],
+                        'title' => $topic['title'],
+                        'url' => $this->generateUrl('app_forum_topic', ['id' => $topic['id']]),
+                        'commentsCount' => $topic['commentsCount'],
+                        'hasAcceptedAnswers' => $topic['hasAcceptedAnswers'],
+                        'categoryName' => $topic['categoryName'] ?? null,
+                        'status' => $topic['status'] ?? 'open'
+                    ];
+                }, $result['topics']);
+            } else {
+                // When not cached, topics are ForumTopic entities
+                $topics = array_map(function($topic) {
+                    return [
+                        'id' => $topic->getId(),
+                        'title' => $topic->getTitle(),
+                        'url' => $this->generateUrl('app_forum_topic', ['id' => $topic->getId()]),
+                        'commentsCount' => $topic->getCommentsCount(),
+                        'hasAcceptedAnswers' => $topic->hasAcceptedAnswers(),
+                        'categoryName' => $topic->getCategory()?->getName(),
+                        'status' => $topic->getStatus()->value
+                    ];
+                }, $result['topics']);
+            }
+
+            return new JsonResponse([
+                'success' => true,
+                'topics' => $topics,
+                'advice' => $result['aiAdvice'],
+                'fromCache' => $result['fromCache']
+            ]);
+
+        } catch (\Exception $e) {
+            // Log the actual error for debugging
+            error_log('AI Suggestions Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate AI answer for a topic (AJAX endpoint)
+     */
+    #[Route('/topic/{id}/ai-answer', name: 'app_forum_ai_answer', methods: ['POST'])]
+    public function aiAnswer(ForumTopic $topic): JsonResponse
+    {
+        try {
+            $geminiApi = $this->aiAssistant->getGeminiApi();
+            
+            if (!$geminiApi->isAvailable()) {
+                return new JsonResponse(['success' => false, 'message' => 'AI service not available']);
+            }
+
+            // Gather existing comments for context
+            $existingComments = [];
+            foreach ($topic->getTopLevelComments() as $comment) {
+                $existingComments[] = [
+                    'content' => mb_substr($comment->getContent(), 0, 500),
+                    'isAccepted' => $comment->isAccepted(),
+                    'isTeacherResponse' => $comment->isTeacherResponse(),
+                ];
+            }
+
+            $answer = $geminiApi->generateTopicAnswer(
+                $topic->getTitle(),
+                mb_substr($topic->getContent(), 0, 1000),
+                $existingComments
+            );
+
+            if (!$answer) {
+                return new JsonResponse(['success' => false, 'message' => 'AI could not generate an answer']);
+            }
+
+            return new JsonResponse([
+                'success' => true,
+                'answer' => $answer,
+            ]);
+        } catch (\Exception $e) {
+            error_log('AI Answer Error: ' . $e->getMessage());
+            return new JsonResponse(['success' => false, 'message' => 'AI error occurred'], 500);
+        }
+    }
+
+    /**
+     * Check comment text for toxicity (AJAX endpoint)
+     */
+    #[Route('/comment/check-toxicity', name: 'app_forum_check_toxicity', methods: ['POST'])]
+    public function checkToxicity(Request $request): JsonResponse
+    {
+        $text = $request->request->get('text', '');
+
+        if (empty($text) || strlen($text) < 3) {
+            return new JsonResponse(['success' => true, 'isToxic' => false]);
+        }
+
+        try {
+            $geminiApi = $this->aiAssistant->getGeminiApi();
+            
+            if (!$geminiApi->isAvailable()) {
+                return new JsonResponse(['success' => true, 'isToxic' => false]);
+            }
+
+            $result = $geminiApi->checkToxicity($text);
+
+            return new JsonResponse([
+                'success' => true,
+                'isToxic' => $result['isToxic'] ?? false,
+                'severity' => $result['severity'] ?? 'none',
+                'reason' => $result['reason'] ?? '',
+            ]);
+        } catch (\Exception $e) {
+            error_log('Toxicity Check Error: ' . $e->getMessage());
+            return new JsonResponse(['success' => true, 'isToxic' => false]);
+        }
+    }
+
+    /**
+     * Rate a comment's quality (AJAX endpoint)
+     */
+    #[Route('/comment/{id}/ai-rate', name: 'app_forum_ai_rate_comment', methods: ['POST'])]
+    public function aiRateComment(ForumComment $comment): JsonResponse
+    {
+        try {
+            $geminiApi = $this->aiAssistant->getGeminiApi();
+            
+            if (!$geminiApi->isAvailable()) {
+                return new JsonResponse(['success' => false, 'message' => 'AI service not available']);
+            }
+
+            $topic = $comment->getTopic();
+            $result = $geminiApi->rateAnswerQuality(
+                $topic->getTitle() . "\n" . mb_substr($topic->getContent(), 0, 500),
+                mb_substr($comment->getContent(), 0, 500)
+            );
+
+            return new JsonResponse([
+                'success' => true,
+                'score' => $result['score'] ?? 0,
+                'label' => $result['label'] ?? 'Not rated',
+                'reason' => $result['reason'] ?? '',
+            ]);
+        } catch (\Exception $e) {
+            error_log('AI Rate Error: ' . $e->getMessage());
+            return new JsonResponse(['success' => false, 'message' => 'AI error occurred'], 500);
+        }
     }
 
     /**
@@ -515,6 +691,62 @@ class ForumController extends AbstractController
         }
 
         return $this->redirectToRoute('app_forum_admin_categories');
+    }
+
+    // ================================
+    // COMMENT REACTIONS (LIKE/DISLIKE)
+    // ================================
+
+    /**
+     * Handle like/dislike reaction on a comment
+     */
+    #[Route('/comment/{id}/react/{type}', name: 'app_forum_comment_react', methods: ['POST'])]
+    public function reactToComment(
+        ForumComment $comment,
+        string $type,
+        Request $request
+    ): Response {
+        // Validate type
+        if (!in_array($type, ['like', 'dislike'])) {
+            throw $this->createNotFoundException('Invalid reaction type');
+        }
+
+        // CSRF token validation
+        if (!$this->isCsrfTokenValid('react-comment-' . $comment->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token');
+            return $this->redirectToRoute('app_forum_topic', ['id' => $comment->getTopic()->getId()]);
+        }
+
+        $user = $this->getUser();
+        $reactionRepo = $this->em->getRepository(ForumCommentReaction::class);
+        
+        // Check if user already has a reaction
+        $existingReaction = $reactionRepo->findUserReaction($user, $comment);
+
+        if ($existingReaction) {
+            // If same type, remove it (toggle off)
+            if ($existingReaction->getType() === $type) {
+                $this->em->remove($existingReaction);
+            } else {
+                // If different type, update it
+                $existingReaction->setType($type);
+            }
+        } else {
+            // Create new reaction
+            $reaction = new ForumCommentReaction();
+            $reaction->setUser($user);
+            $reaction->setComment($comment);
+            $reaction->setType($type);
+            $this->em->persist($reaction);
+        }
+
+        $this->em->flush();
+
+        // Redirect back to the topic with anchor to comment
+        return $this->redirectToRoute('app_forum_topic', [
+            'id' => $comment->getTopic()->getId(),
+            '_fragment' => 'comment-' . $comment->getId()
+        ]);
     }
 
     // ================================

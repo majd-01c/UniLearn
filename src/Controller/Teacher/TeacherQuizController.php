@@ -22,6 +22,7 @@ use App\Service\AI\GeminiAIService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -507,6 +508,151 @@ class TeacherQuizController extends AbstractController
             'teacherClasse' => $teacherClasse,
             'quiz' => $quiz,
             'userAnswers' => $userAnswers,
+        ]);
+    }
+
+    #[Route('/{teacherClasseId}/quiz/{quizId}/student/{userAnswerId}/review', name: 'app_teacher_quiz_review_answers', requirements: ['teacherClasseId' => '\d+', 'quizId' => '\d+', 'userAnswerId' => '\d+'], methods: ['GET'])]
+    public function reviewStudentAnswers(int $teacherClasseId, int $quizId, int $userAnswerId): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $teacherClasse = $this->teacherClasseRepository->find($teacherClasseId);
+        
+        if (!$teacherClasse || $teacherClasse->getTeacher()->getId() !== $user->getId()) {
+            $this->addFlash('error', 'Unauthorized action.');
+            return $this->redirectToRoute('app_teacher_my_classes');
+        }
+
+        $quiz = $this->quizRepository->find($quizId);
+        if (!$quiz || !$this->verifyQuizBelongsToTeacher($quiz, $teacherClasse)) {
+            $this->addFlash('error', 'Quiz not found.');
+            return $this->redirectToRoute('app_teacher_classe_show', ['id' => $teacherClasseId]);
+        }
+
+        $userAnswer = $this->userAnswerRepository->find($userAnswerId);
+        if (!$userAnswer || $userAnswer->getQuiz()->getId() !== $quiz->getId()) {
+            $this->addFlash('error', 'Student submission not found.');
+            return $this->redirectToRoute('app_teacher_quiz_results', [
+                'teacherClasseId' => $teacherClasseId,
+                'quizId' => $quizId
+            ]);
+        }
+
+        // Get only TEXT type answers
+        $textAnswers = [];
+        foreach ($userAnswer->getAnswers() as $answer) {
+            if ($answer->getQuestion()->getType() === QuestionType::TEXT) {
+                $textAnswers[] = $answer;
+            }
+        }
+
+        return $this->render('Gestion_Program/teacher_quiz/review_answers.html.twig', [
+            'teacherClasse' => $teacherClasse,
+            'quiz' => $quiz,
+            'userAnswer' => $userAnswer,
+            'textAnswers' => $textAnswers,
+        ]);
+    }
+
+    #[Route('/{teacherClasseId}/quiz/{quizId}/answer/{answerId}/detect-ai', name: 'app_teacher_quiz_detect_ai', requirements: ['teacherClasseId' => '\d+', 'quizId' => '\d+', 'answerId' => '\d+'], methods: ['POST'])]
+    public function detectAI(Request $request, int $teacherClasseId, int $quizId, int $answerId): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $teacherClasse = $this->teacherClasseRepository->find($teacherClasseId);
+        
+        if (!$teacherClasse || $teacherClasse->getTeacher()->getId() !== $user->getId()) {
+            return new JsonResponse(['error' => 'Unauthorized'], 403);
+        }
+
+        $quiz = $this->quizRepository->find($quizId);
+        if (!$quiz || !$this->verifyQuizBelongsToTeacher($quiz, $teacherClasse)) {
+            return new JsonResponse(['error' => 'Quiz not found'], 404);
+        }
+
+        $answer = $this->entityManager->getRepository(Answer::class)->find($answerId);
+        if (!$answer || $answer->getUserAnswer()->getQuiz()->getId() !== $quiz->getId()) {
+            return new JsonResponse(['error' => 'Answer not found'], 404);
+        }
+
+        if ($answer->getQuestion()->getType() !== QuestionType::TEXT) {
+            return new JsonResponse(['error' => 'AI detection only works on text answers'], 400);
+        }
+
+        if (empty(trim($answer->getTextAnswer() ?? ''))) {
+            return new JsonResponse(['error' => 'No text answer to analyze'], 400);
+        }
+
+        // Run AI detection
+        $result = $this->geminiAIService->detectAIContent(
+            $answer->getQuestion()->getQuestionText(),
+            $answer->getTextAnswer()
+        );
+
+        // Save the result
+        $answer->setAiDetectionScore($result['aiProbability']);
+        $answer->setAiDetectionResult(json_encode($result));
+        $this->entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'aiProbability' => $result['aiProbability'],
+            'analysis' => $result['analysis'],
+            'indicators' => $result['indicators'],
+        ]);
+    }
+
+    #[Route('/{teacherClasseId}/quiz/{quizId}/student/{userAnswerId}/detect-all-ai', name: 'app_teacher_quiz_detect_all_ai', requirements: ['teacherClasseId' => '\d+', 'quizId' => '\d+', 'userAnswerId' => '\d+'], methods: ['POST'])]
+    public function detectAllAI(int $teacherClasseId, int $quizId, int $userAnswerId): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $teacherClasse = $this->teacherClasseRepository->find($teacherClasseId);
+        
+        if (!$teacherClasse || $teacherClasse->getTeacher()->getId() !== $user->getId()) {
+            return new JsonResponse(['error' => 'Unauthorized'], 403);
+        }
+
+        $quiz = $this->quizRepository->find($quizId);
+        if (!$quiz || !$this->verifyQuizBelongsToTeacher($quiz, $teacherClasse)) {
+            return new JsonResponse(['error' => 'Quiz not found'], 404);
+        }
+
+        $userAnswer = $this->userAnswerRepository->find($userAnswerId);
+        if (!$userAnswer || $userAnswer->getQuiz()->getId() !== $quiz->getId()) {
+            return new JsonResponse(['error' => 'Submission not found'], 404);
+        }
+
+        $results = [];
+        foreach ($userAnswer->getAnswers() as $answer) {
+            if ($answer->getQuestion()->getType() !== QuestionType::TEXT) {
+                continue;
+            }
+            if (empty(trim($answer->getTextAnswer() ?? ''))) {
+                continue;
+            }
+
+            $result = $this->geminiAIService->detectAIContent(
+                $answer->getQuestion()->getQuestionText(),
+                $answer->getTextAnswer()
+            );
+
+            $answer->setAiDetectionScore($result['aiProbability']);
+            $answer->setAiDetectionResult(json_encode($result));
+
+            $results[] = [
+                'answerId' => $answer->getId(),
+                'aiProbability' => $result['aiProbability'],
+                'analysis' => $result['analysis'],
+                'indicators' => $result['indicators'],
+            ];
+        }
+
+        $this->entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'results' => $results,
         ]);
     }
 

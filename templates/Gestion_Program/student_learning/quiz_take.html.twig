@@ -286,6 +286,75 @@
         opacity: 0;
         pointer-events: none;
     }
+
+    /* Cheat detection warning styles */
+    .cheat-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(220, 53, 69, 0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: white;
+        text-align: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .cheat-overlay h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .cheat-overlay p {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        max-width: 500px;
+    }
+
+    .cheat-overlay .cheat-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        animation: shake 0.5s ease;
+    }
+
+    .cheat-warning-banner {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        display: none;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3);
+        animation: slideDown 0.3s ease;
+    }
+
+    .cheat-warning-banner.visible {
+        display: flex;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 {% endblock %}
 
@@ -341,6 +410,15 @@
             </div>
             <div class="progress-bar-quiz">
                 <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        {# Cheat Detection Warning Banner #}
+        <div class="cheat-warning-banner" id="cheat-warning">
+            <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+            <div>
+                <strong>Warning!</strong> Tab switching detected. Your quiz will be scored as <strong>zero</strong>.
+                <span id="cheat-count-display"></span>
             </div>
         </div>
 
@@ -545,5 +623,121 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 
 document.addEventListener('DOMContentLoaded', updateProgress);
+
+// ========== CHEAT DETECTION ==========
+(function() {
+    const REPORT_URL = '{{ path('app_student_quiz_report_cheat', {classeId: classe.id, quizId: quiz.id}) }}';
+    const quizForm = document.getElementById('quiz-form');
+    const warningBanner = document.getElementById('cheat-warning');
+    const countDisplay = document.getElementById('cheat-count-display');
+    let cheatingDetected = false;
+    let tabSwitchCount = 0;
+    let overlayShown = false;
+
+    function reportCheat() {
+        tabSwitchCount++;
+        cheatingDetected = true;
+
+        // Show persistent warning banner
+        if (warningBanner) {
+            warningBanner.classList.add('visible');
+            countDisplay.textContent = '(Switches: ' + tabSwitchCount + ')';
+        }
+
+        // Show fullscreen overlay on first detection
+        if (!overlayShown) {
+            overlayShown = true;
+            showCheatOverlay();
+        }
+
+        // Report to server via AJAX
+        fetch(REPORT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ tabSwitchCount: tabSwitchCount })
+        }).catch(function(err) {
+            console.error('Failed to report cheat:', err);
+        });
+    }
+
+    function showCheatOverlay() {
+        const overlay = document.createElement('div');
+        overlay.className = 'cheat-overlay';
+        overlay.id = 'cheat-overlay';
+        overlay.innerHTML = `
+            <div class="cheat-icon"><i class="bi bi-shield-exclamation"></i></div>
+            <h2>Cheating Detected!</h2>
+            <p>You switched away from the quiz window. This has been recorded and your score will be set to <strong>zero</strong>.</p>
+            <p class="mt-3 opacity-75">Returning to quiz in <span id="cheat-countdown">5</span> seconds...</p>
+        `;
+        document.body.appendChild(overlay);
+
+        // Auto-dismiss after 5 seconds
+        let countdown = 5;
+        const countdownEl = document.getElementById('cheat-countdown');
+        const interval = setInterval(function() {
+            countdown--;
+            if (countdownEl) countdownEl.textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(interval);
+                overlay.remove();
+            }
+        }, 1000);
+    }
+
+    // Detect tab visibility change (switching tabs)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            reportCheat();
+        }
+    });
+
+    // Detect window blur (Alt+Tab, clicking another window)
+    window.addEventListener('blur', function() {
+        // Small delay to avoid false positives from browser UI interactions
+        setTimeout(function() {
+            if (document.hidden || !document.hasFocus()) {
+                reportCheat();
+            }
+        }, 100);
+    });
+
+    // Add cheat flag to form submission as hidden input
+    quizForm.addEventListener('submit', function() {
+        if (cheatingDetected) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'cheat_detected';
+            input.value = '1';
+            quizForm.appendChild(input);
+
+            const countInput = document.createElement('input');
+            countInput.type = 'hidden';
+            countInput.name = 'tab_switch_count';
+            countInput.value = tabSwitchCount;
+            quizForm.appendChild(countInput);
+        }
+    });
+
+    // Prevent right-click context menu during quiz
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
+    // Detect copy/paste attempts
+    document.addEventListener('copy', function(e) {
+        e.preventDefault();
+        reportCheat();
+    });
+
+    document.addEventListener('paste', function(e) {
+        e.preventDefault();
+        reportCheat();
+    });
+})();
 </script>
 {% endblock %}

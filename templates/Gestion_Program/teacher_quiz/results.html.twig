@@ -95,6 +95,7 @@
                                         <th>Status</th>
                                         <th>Started</th>
                                         <th>Completed</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -136,9 +137,22 @@
                                                 {% else %}
                                                     <span class="badge bg-danger">Failed</span>
                                                 {% endif %}
+                                                {% if userAnswer.isCheated %}
+                                                    <span class="badge bg-danger ms-1" title="Tab switches: {{ userAnswer.tabSwitchCount }}">
+                                                        <i class="bi bi-exclamation-triangle-fill"></i> Cheated
+                                                    </span>
+                                                {% endif %}
                                             </td>
                                             <td>{{ userAnswer.startedAt ? userAnswer.startedAt|date('M d, H:i') : '-' }}</td>
                                             <td>{{ userAnswer.completedAt ? userAnswer.completedAt|date('M d, H:i') : 'In Progress' }}</td>
+                                            <td>
+                                                {% if userAnswer.completedAt %}
+                                                    <a href="{{ path('app_teacher_quiz_review_answers', {teacherClasseId: teacherClasse.id, quizId: quiz.id, userAnswerId: userAnswer.id}) }}" 
+                                                       class="btn btn-sm btn-outline-primary" title="Review text answers & AI detection">
+                                                        <i class="bi bi-robot me-1"></i> Review
+                                                    </a>
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>

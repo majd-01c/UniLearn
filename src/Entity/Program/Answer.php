@@ -40,6 +40,12 @@ class Answer
     #[Assert\PositiveOrZero(message: 'Points earned must be zero or positive')]
     private ?int $pointsEarned = null;
 
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $aiDetectionScore = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $aiDetectionResult = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -117,5 +123,39 @@ class Answer
             $this->isCorrect = $this->selectedChoice->isCorrect();
             $this->pointsEarned = $this->isCorrect ? $this->question->getPoints() : 0;
         }
+    }
+
+    public function getAiDetectionScore(): ?float
+    {
+        return $this->aiDetectionScore;
+    }
+
+    public function setAiDetectionScore(?float $aiDetectionScore): static
+    {
+        $this->aiDetectionScore = $aiDetectionScore;
+        return $this;
+    }
+
+    public function getAiDetectionResult(): ?string
+    {
+        return $this->aiDetectionResult;
+    }
+
+    public function setAiDetectionResult(?string $aiDetectionResult): static
+    {
+        $this->aiDetectionResult = $aiDetectionResult;
+        return $this;
+    }
+
+    /**
+     * Get the AI detection result as a decoded associative array
+     */
+    public function getAiDetectionResultDecoded(): ?array
+    {
+        if ($this->aiDetectionResult === null) {
+            return null;
+        }
+        $decoded = json_decode($this->aiDetectionResult, true);
+        return is_array($decoded) ? $decoded : null;
     }
 }

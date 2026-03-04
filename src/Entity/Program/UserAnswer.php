@@ -47,6 +47,12 @@ class UserAnswer
     #[ORM\Column(options: ['default' => false])]
     private bool $isPassed = false;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isCheated = false;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $tabSwitchCount = 0;
+
     /**
      * @var Collection<int, Answer>
      */
@@ -190,5 +196,33 @@ class UserAnswer
     public function isCompleted(): bool
     {
         return $this->completedAt !== null;
+    }
+
+    public function isCheated(): bool
+    {
+        return $this->isCheated;
+    }
+
+    public function setIsCheated(bool $isCheated): static
+    {
+        $this->isCheated = $isCheated;
+        return $this;
+    }
+
+    public function getTabSwitchCount(): int
+    {
+        return $this->tabSwitchCount;
+    }
+
+    public function setTabSwitchCount(int $tabSwitchCount): static
+    {
+        $this->tabSwitchCount = $tabSwitchCount;
+        return $this;
+    }
+
+    public function incrementTabSwitchCount(): static
+    {
+        $this->tabSwitchCount++;
+        return $this;
     }
 }

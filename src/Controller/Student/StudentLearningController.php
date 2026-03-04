@@ -21,6 +21,7 @@ use App\Repository\UserAnswerRepository;
 use App\Service\AI\GeminiAIService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -518,11 +519,71 @@ class StudentLearningController extends AbstractController
 
         $this->entityManager->flush();
 
-        $this->addFlash('success', sprintf('Quiz submitted! Your score: %d/%d (%.0f%%)', $totalScore, $totalPoints, $percentage));
+        // Check if cheating was detected
+        if ($userAnswer->isCheated()) {
+            // Override score to zero
+            $userAnswer->setScore(0);
+            $userAnswer->setIsPassed(false);
+            $this->entityManager->flush();
+            $this->addFlash('danger', 'Cheating detected! You switched tabs/windows during the quiz. Your score has been set to 0.');
+        } else {
+            $this->addFlash('success', sprintf('Quiz submitted! Your score: %d/%d (%.0f%%)', $totalScore, $totalPoints, $percentage));
+        }
         
         return $this->redirectToRoute('app_student_quiz_view', [
             'classeId' => $classeId,
             'quizId' => $quizId
+        ]);
+    }
+
+    #[Route('/classe/{classeId}/quiz/{quizId}/report-cheat', name: 'app_student_quiz_report_cheat', requirements: ['classeId' => '\d+', 'quizId' => '\d+'], methods: ['POST'])]
+    public function reportCheat(Request $request, int $classeId, int $quizId): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Verify enrollment
+        $enrollment = $this->studentClasseRepository->findOneBy([
+            'student' => $user,
+            'classe' => $classeId,
+            'isActive' => true
+        ]);
+
+        if (!$enrollment) {
+            return new JsonResponse(['error' => 'Not enrolled'], 403);
+        }
+
+        $quiz = $this->quizRepository->find($quizId);
+        if (!$quiz) {
+            return new JsonResponse(['error' => 'Quiz not found'], 404);
+        }
+
+        // Get or create UserAnswer
+        $userAnswer = $this->userAnswerRepository->findOneBy([
+            'user' => $user,
+            'quiz' => $quiz
+        ]);
+
+        if (!$userAnswer) {
+            $userAnswer = new UserAnswer();
+            $userAnswer->setUser($user);
+            $userAnswer->setQuiz($quiz);
+            $this->entityManager->persist($userAnswer);
+        }
+
+        // If already completed, don't update
+        if ($userAnswer->isCompleted()) {
+            return new JsonResponse(['status' => 'already_completed']);
+        }
+
+        // Mark as cheated and increment counter
+        $userAnswer->setIsCheated(true);
+        $userAnswer->incrementTabSwitchCount();
+        $this->entityManager->flush();
+
+        return new JsonResponse([
+            'status' => 'cheating_detected',
+            'tabSwitchCount' => $userAnswer->getTabSwitchCount(),
         ]);
     }
 

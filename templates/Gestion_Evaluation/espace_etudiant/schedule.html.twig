@@ -1,94 +1,227 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Emploi du Temps{% endblock %}
+{% block title %}My Schedule{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4"><i class="fas fa-calendar"></i> Emploi du Temps</h1>
-    
+<div class="container-fluid mt-4 px-4 animate-in">
+
+    <div class="uni-page-header">
+        <div class="uni-page-header-info">
+            <h1 class="uni-page-header-title">
+                <i class="bi bi-calendar-week-fill"></i> My Schedule
+            </h1>
+            <p class="uni-page-header-subtitle">
+                {% if classe %}Class: <strong>{{ classe.name }}</strong>{% else %}Weekly timetable{% endif %}
+            </p>
+        </div>
+        <div class="uni-page-header-actions">
+            {% if classe %}
+            <button id="btn-download-pdf" class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF
+            </button>
+            {% endif %}
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-printer"></i> Print
+            </button>
+        </div>
+    </div>
+
     {% if classe %}
-    <div class="alert alert-info mb-4">
-        <strong>Classe:</strong> {{ classe.name }}
-    </div>
-    
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th style="width: 100px;">Horaire</th>
-                            <th>Lundi</th>
-                            <th>Mardi</th>
-                            <th>Mercredi</th>
-                            <th>Jeudi</th>
-                            <th>Vendredi</th>
-                            <th>Samedi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'] %}
-                        
-                        {% for timeSlot in timeSlots %}
-                        <tr>
-                            <td class="text-center align-middle"><strong>{{ timeSlot }}</strong></td>
-                            
-                            {% for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] %}
-                            <td>
-                                {% set hasClass = false %}
-                                {% for schedule in weekSchedule[day] %}
-                                    {% if schedule.startTime|date('H:i') <= timeSlot and schedule.endTime|date('H:i') > timeSlot %}
-                                        {% set hasClass = true %}
-                                        <div class="p-2 bg-primary text-white rounded">
-                                            <strong>{{ schedule.course.title }}</strong><br>
-                                            <small>{{ schedule.startTime|date('H:i') }} - {{ schedule.endTime|date('H:i') }}</small><br>
-                                            {% if schedule.room %}
-                                                <small><i class="fas fa-door-open"></i> {{ schedule.room }}</small><br>
-                                            {% endif %}
-                                            {% if schedule.teacher %}
-                                                <small><i class="fas fa-user"></i> {{ schedule.teacher.name }}</small>
-                                            {% endif %}
-                                        </div>
-                                    {% endif %}
+
+    <div id="schedule-printable">
+        {% set days = {
+            'monday':    'Monday',
+            'tuesday':   'Tuesday',
+            'wednesday': 'Wednesday',
+            'thursday':  'Thursday',
+            'friday':    'Friday',
+            'saturday':  'Saturday'
+        } %}
+        {% set timeSlots = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'] %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0 align-middle" id="schedule-table">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="text-center" style="width:80px;">Time</th>
+                                {% for dayKey, dayLabel in days %}
+                                <th class="text-center">{{ dayLabel }}</th>
                                 {% endfor %}
-                                {% if not hasClass %}
-                                    <div class="text-center text-muted">-</div>
-                                {% endif %}
-                            </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for timeSlot in timeSlots %}
+                            <tr>
+                                <td class="text-center fw-bold text-muted small">{{ timeSlot }}</td>
+                                {% for dayKey, dayLabel in days %}
+                                <td style="min-width:120px;vertical-align:top;padding:4px;">
+                                    {% set hasClass = false %}
+                                    {% for schedule in weekSchedule[dayKey] %}
+                                        {% if schedule.startTime|date('H:i') <= timeSlot and schedule.endTime|date('H:i') > timeSlot %}
+                                            {% set hasClass = true %}
+                                            <div class="p-2 rounded text-white mb-1"
+                                                 style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);font-size:.82rem;">
+                                                <div class="fw-bold">{{ schedule.course.title }}</div>
+                                                <div class="opacity-90">
+                                                    <i class="bi bi-clock"></i>
+                                                    {{ schedule.startTime|date('H:i') }}–{{ schedule.endTime|date('H:i') }}
+                                                </div>
+                                                {% if schedule.room %}
+                                                <div class="opacity-90">
+                                                    <i class="bi bi-door-open"></i> {{ schedule.room }}
+                                                </div>
+                                                {% endif %}
+                                                {% if schedule.teacher %}
+                                                <div class="opacity-90">
+                                                    <i class="bi bi-person-fill"></i> {{ schedule.teacher.name }}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if not hasClass %}
+                                        <div class="text-center text-muted" style="font-size:.75rem;">—</div>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
                             {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Legend -->
-    <div class="card mt-3">
-        <div class="card-body">
-            <h6>Légende:</h6>
-            <div class="d-flex align-items-center">
-                <div class="p-2 bg-primary text-white rounded me-3" style="width: 100px;">Cours</div>
-                <span class="me-3"><i class="fas fa-door-open"></i> Salle de classe</span>
-                <span><i class="fas fa-user"></i> Enseignant</span>
+
+        {# Legend #}
+        <div class="card mb-4">
+            <div class="card-body py-2">
+                <span class="fw-semibold me-3">Legend:</span>
+                <span class="p-2 rounded text-white me-3" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);font-size:.82rem;">Class</span>
+                <span class="me-3"><i class="bi bi-door-open"></i> Room</span>
+                <span><i class="bi bi-person-fill"></i> Teacher</span>
             </div>
         </div>
-    </div>
-    
+    </div>{# /schedule-printable #}
+
+    {# Embedded schedule data for PDF generation #}
+    <script id="schedule-data" type="application/json">
+    [
+        {% set first = true %}
+        {% for dayKey, daySlots in weekSchedule %}
+            {% for s in daySlots %}
+                {% if not first %},{% endif %}{% set first = false %}
+                {
+                    "day": "{{ dayKey }}",
+                    "course": "{{ s.course.title|e('js') }}",
+                    "start": "{{ s.startTime|date('H:i') }}",
+                    "end": "{{ s.endTime|date('H:i') }}",
+                    "room": "{{ s.room is not null ? s.room|e('js') : '' }}",
+                    "teacher": "{{ s.teacher is not null ? s.teacher.name|e('js') : '' }}"
+                }
+            {% endfor %}
+        {% endfor %}
+    ]
+    </script>
+
     {% else %}
     <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle"></i> Vous n'êtes pas encore assigné à une classe. Veuillez contacter l'administration.
+        <i class="bi bi-exclamation-triangle"></i>
+        You are not yet assigned to a class. Please contact the administration.
     </div>
     {% endif %}
-    
+
     <div class="mt-4">
-        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
-        <button onclick="window.print()" class="btn btn-primary">
-            <i class="fas fa-print"></i> Imprimer l'emploi du temps
-        </button>
     </div>
 </div>
+
+{# Print styles #}
+<style>
+@media print {
+    .uni-page-header-actions, .mt-4 > a, nav, header, footer, .sidebar { display: none !important; }
+    #schedule-printable { page-break-inside: avoid; }
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="/js/jspdf.umd.min.js"></script>
+<script src="/js/jspdf.plugin.autotable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('btn-download-pdf');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+        try {
+            var jsPDF = window.jspdf.jsPDF;
+            var pdf   = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            var pageW = pdf.internal.pageSize.getWidth();
+
+            pdf.setFillColor(30, 64, 175);
+            pdf.rect(0, 0, pageW, 18, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(13);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Weekly Timetable{% if classe %} - {{ classe.name }}{% endif %}', pageW / 2, 10, { align: 'center' });
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text('Generated: ' + new Date().toLocaleDateString('en-GB'), pageW / 2, 15, { align: 'center' });
+            pdf.setTextColor(0, 0, 0);
+
+            var raw      = JSON.parse(document.getElementById('schedule-data').textContent || '[]');
+            var days     = ['monday','tuesday','wednesday','thursday','friday','saturday'];
+            var dayNames = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            var slots    = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+
+            var body = slots.map(function (ts) {
+                var row = [ts];
+                days.forEach(function (dayKey) {
+                    var match = null;
+                    for (var i = 0; i < raw.length; i++) {
+                        if (raw[i].day === dayKey && raw[i].start <= ts && raw[i].end > ts) { match = raw[i]; break; }
+                    }
+                    if (match) {
+                        var cell = match.course + '\n' + match.start + ' - ' + match.end;
+                        if (match.room)    cell += '\nRoom: ' + match.room;
+                        if (match.teacher) cell += '\n'      + match.teacher;
+                        row.push(cell);
+                    } else { row.push(''); }
+                });
+                return row;
+            });
+
+            pdf.autoTable({
+                startY: 22,
+                head: [['Time'].concat(dayNames)],
+                body: body,
+                styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
+                headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                columnStyles: { 0: { halign: 'center', cellWidth: 16, fontStyle: 'bold' } },
+                alternateRowStyles: { fillColor: [245, 247, 255] },
+                didParseCell: function (data) {
+                    if (data.section === 'body' && data.column.index > 0 && data.cell.raw !== '') {
+                        data.cell.styles.fillColor = [219, 234, 254];
+                        data.cell.styles.textColor = [30, 58, 138];
+                    }
+                }
+            });
+
+            pdf.save('schedule{% if classe %}-{{ classe.name|replace({" ": "-"}) }}{% endif %}.pdf');
+        } catch (e) {
+            alert('PDF error: ' + e.message);
+            console.error(e);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-file-earmark-pdf-fill"></i> Download PDF';
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mon Emploi du Temps{% endblock %}
+{% block title %}My Schedule{% endblock %}
 
 {% block body %}
 <div class="container-fluid mt-4 px-4">
@@ -8,26 +8,29 @@
     <div class="uni-page-header mb-4">
         <div class="uni-page-header-info">
             <h1 class="uni-page-header-title">
-                <i class="bi bi-calendar-week-fill"></i> Mon Emploi du Temps
+                <i class="bi bi-calendar-week-fill"></i> My Schedule
             </h1>
             <p class="uni-page-header-subtitle">
-                {{ teacher.name ?? teacher.email }} — toutes vos classes assignées
+                {{ teacher.name ?? teacher.email }} — all your assigned classes
             </p>
         </div>
         <div class="uni-page-header-actions">
+            <button id="btn-download-pdf" class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF
+            </button>
             <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-printer"></i> Imprimer
+                <i class="bi bi-printer"></i> Print
             </button>
         </div>
     </div>
 
     {% set days = {
-        'monday':    'Lundi',
-        'tuesday':   'Mardi',
-        'wednesday': 'Mercredi',
-        'thursday':  'Jeudi',
-        'friday':    'Vendredi',
-        'saturday':  'Samedi'
+        'monday':    'Monday',
+        'tuesday':   'Tuesday',
+        'wednesday': 'Wednesday',
+        'thursday':  'Thursday',
+        'friday':    'Friday',
+        'saturday':  'Saturday'
     } %}
 
     {% set timeSlots = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'] %}
@@ -37,6 +40,7 @@
         {% if slots|length > 0 %}{% set hasAnySchedule = true %}{% endif %}
     {% endfor %}
 
+    <div id="schedule-printable">
     {% if hasAnySchedule %}
     <div class="card shadow-sm">
         <div class="card-body p-0">
@@ -44,7 +48,7 @@
                 <table class="table table-bordered mb-0 align-middle">
                     <thead class="table-dark">
                         <tr>
-                            <th class="text-center" style="width:80px;">Horaire</th>
+                            <th class="text-center" style="width:80px;">Time</th>
                             {% for dayKey, dayLabel in days %}
                             <th class="text-center">{{ dayLabel }}</th>
                             {% endfor %}
@@ -112,7 +116,7 @@
                         <div class="text-muted small">
                             {{ s.startTime|date('H:i') }}–{{ s.endTime|date('H:i') }}
                             {% if s.classe %} · {{ s.classe.name }}{% endif %}
-                            {% if s.room %} · Salle {{ s.room }}{% endif %}
+                            {% if s.room %} · Room {{ s.room }}{% endif %}
                         </div>
                     </li>
                     {% endfor %}
@@ -127,17 +131,116 @@
     <div class="card border-warning">
         <div class="card-body text-center py-5">
             <i class="bi bi-calendar-x text-warning" style="font-size:3.5rem;"></i>
-            <h4 class="mt-3 fw-bold">Aucun créneau assigné</h4>
-            <p class="text-muted">Vous n'avez pas encore de cours dans l'emploi du temps.<br>
-            Contactez l'administration pour être ajouté à un créneau.</p>
+            <h4 class="mt-3 fw-bold">No slots assigned</h4>
+            <p class="text-muted">You don't have any classes in the schedule yet.<br>
+            Contact the administration to be added to a slot.</p>
         </div>
     </div>
     {% endif %}
+    </div>{# end #schedule-printable #}
+
+    {# Embedded schedule data for PDF generation #}
+    <script id="schedule-data" type="application/json">
+    [
+        {% set first = true %}
+        {% for dayKey, daySlots in weekSchedule %}
+            {% for s in daySlots %}
+                {% if not first %},{% endif %}{% set first = false %}
+                {
+                    "day": "{{ dayKey }}",
+                    "course": "{{ s.course.title|e('js') }}",
+                    "start": "{{ s.startTime|date('H:i') }}",
+                    "end": "{{ s.endTime|date('H:i') }}",
+                    "room": "{{ s.room is not null ? s.room|e('js') : '' }}",
+                    "class": "{{ s.classe is not null ? s.classe.name|e('js') : '' }}"
+                }
+            {% endfor %}
+        {% endfor %}
+    ]
+    </script>
 
     <div class="mt-4">
         <a href="{{ path('app_teacher_my_classes') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Mes Classes
+            <i class="bi bi-arrow-left me-1"></i>My Classes
         </a>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="/js/jspdf.umd.min.js"></script>
+<script src="/js/jspdf.plugin.autotable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('btn-download-pdf');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating...';
+        try {
+            var jsPDF = window.jspdf.jsPDF;
+            var pdf   = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            var pageW = pdf.internal.pageSize.getWidth();
+
+            pdf.setFillColor(30, 64, 175);
+            pdf.rect(0, 0, pageW, 18, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(13);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('My Weekly Schedule - {{ teacher.name ?? teacher.email }}', pageW / 2, 10, { align: 'center' });
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text('Generated: ' + new Date().toLocaleDateString('en-GB'), pageW / 2, 15, { align: 'center' });
+            pdf.setTextColor(0, 0, 0);
+
+            var raw      = JSON.parse(document.getElementById('schedule-data').textContent || '[]');
+            var days     = ['monday','tuesday','wednesday','thursday','friday','saturday'];
+            var dayNames = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            var slots    = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+
+            var body = slots.map(function (ts) {
+                var row = [ts];
+                days.forEach(function (dayKey) {
+                    var match = null;
+                    for (var i = 0; i < raw.length; i++) {
+                        if (raw[i].day === dayKey && raw[i].start <= ts && raw[i].end > ts) { match = raw[i]; break; }
+                    }
+                    if (match) {
+                        var cell = match.course + '\n' + match.start + ' - ' + match.end;
+                        if (match['class']) cell += '\nClass: ' + match['class'];
+                        if (match.room)     cell += '\nRoom: '  + match.room;
+                        row.push(cell);
+                    } else { row.push(''); }
+                });
+                return row;
+            });
+
+            pdf.autoTable({
+                startY: 22,
+                head: [['Time'].concat(dayNames)],
+                body: body,
+                styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
+                headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                columnStyles: { 0: { halign: 'center', cellWidth: 16, fontStyle: 'bold' } },
+                alternateRowStyles: { fillColor: [245, 247, 255] },
+                didParseCell: function (data) {
+                    if (data.section === 'body' && data.column.index > 0 && data.cell.raw !== '') {
+                        data.cell.styles.fillColor = [219, 234, 254];
+                        data.cell.styles.textColor = [30, 58, 138];
+                    }
+                }
+            });
+
+            pdf.save('my-schedule.pdf');
+        } catch (e) {
+            alert('PDF error: ' + e.message);
+            console.error(e);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-file-earmark-pdf-fill"></i> Download PDF';
+        }
+    });
+});
+</script>
 {% endblock %}

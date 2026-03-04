@@ -1,35 +1,45 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Résultats du Semestre{% endblock %}
+{% block title %}Semester Results{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">Résultats du Semestre</h1>
-    
+<div class="container-fluid mt-4 px-4 animate-in">
+    <div class="uni-page-header">
+        <div class="uni-page-header-info">
+            <h1 class="uni-page-header-title"><i class="bi bi-trophy-fill"></i> Semester Results</h1>
+            <p class="uni-page-header-subtitle">Summary of your averages by course</p>
+        </div>
+        <div class="uni-page-header-actions">
+            <a href="{{ path('app_espace_etudiant_grades') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-list-ol"></i> View detailed grades
+            </a>
+        </div>
+    </div>
+
     <!-- Overall Summary -->
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card border-primary">
                 <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Résumé Général</h4>
+                    <h4 class="mb-0">Overall Summary</h4>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-md-3">
-                            <h2 class="text-primary">{{ results.overallAverage }}%</h2>
-                            <p class="text-muted">Moyenne Générale</p>
+                            <h2 class="text-primary">{{ results.overallAverage }}/20</h2>
+                            <p class="text-muted">Overall Average</p>
                         </div>
                         <div class="col-md-3">
                             <h2 class="text-success">{{ results.passedCourses }}</h2>
-                            <p class="text-muted">Cours Réussis</p>
+                            <p class="text-muted">Passed Courses</p>
                         </div>
                         <div class="col-md-3">
                             <h2 class="text-danger">{{ results.failedCourses }}</h2>
-                            <p class="text-muted">Cours Échoués</p>
+                            <p class="text-muted">Failed Courses</p>
                         </div>
                         <div class="col-md-3">
                             <h2 class="text-info">{{ results.courses|length }}</h2>
-                            <p class="text-muted">Total Cours</p>
+                            <p class="text-muted">Total Courses</p>
                         </div>
                     </div>
                 </div>
@@ -42,7 +52,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>Détails par Cours</h5>
+                    <h5>Details by Course</h5>
                 </div>
                 <div class="card-body">
                     {% if results.courses|length > 0 %}
@@ -53,7 +63,7 @@
                                 <button class="accordion-button {% if loop.index > 1 %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="{% if loop.index == 1 %}true{% else %}false{% endif %}" aria-controls="collapse{{ loop.index }}">
                                     <strong>{{ courseData.name }}</strong>
                                     <span class="ms-3 badge {% if courseData.status == 'Passed' %}bg-success{% else %}bg-danger{% endif %}">
-                                        {{ courseData.average }}% - {{ courseData.status }}
+                                        {{ courseData.average }}/20 - {{ courseData.status }}
                                     </span>
                                 </button>
                             </h2>
@@ -63,32 +73,41 @@
                                         <table class="table table-sm">
                                             <thead>
                                                 <tr>
-                                                    <th>Évaluation</th>
-                                                    <th>Note</th>
-                                                    <th>Sur</th>
-                                                    <th>Pourcentage</th>
+                                                    <th>Assessment</th>
+                                                    <th>Grade</th>
+                                                    <th>Progress</th>
+                                                    <th>Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {% for grade in courseData.grades %}
                                                 <tr>
                                                     <td>{{ grade.assessment }}</td>
-                                                    <td>{{ grade.score }}</td>
-                                                    <td>{{ grade.maxScore }}</td>
+                                                    <td>{{ grade.score }}/{{ grade.maxScore }}</td>
                                                     <td>
-                                                        <span class="badge {% if grade.percentage >= 50 %}bg-success{% else %}bg-danger{% endif %}">
-                                                            {{ grade.percentage|round(1) }}%
-                                                        </span>
+                                                        <div class="progress progress-labeled" style="min-width:80px">
+                                                            <div class="progress-bar {% if grade.percentage >= 60 %}bg-success{% elseif grade.percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                                 role="progressbar" style="width: {{ grade.percentage }}%">
+                                                                {{ grade.percentage|round(1) }}%
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        {% if grade.percentage >= 50 %}
+                                                            <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Passed</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> Failed</span>
+                                                        {% endif %}
                                                     </td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
                                             <tfoot>
                                                 <tr class="table-active">
-                                                    <th colspan="3">Moyenne du Cours</th>
+                                                    <th colspan="3">Course Average</th>
                                                     <th>
-                                                        <span class="badge {% if courseData.average >= 50 %}bg-success{% else %}bg-danger{% endif %}">
-                                                            {{ courseData.average }}%
+                                                        <span class="badge {% if courseData.average >= 10 %}bg-success{% else %}bg-danger{% endif %}">
+                                                            {{ courseData.average }}/20
                                                         </span>
                                                     </th>
                                                 </tr>
@@ -102,7 +121,7 @@
                     </div>
                     {% else %}
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> Aucun résultat disponible pour le moment.
+                        <i class="bi bi-info-circle-fill"></i> No results available yet.
                     </div>
                     {% endif %}
                 </div>
@@ -112,14 +131,17 @@
     
     <!-- Action Buttons -->
     <div class="mt-4">
-        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <a href="{{ path('app_espace_etudiant_grades') }}" class="btn btn-outline-primary">
+            <i class="bi bi-list-ol"></i> My Grades
         </a>
         <a href="{{ path('app_espace_etudiant_recommendations') }}" class="btn btn-warning">
-            <i class="fas fa-lightbulb"></i> Voir les recommandations
+            <i class="bi bi-lightbulb-fill"></i> View Recommendations
         </a>
         <button onclick="window.print()" class="btn btn-primary">
-            <i class="fas fa-print"></i> Imprimer
+            <i class="bi bi-printer-fill"></i> Print
         </button>
     </div>
 </div>

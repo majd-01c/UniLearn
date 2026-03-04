@@ -24,84 +24,90 @@ class AdminScheduleType extends AbstractType
             ->add('classe', EntityType::class, [
                 'class' => Classe::class,
                 'choice_label' => 'name',
-                'label' => 'Classe',
-                'placeholder' => '-- Sélectionnez une classe --',
+                'label' => 'Class',
+                'placeholder' => '-- Select a class --',
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new Assert\NotNull(['message' => 'Vous devez sélectionner une classe.']),
+                    new Assert\NotNull(['message' => 'You must select a class.']),
                 ],
             ])
             ->add('course', EntityType::class, [
                 'class' => Course::class,
                 'choice_label' => 'title',
-                'label' => 'Cours',
-                'placeholder' => '-- Sélectionnez un cours --',
+                'label' => 'Course',
+                'placeholder' => '-- Select a course --',
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new Assert\NotNull(['message' => 'Vous devez sélectionner un cours.']),
+                    new Assert\NotNull(['message' => 'You must select a course.']),
                 ],
             ])
             ->add('teacher', EntityType::class, [
                 'class' => User::class,
-                'choice_label' => 'name',
-                'label' => 'Enseignant',
+                'choice_label' => fn(User $u) => $u->getName() . ' (' . $u->getEmail() . ')',
+                'label' => 'Teacher',
                 'required' => false,
-                'placeholder' => '-- Sélectionnez un enseignant --',
+                'placeholder' => '-- Select a teacher --',
                 'attr' => ['class' => 'form-control'],
+                'query_builder' => function (\Doctrine\ORM\EntityRepository $er) {
+                    return $er->createQueryBuilder('u')
+                        ->where('u.role = :role')
+                        ->setParameter('role', 'TEACHER')
+                        ->orderBy('u.name', 'ASC');
+                },
             ])
             ->add('dayOfWeek', ChoiceType::class, [
-                'label' => 'Jour de la semaine',
+                'label' => 'Day of the Week',
                 'choices' => [
-                    'Lundi' => 'monday',
-                    'Mardi' => 'tuesday',
-                    'Mercredi' => 'wednesday',
-                    'Jeudi' => 'thursday',
-                    'Vendredi' => 'friday',
-                    'Samedi' => 'saturday',
+                    'Monday' => 'monday',
+                    'Tuesday' => 'tuesday',
+                    'Wednesday' => 'wednesday',
+                    'Thursday' => 'thursday',
+                    'Friday' => 'friday',
+                    'Saturday' => 'saturday',
                 ],
-                'placeholder' => '-- Sélectionnez un jour --',
+                'placeholder' => '-- Select a day --',
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new Assert\NotBlank(['message' => 'Vous devez sélectionner un jour de la semaine.']),
+                    new Assert\NotBlank(['message' => 'You must select a day of the week.']),
                 ],
             ])
             ->add('startTime', TimeType::class, [
-                'label' => 'Heure de début',
+                'label' => 'Start Time',
                 'widget' => 'single_text',
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new Assert\NotNull(['message' => 'Vous devez renseigner l\'heure de début.']),
+                    new Assert\NotNull(['message' => 'You must enter a start time.']),
                 ],
             ])
             ->add('endTime', TimeType::class, [
-                'label' => 'Heure de fin',
+                'label' => 'End Time',
                 'widget' => 'single_text',
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new Assert\NotNull(['message' => 'Vous devez renseigner l\'heure de fin.']),
+                    new Assert\NotNull(['message' => 'You must enter an end time.']),
                 ],
             ])
             ->add('room', TextType::class, [
-                'label' => 'Salle',
+                'label' => 'Room',
                 'required' => false,
-                'attr' => ['class' => 'form-control', 'placeholder' => 'Ex: Salle A101'],
+                'attr' => ['class' => 'form-control', 'placeholder' => 'e.g. Room A101'],
                 'constraints' => [
                     new Assert\Length([
                         'max' => 100,
-                        'maxMessage' => 'Le nom de la salle ne peut pas dépasser {{ limit }} caractères.',
+                        'maxMessage' => 'The room name cannot exceed {{ limit }} characters.',
                     ]),
                 ],
             ])
             ->add('startDate', DateType::class, [
-                'label' => 'Date de début',
+                'label' => 'Start Date',
                 'widget' => 'single_text',
                 'attr' => ['class' => 'form-control'],
                 'constraints' => [
-                    new Assert\NotNull(['message' => 'Vous devez renseigner une date de début.']),
+                    new Assert\NotNull(['message' => 'You must enter a start date.']),
                 ],
             ])
             ->add('endDate', DateType::class, [
-                'label' => 'Date de fin',
+                'label' => 'End Date',
                 'required' => false,
                 'widget' => 'single_text',
                 'attr' => ['class' => 'form-control'],

@@ -18,37 +18,37 @@ class ReclamationType extends AbstractType
     {
         $builder
             ->add('subject', TextType::class, [
-                'label' => 'Sujet de la réclamation',
-                'attr' => ['class' => 'form-control', 'placeholder' => 'Ex: Problème avec la note d\'examen'],
+                'label' => 'Subject',
+                'attr' => ['class' => 'form-control', 'placeholder' => 'e.g. Issue with exam grade', 'minlength' => 5, 'maxlength' => 255],
                 'constraints' => [
-                    new Assert\NotBlank(['message' => 'Vous devez saisir un sujet pour votre réclamation.']),
+                    new Assert\NotBlank(['message' => 'Please enter a subject for your complaint.']),
                     new Assert\Length([
                         'min' => 5,
                         'max' => 255,
-                        'minMessage' => 'Le sujet doit comporter au moins {{ limit }} caractères.',
-                        'maxMessage' => 'Le sujet ne peut pas dépasser {{ limit }} caractères.',
+                        'minMessage' => 'Subject must be at least {{ limit }} characters.',
+                        'maxMessage' => 'Subject cannot exceed {{ limit }} characters.',
                     ]),
                 ],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description détaillée',
-                'attr' => ['class' => 'form-control', 'rows' => 6, 'placeholder' => 'Décrivez votre réclamation en détail...'],
+                'label' => 'Detailed Description',
+                'attr' => ['class' => 'form-control', 'rows' => 6, 'placeholder' => 'Describe your complaint in detail...', 'minlength' => 20, 'maxlength' => 3000],
                 'constraints' => [
-                    new Assert\NotBlank(['message' => 'Vous devez fournir une description détaillée de votre réclamation.']),
+                    new Assert\NotBlank(['message' => 'Please provide a detailed description of your complaint.']),
                     new Assert\Length([
                         'min' => 20,
                         'max' => 3000,
-                        'minMessage' => 'La description doit comporter au moins {{ limit }} caractères.',
-                        'maxMessage' => 'La description ne peut pas dépasser {{ limit }} caractères.',
+                        'minMessage' => 'Description must be at least {{ limit }} characters.',
+                        'maxMessage' => 'Description cannot exceed {{ limit }} characters.',
                     ]),
                 ],
             ])
             ->add('relatedCourse', EntityType::class, [
                 'class' => Course::class,
                 'choice_label' => 'title',
-                'label' => 'Cours concerné (optionnel)',
+                'label' => 'Related Course (optional)',
                 'required' => false,
-                'placeholder' => 'Sélectionnez un cours',
+                'placeholder' => 'Select a course',
                 'attr' => ['class' => 'form-control'],
             ]);
     }

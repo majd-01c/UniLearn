@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ScheduleRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ScheduleRepository::class)]
 class Schedule
@@ -16,22 +17,29 @@ class Schedule
 
     #[ORM\ManyToOne(targetEntity: Classe::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Class is required')]
     private ?Classe $classe = null;
 
     #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Course is required')]
     private ?Course $course = null;
 
     #[ORM\Column(length: 20)]
+    #[Assert\NotBlank(message: 'Day of week is required')]
+    #[Assert\Choice(choices: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'], message: 'Invalid day of week')]
     private ?string $dayOfWeek = null; // monday, tuesday, etc.
 
     #[ORM\Column(type: Types::TIME_MUTABLE)]
+    #[Assert\NotNull(message: 'Start time is required')]
     private ?\DateTimeInterface $startTime = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE)]
+    #[Assert\NotNull(message: 'End time is required')]
     private ?\DateTimeInterface $endTime = null;
 
     #[ORM\Column(length: 100, nullable: true)]
+    #[Assert\Length(max: 100)]
     private ?string $room = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

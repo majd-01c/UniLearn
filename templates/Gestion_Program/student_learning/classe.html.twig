@@ -16,8 +16,8 @@
     <div class="card card-elevated mb-4">
         <div class="row g-0">
             <div class="col-md-4">
-                {% if classe.imageUrl %}
-                    <img src="{{ classe.imageUrl }}" class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="{{ classe.name }}">
+                {% if classe.imageFilename %}
+                    <img src="{{ asset('uploads/classes/' ~ classe.imageFilename) }}" class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="{{ classe.name }}">
                 {% else %}
                     <div class="d-flex align-items-center justify-content-center h-100 rounded-start" 
                          style="min-height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -50,6 +50,12 @@
                         <i class="bi bi-clock-history me-2"></i>
                         Enrolled: {{ enrollment.enrolledAt|date('M d, Y') }}
                     </p>
+
+                    <div class="mt-3">
+                        <a href="{{ path('app_student_meetings', {classeId: classe.id}) }}" class="btn btn-success">
+                            <i class="bi bi-camera-video me-2"></i> Join Class Meeting
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

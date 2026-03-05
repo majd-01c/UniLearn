@@ -8,10 +8,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AssessmentRepository::class)]
 #[ORM\Index(columns: ['type'])]
 #[ORM\Index(columns: ['teacher_id'])]
+#[ORM\Index(columns: ['classe_id'])]
 class Assessment
 {
     #[ORM\Id]
@@ -20,12 +22,16 @@ class Assessment
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', enumType: AssessmentType::class)]
+    #[Assert\NotNull(message: 'Assessment type is required')]
     private ?AssessmentType $type = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Assessment title is required')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Title must be at least {{ limit }} characters')]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 5000, maxMessage: 'Description cannot exceed {{ limit }} characters')]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -37,6 +43,9 @@ class Assessment
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[ORM\Column(type: Types::FLOAT)]
+    private float $maxScore = 20.0;
+
     #[ORM\ManyToOne(targetEntity: Contenu::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Contenu $contenu = null;
@@ -44,6 +53,10 @@ class Assessment
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'assessmentsCreated')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $teacher = null;
+
+    #[ORM\ManyToOne(targetEntity: Classe::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Classe $classe = null;
 
     /**
      * @var Collection<int, Grade>
@@ -54,9 +67,10 @@ class Assessment
     public function __construct()
     {
         $this->grades = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
     }
+
 
     public function getId(): ?int
     {
@@ -177,19 +191,41 @@ class Assessment
         }
         return $this;
     }
+
+    public function getMaxScore(): float
+    {
+        return $this->maxScore;
+    }
+
+    public function setMaxScore(float $maxScore): static
+    {
+        $this->maxScore = $maxScore;
+        return $this;
+    }
+
+    public function getClasse(): ?Classe
+    {
+        return $this->classe;
+    }
+
+    public function setClasse(?Classe $classe): static
+    {
+        $this->classe = $classe;
+        return $this;
+    }
+
     #[ORM\ManyToOne(targetEntity: Course::class)]
-#[ORM\JoinColumn(nullable: false)]
-private ?Course $course = null;
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Course $course = null;
 
-public function getCourse(): ?Course
-{
-    return $this->course;
-}
+    public function getCourse(): ?Course
+    {
+        return $this->course;
+    }
 
-public function setCourse(?Course $course): self
-{
-    $this->course = $course;
-    return $this;
-}
-
+    public function setCourse(?Course $course): self
+    {
+        $this->course = $course;
+        return $this;
+    }
 }

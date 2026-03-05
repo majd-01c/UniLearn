@@ -21,14 +21,22 @@
                 </div>
             </div>
         </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_teacher_meeting_list', {teacherClasseId: teacherClasse.id}) }}" class="btn btn-info">
+                <i class="bi bi-camera-video me-1"></i> Meetings
+            </a>
+            <a href="{{ path('app_teacher_meeting_create', {teacherClasseId: teacherClasse.id}) }}" class="btn btn-success">
+                <i class="bi bi-broadcast me-1"></i> Start Meeting
+            </a>
+        </div>
     </div>
 
     <div class="row g-4">
         {# Left Column - Class Info #}
         <div class="col-lg-4">
             <div class="card card-elevated mb-4">
-                {% if classe.imageUrl %}
-                    <img src="{{ classe.imageUrl }}" class="card-img-top" alt="{{ classe.name }}" style="height: 200px; object-fit: cover;">
+                {% if classe.imageFilename %}
+                    <img src="{{ asset('uploads/classes/' ~ classe.imageFilename) }}" class="card-img-top" alt="{{ classe.name }}" style="height: 200px; object-fit: cover;">
                 {% else %}
                     <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" 
                          style="height: 200px; background: linear-gradient(135deg, #17a2b8, #138496);">
@@ -74,11 +82,6 @@
                             <br><small>Duration: {{ module.duration }} {{ module.periodUnit.value|capitalize }}</small>
                         </div>
                         
-                        {# Edit Module Button #}
-                        <a href="{{ path('app_teacher_module_edit', {id: teacherClasse.id}) }}" class="btn btn-outline-primary btn-sm mb-3">
-                            <i class="bi bi-pencil"></i> Edit Module
-                        </a>
-                        
                         {# Module Progress #}
                         {% if classeModule %}
                             {% set totalCourses = classeModule.courses|length %}
@@ -101,11 +104,8 @@
                     {% else %}
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle-fill"></i>
-                            You haven't created a module yet.
+                            No module assigned to this class yet.
                         </div>
-                        <a href="{{ path('app_classe_teacher_create_module', {id: classe.id, teacherClasseId: teacherClasse.id}) }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Create Module
-                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -157,19 +157,37 @@
                                             <div class="accordion-body">
                                                 {# Course action buttons #}
                                                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                                                    <div class="btn-group btn-group-sm">
+                                                    <div class="d-flex gap-2 flex-wrap">
                                                         <a href="{{ path('app_teacher_course_edit', {id: teacherClasse.id, courseId: classeCourse.course.id}) }}" 
-                                                           class="btn btn-outline-primary" title="Edit Course">
+                                                           class="btn btn-sm btn-outline-primary" title="Edit Course">
                                                             <i class="bi bi-pencil"></i> Edit
                                                         </a>
                                                         <a href="{{ path('app_teacher_contenu_add', {id: teacherClasse.id, courseId: classeCourse.course.id}) }}" 
-                                                           class="btn btn-outline-success" title="Add Content">
+                                                           class="btn btn-sm btn-outline-success" title="Add Content">
                                                             <i class="bi bi-plus-lg"></i> Add Content
                                                         </a>
+                                                        <div class="dropdown">
+                                                            <button type="button" class="btn btn-sm btn-outline-info dropdown-toggle" 
+                                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="bi bi-patch-question"></i> Add Quiz
+                                                            </button>
+                                                            <ul class="dropdown-menu quiz-dropdown">
+                                                                <li>
+                                                                    <a class="dropdown-item" href="{{ path('app_teacher_quiz_create', {teacherClasseId: teacherClasse.id, courseId: classeCourse.id}) }}">
+                                                                        <i class="bi bi-pencil me-2"></i> Create Manually
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item" href="{{ path('app_teacher_quiz_ai_generate', {teacherClasseId: teacherClasse.id, courseId: classeCourse.id}) }}">
+                                                                        <i class="bi bi-robot me-2 text-primary"></i> Generate with AI
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
                                                         <form action="{{ path('app_teacher_toggle_course_visibility', {id: teacherClasse.id, courseId: classeCourse.id}) }}" 
                                                               method="post" class="d-inline">
                                                             <input type="hidden" name="_token" value="{{ csrf_token('toggle_course_visibility' ~ teacherClasse.id) }}">
-                                                            <button type="submit" class="btn {{ classeCourse.isHidden ? 'btn-outline-success' : 'btn-outline-warning' }}">
+                                                            <button type="submit" class="btn btn-sm {{ classeCourse.isHidden ? 'btn-outline-success' : 'btn-outline-warning' }}">
                                                                 <i class="bi bi-{{ classeCourse.isHidden ? 'eye' : 'eye-slash' }}"></i>
                                                                 {{ classeCourse.isHidden ? 'Show' : 'Hide' }}
                                                             </button>
@@ -198,6 +216,9 @@
                                                                     {% endif %}
                                                                     <div>
                                                                         <span class="{{ classeContenu.isHidden ? 'text-muted' : '' }}">
+                                                                            {% if classeContenu.contenu.type.value == 'QUIZ' %}
+                                                                                <i class="bi bi-patch-question-fill text-info"></i>
+                                                                            {% endif %}
                                                                             {{ classeContenu.contenu.title }}
                                                                         </span>
                                                                         <br>
@@ -210,10 +231,37 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="btn-group btn-group-sm">
-                                                                    <a href="{{ path('app_teacher_contenu_edit', {id: teacherClasse.id, contenuId: classeContenu.contenu.id}) }}" 
-                                                                       class="btn btn-outline-primary" title="Edit">
-                                                                        <i class="bi bi-pencil"></i>
-                                                                    </a>
+                                                                    {% if classeContenu.contenu.type.value == 'QUIZ' %}
+                                                                        {# Get the quiz for this contenu #}
+                                                                        {% set quiz = classeContenu.contenu.quiz %}
+                                                                        {% if quiz %}
+                                                                            <a href="{{ path('app_teacher_quiz_edit', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}" 
+                                                                               class="btn btn-outline-info" title="Edit Quiz">
+                                                                                <i class="bi bi-patch-question"></i> Manage
+                                                                            </a>
+                                                                            <a href="{{ path('app_teacher_quiz_results', {teacherClasseId: teacherClasse.id, quizId: quiz.id}) }}" 
+                                                                               class="btn btn-outline-primary" title="View Results">
+                                                                                <i class="bi bi-bar-chart"></i>
+                                                                            </a>
+                                                                        {% endif %}
+                                                                    {% else %}
+                                                                        {% if classeContenu.contenu.fileName %}
+                                                                            <button type="button" class="btn btn-outline-secondary" 
+                                                                                    data-bs-toggle="modal" 
+                                                                                    data-bs-target="#previewModal"
+                                                                                    data-file-url="{{ asset('uploads/content/' ~ classeContenu.contenu.fileName) }}"
+                                                                                    data-file-name="{{ classeContenu.contenu.fileName }}"
+                                                                                    data-file-title="{{ classeContenu.contenu.title }}"
+                                                                                    data-file-type="{{ classeContenu.contenu.fileType ? classeContenu.contenu.fileType.value : '' }}"
+                                                                                    title="Preview">
+                                                                                <i class="bi bi-eye"></i>
+                                                                            </button>
+                                                                        {% endif %}
+                                                                        <a href="{{ path('app_teacher_contenu_edit', {id: teacherClasse.id, contenuId: classeContenu.contenu.id}) }}" 
+                                                                           class="btn btn-outline-primary" title="Edit">
+                                                                            <i class="bi bi-pencil"></i>
+                                                                        </a>
+                                                                    {% endif %}
                                                                     <form action="{{ path('app_teacher_toggle_contenu_visibility', {id: teacherClasse.id, contenuId: classeContenu.id}) }}" 
                                                                           method="post" class="d-inline">
                                                                         <input type="hidden" name="_token" value="{{ csrf_token('toggle_contenu_visibility' ~ teacherClasse.id) }}">
@@ -326,4 +374,124 @@
         </div>
     </div>
 </div>
+
+{# File Preview Modal #}
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">
+                    <i class="bi bi-file-earmark"></i> <span id="previewTitle">File Preview</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="min-height: 500px;">
+                <div id="previewContent" class="d-flex justify-content-center align-items-center" style="min-height: 500px;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="downloadLink" class="btn btn-success" download>
+                    <i class="bi bi-download"></i> Download
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const previewModal = document.getElementById('previewModal');
+    if (previewModal) {
+        previewModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const fileUrl = button.getAttribute('data-file-url');
+            const fileName = button.getAttribute('data-file-name');
+            const fileTitle = button.getAttribute('data-file-title');
+            const fileType = button.getAttribute('data-file-type');
+            
+            // Update modal title
+            document.getElementById('previewTitle').textContent = fileTitle || fileName;
+            
+            // Update download link
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = fileUrl;
+            downloadLink.download = fileName;
+            
+            // Get file extension
+            const ext = fileName.split('.').pop().toLowerCase();
+            const previewContent = document.getElementById('previewContent');
+            
+            // Generate appropriate preview based on file type
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                // Image preview
+                previewContent.innerHTML = `<img src="${fileUrl}" class="img-fluid" style="max-height: 80vh;" alt="${fileTitle}">`;
+            } else if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
+                // Video preview
+                previewContent.innerHTML = `
+                    <video controls style="width: 100%; max-height: 80vh;">
+                        <source src="${fileUrl}" type="video/${ext === 'mov' ? 'quicktime' : ext}">
+                        Your browser does not support the video tag.
+                    </video>`;
+            } else if (['mp3', 'wav', 'ogg', 'mpeg'].includes(ext)) {
+                // Audio preview
+                previewContent.innerHTML = `
+                    <div class="text-center p-5">
+                        <i class="bi bi-music-note-beamed" style="font-size: 5rem; color: var(--primary-500);"></i>
+                        <h5 class="mt-3">${fileTitle}</h5>
+                        <audio controls class="mt-3" style="width: 100%; max-width: 500px;">
+                            <source src="${fileUrl}" type="audio/${ext}">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>`;
+            } else if (ext === 'pdf') {
+                // PDF preview using iframe
+                previewContent.innerHTML = `<iframe src="${fileUrl}" style="width: 100%; height: 80vh; border: none;"></iframe>`;
+            } else if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) {
+                // Office documents - use Google Docs Viewer or show download prompt
+                const encodedUrl = encodeURIComponent(window.location.origin + fileUrl);
+                previewContent.innerHTML = `
+                    <div class="text-center p-5">
+                        <i class="bi bi-file-earmark-${ext.includes('doc') ? 'word' : ext.includes('ppt') ? 'ppt' : 'excel'}" 
+                           style="font-size: 5rem; color: var(--primary-500);"></i>
+                        <h5 class="mt-3">${fileTitle}</h5>
+                        <p class="text-muted">${fileName}</p>
+                        <div class="mt-4">
+                            <a href="https://docs.google.com/viewer?url=${encodedUrl}&embedded=true" 
+                               target="_blank" class="btn btn-primary me-2">
+                                <i class="bi bi-box-arrow-up-right"></i> Open in Google Viewer
+                            </a>
+                            <a href="${fileUrl}" download="${fileName}" class="btn btn-success">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        </div>
+                    </div>`;
+            } else {
+                // Unknown file type - show download option
+                previewContent.innerHTML = `
+                    <div class="text-center p-5">
+                        <i class="bi bi-file-earmark" style="font-size: 5rem; color: var(--text-muted);"></i>
+                        <h5 class="mt-3">${fileTitle}</h5>
+                        <p class="text-muted">${fileName}</p>
+                        <p class="text-muted">Preview not available for this file type.</p>
+                        <a href="${fileUrl}" download="${fileName}" class="btn btn-success mt-3">
+                            <i class="bi bi-download"></i> Download File
+                        </a>
+                    </div>`;
+            }
+        });
+        
+        // Clean up when modal is hidden
+        previewModal.addEventListener('hidden.bs.modal', function() {
+            document.getElementById('previewContent').innerHTML = `
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>`;
+        });
+    }
+});
+</script>
 {% endblock %}

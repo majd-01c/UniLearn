@@ -27,7 +27,10 @@ class JobApplicationFormType extends AbstractType
                     'rows' => 6,
                 ],
                 'constraints' => [
-                    new Assert\Length(['max' => 5000]),
+                    new Assert\Length([
+                        'max' => 5000,
+                        'maxMessage' => 'Your cover letter cannot exceed {{ limit }} characters.',
+                    ]),
                 ],
             ])
             ->add('cvFile', VichFileType::class, [
@@ -37,6 +40,21 @@ class JobApplicationFormType extends AbstractType
                 'download_uri' => true,
                 'attr' => [
                     'class' => 'form-control',
+                    'accept' => '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                ],
+                'constraints' => [
+                    new Assert\File([
+                        'maxSize' => '10M',
+                        'maxSizeMessage' => 'The CV file cannot exceed {{ limit }}.',
+                        'mimeTypes' => [
+                            'application/pdf',
+                            'application/msword',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        ],
+                        'mimeTypesMessage' => 'Please upload a valid CV file (PDF, DOC, or DOCX format only).',
+                        'extensions' => ['pdf', 'doc', 'docx'],
+                        'extensionsMessage' => 'Please upload a file with one of the following extensions: {{ extensions }}.',
+                    ]),
                 ],
             ])
         ;

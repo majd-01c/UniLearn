@@ -1,0 +1,292 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du score ATS - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    {# Back Button #}
+    <div class="mb-3">
+        <a href="{{ path('app_partner_job_offer_applications', {id: application.offer.id}) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour aux candidatures
+        </a>
+    </div>
+
+    {# Header #}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="bi bi-graph-up"></i> Détails du score ATS
+            </h2>
+            {% if application.score is not null %}
+                {% set scoreClass = application.score >= 75 ? 'success' : (application.score >= 50 ? 'warning' : 'danger') %}
+                <span class="badge bg-{{ scoreClass }} fs-4">{{ application.score }}/100</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Candidat:</strong>
+                    {% if application.student.profile %}
+                        {{ application.student.profile.fullName }}
+                    {% else %}
+                        {{ application.student.email }}
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <strong>Offre:</strong> {{ application.offer.title }}
+                </div>
+            </div>
+            {% if application.scoredAt %}
+            <div class="mt-2 text-muted">
+                <small><i class="bi bi-clock"></i> Score calculé le {{ application.scoredAt|date('d/m/Y à H:i') }}</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if breakdown %}
+    <div class="row">
+        {# Required Skills #}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-check-circle text-primary"></i> 
+                        Compétences requises
+                        <span class="badge bg-primary float-end">{{ breakdown.requiredSkills.score|default(0)|round }}/40</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if breakdown.requiredSkills.matched|default([])|length > 0 %}
+                        <p class="text-success mb-2"><strong>Correspondances:</strong></p>
+                        {% for skill in breakdown.requiredSkills.matched %}
+                            <span class="badge bg-success me-1 mb-1">
+                                <i class="bi bi-check"></i> {{ skill }}
+                            </span>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if breakdown.requiredSkills.missing|default([])|length > 0 %}
+                        <p class="text-danger mb-2 {{ breakdown.requiredSkills.matched|default([])|length > 0 ? 'mt-3' : '' }}">
+                            <strong>Manquantes:</strong>
+                        </p>
+                        {% for skill in breakdown.requiredSkills.missing %}
+                            <span class="badge bg-danger me-1 mb-1">
+                                <i class="bi bi-x"></i> {{ skill }}
+                            </span>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if breakdown.requiredSkills.total|default(0) == 0 %}
+                        <p class="text-muted">Aucune compétence requise définie pour cette offre.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Preferred Skills #}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-star text-warning"></i> 
+                        Compétences souhaitées (bonus)
+                        <span class="badge bg-warning text-dark float-end">{{ breakdown.preferredSkills.score|default(0)|round }}/15</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if breakdown.preferredSkills.matched|default([])|length > 0 %}
+                        <p class="text-success mb-2"><strong>Bonus obtenus:</strong></p>
+                        {% for skill in breakdown.preferredSkills.matched %}
+                            <span class="badge bg-success me-1 mb-1">
+                                <i class="bi bi-star-fill"></i> {{ skill }}
+                            </span>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if breakdown.preferredSkills.missing|default([])|length > 0 %}
+                        <p class="text-muted mb-2 {{ breakdown.preferredSkills.matched|default([])|length > 0 ? 'mt-3' : '' }}">
+                            <strong>Non trouvées:</strong>
+                        </p>
+                        {% for skill in breakdown.preferredSkills.missing %}
+                            <span class="badge bg-light text-dark me-1 mb-1">{{ skill }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if breakdown.preferredSkills.total|default(0) == 0 %}
+                        <p class="text-muted">Aucune compétence souhaitée définie pour cette offre.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Education #}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-mortarboard text-info"></i> 
+                        Formation
+                        <span class="badge bg-info float-end">{{ breakdown.education.score|default(0)|round }}/20</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Requis:</small><br>
+                            <strong>{{ breakdown.education.requiredLevel|default('Non défini')|capitalize }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Candidat:</small><br>
+                            <strong>{{ breakdown.education.candidateLevel|default('Non détecté')|capitalize }}</strong>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        {% if breakdown.education.meetsRequirement|default(false) %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Critère satisfait
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-exclamation-circle"></i> Niveau insuffisant
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Experience #}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-briefcase text-secondary"></i> 
+                        Expérience
+                        <span class="badge bg-secondary float-end">{{ breakdown.experience.score|default(0)|round }}/15</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Requis:</small><br>
+                            <strong>{{ breakdown.experience.requiredYears|default(0) }} an(s)</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Candidat:</small><br>
+                            <strong>{{ breakdown.experience.candidateYears|default(0) }} an(s)</strong>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        {% if breakdown.experience.meetsRequirement|default(false) %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Critère satisfait
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-exclamation-circle"></i> Expérience insuffisante
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Languages #}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-translate text-success"></i> 
+                        Langues
+                        <span class="badge bg-success float-end">{{ breakdown.languages.score|default(0)|round }}/10</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if breakdown.languages.matched|default([])|length > 0 %}
+                        <p class="mb-2"><strong>Maîtrisées:</strong></p>
+                        {% for lang in breakdown.languages.matched %}
+                            <span class="badge bg-success me-1">{{ lang }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if breakdown.languages.missing|default([])|length > 0 %}
+                        <p class="mb-2 mt-2"><strong>Manquantes:</strong></p>
+                        {% for lang in breakdown.languages.missing %}
+                            <span class="badge bg-danger me-1">{{ lang }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if breakdown.languages.matched|default([])|length == 0 and breakdown.languages.missing|default([])|length == 0 %}
+                        <p class="text-muted">Aucune langue requise.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Aucun détail de score disponible. Le score n'a peut-être pas encore été calculé.
+        </div>
+    {% endif %}
+
+    {# Extracted Data #}
+    {% if extractedData %}
+    <div class="card mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="bi bi-file-text"></i> Données extraites du CV
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Toutes les compétences détectées:</h6>
+                    {% for skill in extractedData.skills|default([]) %}
+                        <span class="badge bg-light text-dark me-1 mb-1">{{ skill }}</span>
+                    {% else %}
+                        <span class="text-muted">Aucune compétence détectée</span>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <h6>Langues détectées:</h6>
+                    {% for lang in extractedData.languages|default([]) %}
+                        <span class="badge bg-light text-dark me-1">{{ lang }}</span>
+                    {% else %}
+                        <span class="text-muted">Aucune langue détectée</span>
+                    {% endfor %}
+                    
+                    <h6 class="mt-3">Formation:</h6>
+                    <p class="mb-1">
+                        <strong>Niveau:</strong> {{ extractedData.educationLevel|default('Non détecté')|capitalize }}<br>
+                        <strong>Domaine:</strong> {{ extractedData.educationField|default('Non détecté') }}
+                    </p>
+                    
+                    <h6 class="mt-3">Expérience:</h6>
+                    <p>{{ extractedData.experienceYears|default(0) }} an(s)</p>
+                    
+                    {% if extractedData.portfolioUrls|default([])|length > 0 %}
+                    <h6 class="mt-3">Portfolio / Liens:</h6>
+                    {% for url in extractedData.portfolioUrls %}
+                        <a href="{{ url }}" target="_blank" class="d-block">{{ url }}</a>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# CV Download #}
+    {% if application.cvFileName %}
+    <div class="mt-4">
+        <a href="{{ vich_uploader_asset(application, 'cvFile') }}" 
+           target="_blank" 
+           class="btn btn-outline-primary"
+           download>
+            <i class="bi bi-file-earmark-arrow-down"></i> Télécharger le CV original
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

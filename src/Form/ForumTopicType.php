@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class ForumTopicType extends AbstractType
 {
@@ -21,7 +22,16 @@ class ForumTopicType extends AbstractType
                 'attr' => [
                     'placeholder' => 'What is your question or topic about?',
                     'class' => 'form-control'
-                ]
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'You must enter a topic title.']),
+                    new Assert\Length([
+                        'min' => 5,
+                        'max' => 255,
+                        'minMessage' => 'The title must be at least {{ limit }} characters long.',
+                        'maxMessage' => 'The title cannot exceed {{ limit }} characters.',
+                    ]),
+                ],
             ])
             ->add('content', TextareaType::class, [
                 'label' => 'Content',
@@ -29,7 +39,16 @@ class ForumTopicType extends AbstractType
                     'placeholder' => 'Describe your question or topic in detail...',
                     'class' => 'form-control',
                     'rows' => 8
-                ]
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'You must enter the topic content.']),
+                    new Assert\Length([
+                        'min' => 10,
+                        'max' => 10000,
+                        'minMessage' => 'The content must be at least {{ limit }} characters long.',
+                        'maxMessage' => 'The content cannot exceed {{ limit }} characters.',
+                    ]),
+                ],
             ])
             ->add('category', EntityType::class, [
                 'class' => ForumCategory::class,
@@ -38,6 +57,9 @@ class ForumTopicType extends AbstractType
                 'placeholder' => 'Select a category',
                 'attr' => [
                     'class' => 'form-select'
+                ],
+                'constraints' => [
+                    new Assert\NotNull(['message' => 'You must select a category.']),
                 ],
                 'query_builder' => function (\App\Repository\ForumCategoryRepository $repo) {
                     return $repo->createQueryBuilder('c')

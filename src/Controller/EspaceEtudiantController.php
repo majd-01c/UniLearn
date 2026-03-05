@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Reclamation;
+use App\Entity\Evaluation\Reclamation;
 use App\Entity\DocumentRequest;
 use App\Form\ReclamationType;
 use App\Form\DocumentRequestType;
@@ -10,6 +10,7 @@ use App\Repository\GradeRepository;
 use App\Repository\ReclamationRepository;
 use App\Repository\DocumentRequestRepository;
 use App\Repository\ScheduleRepository;
+use App\Repository\StudentClasseRepository;
 use App\Service\AIRecommendationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,21 +25,28 @@ class EspaceEtudiantController extends AbstractController
 {
     #[Route('/', name: 'app_espace_etudiant_dashboard')]
     public function dashboard(
-        GradeRepository $gradeRepository
+        GradeRepository $gradeRepository,
+        AIRecommendationService $aiService
     ): Response {
         $user = $this->getUser();
-        
-        // Get recent grades
+
+        // Get recent grades (with assessment + course eager loaded)
         $recentGrades = $gradeRepository->createQueryBuilder('g')
+            ->join('g.assessment', 'a')
+            ->leftJoin('a.course', 'c')
             ->where('g.student = :student')
             ->setParameter('student', $user)
             ->orderBy('g.id', 'DESC')
             ->setMaxResults(5)
             ->getQuery()
             ->getResult();
-        
+
+        // Semester summary only — no Groq calls on dashboard load
+        $semesterResults = $aiService->calculateSemesterResults($user);
+
         return $this->render('Gestion_Evaluation/espace_etudiant/dashboard.html.twig', [
-            'recentGrades' => $recentGrades,
+            'recentGrades'    => $recentGrades,
+            'semesterResults' => $semesterResults,
         ]);
     }
 
@@ -49,10 +57,10 @@ class EspaceEtudiantController extends AbstractController
         
         $grades = $gradeRepository->createQueryBuilder('g')
             ->join('g.assessment', 'a')
-            ->join('a.course', 'c')
+            ->leftJoin('a.course', 'c')
             ->where('g.student = :student')
             ->setParameter('student', $user)
-            ->orderBy('a.dueDate', 'DESC')
+            ->orderBy('a.date', 'DESC')
             ->getQuery()
             ->getResult();
         
@@ -61,50 +69,85 @@ class EspaceEtudiantController extends AbstractController
         ]);
     }
 
-   
-
-   
-
-   #[Route('/emploi-du-temps', name: 'app_espace_etudiant_schedule')]
-public function schedule(ScheduleRepository $scheduleRepository): Response
-{
-    $user = $this->getUser();
-    
-    // Temporarily disabled until classe relationship is set up
-    $this->addFlash('info', 'La fonctionnalité emploi du temps sera bientôt disponible.');
-    return $this->redirectToRoute('app_espace_etudiant_dashboard');
-    
-    $classe = $user->getClasse();
-    
-    if (!$classe) {
-        $this->addFlash('warning', 'Vous n\'êtes pas assigné à une classe.');
-        return $this->redirectToRoute('app_espace_etudiant_dashboard');
+    #[Route('/resultats', name: 'app_espace_etudiant_results')]
+    public function results(AIRecommendationService $aiService): Response
+    {
+        $user = $this->getUser();
+        $results = $aiService->calculateSemesterResults($user);
+        
+        return $this->render('Gestion_Evaluation/espace_etudiant/results.html.twig', [
+            'results' => $results,
+        ]);
     }
-    
-    $schedules = $scheduleRepository->findCurrentSchedule($classe);
-    
-    $weekSchedule = [
-        'monday' => [],
-        'tuesday' => [],
-        'wednesday' => [],
-        'thursday' => [],
-        'friday' => [],
-        'saturday' => [],
-    ];
-    
-    foreach ($schedules as $schedule) {
-        $day = strtolower($schedule->getDayOfWeek());
-        if (isset($weekSchedule[$day])) {
-            $weekSchedule[$day][] = $schedule;
+
+    #[Route('/recommandations', name: 'app_espace_etudiant_recommendations')]
+    public function recommendations(AIRecommendationService $aiService): Response
+    {
+        $user = $this->getUser();
+        $recommendations = $aiService->generateRecommendations($user);
+        
+        return $this->render('Gestion_Evaluation/espace_etudiant/recommendations.html.twig', [
+            'recommendations' => $recommendations,
+        ]);
+    }
+
+   
+
+   
+
+    #[Route('/emploi-du-temps', name: 'app_espace_etudiant_schedule')]
+    public function schedule(
+        ScheduleRepository $scheduleRepository,
+        StudentClasseRepository $studentClasseRepository
+    ): Response {
+        $user = $this->getUser();
+        
+        // Get student's classes using the repository
+        $studentClasses = $studentClasseRepository->findBy([
+            'student' => $user,
+            'isActive' => true
+        ]);
+        
+        if (empty($studentClasses)) {
+            $this->addFlash('warning', 'You are not currently enrolled in a class. Please contact the administration.');
+            return $this->redirectToRoute('app_espace_etudiant_dashboard');
         }
+        
+        // Get the first active class
+        $activeClass = $studentClasses[0]->getClasse();
+        
+        // Get schedules for the class
+        $schedules = $scheduleRepository->findBy(['classe' => $activeClass]);
+        
+        // Organize schedules by day
+        $weekSchedule = [
+            'monday' => [],
+            'tuesday' => [],
+            'wednesday' => [],
+            'thursday' => [],
+            'friday' => [],
+            'saturday' => [],
+        ];
+        
+        foreach ($schedules as $schedule) {
+            $day = strtolower($schedule->getDayOfWeek());
+            if (isset($weekSchedule[$day])) {
+                $weekSchedule[$day][] = $schedule;
+            }
+        }
+        
+        // Sort each day's schedule by time
+        foreach ($weekSchedule as $day => &$daySchedules) {
+            usort($daySchedules, function($a, $b) {
+                return $a->getStartTime() <=> $b->getStartTime();
+            });
+        }
+        
+        return $this->render('Gestion_Evaluation/espace_etudiant/schedule.html.twig', [
+            'weekSchedule' => $weekSchedule,
+            'classe' => $activeClass,
+        ]);
     }
-    
-    return $this->render('Gestion_Evaluation/espace_etudiant/schedule.html.twig', [
-        'weekSchedule' => $weekSchedule,
-        'classe' => $classe,
-    ]);
-    
-}
 
 
     #[Route('/reclamations', name: 'app_espace_etudiant_reclamations')]
@@ -119,7 +162,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
         ]);
     }
 
-    #[Route('/reclamations/nouvelle', name: 'app_espace_etudiant_reclamation_new')]
+    #[Route('/reclamations/nouvelle', name: 'app_espace_etudiant_reclamation_new', methods: ['GET', 'POST'])]
     public function newReclamation(Request $request, EntityManagerInterface $entityManager): Response
     {
         $reclamation = new Reclamation();
@@ -132,7 +175,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
             $entityManager->persist($reclamation);
             $entityManager->flush();
             
-            $this->addFlash('success', 'Votre réclamation a été soumise avec succès.');
+            $this->addFlash('success', 'Your complaint has been submitted successfully.');
             
             return $this->redirectToRoute('app_espace_etudiant_reclamations');
         }
@@ -167,7 +210,7 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
             $entityManager->persist($documentRequest);
             $entityManager->flush();
             
-            $this->addFlash('success', 'Votre demande de document a été enregistrée.');
+            $this->addFlash('success', 'Your document request has been registered.');
             
             return $this->redirectToRoute('app_espace_etudiant_documents');
         }
@@ -175,5 +218,30 @@ public function schedule(ScheduleRepository $scheduleRepository): Response
         return $this->render('Gestion_Evaluation/espace_etudiant/document_request.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    #[Route('/documents/{id}/download', name: 'app_espace_etudiant_document_download')]
+    public function downloadDocument(DocumentRequest $documentRequest): Response
+    {
+        $user = $this->getUser();
+        
+        // Security check - only the requesting student can download
+        if ($documentRequest->getStudent() !== $user) {
+            throw $this->createAccessDeniedException('You are not authorized to download this document.');
+        }
+        
+        if (!$documentRequest->getDocumentPath()) {
+            $this->addFlash('error', 'The document is not yet available.');
+            return $this->redirectToRoute('app_espace_etudiant_documents');
+        }
+        
+        $filePath = $this->getParameter('kernel.project_dir') . '/public/uploads/student_documents/' . $documentRequest->getDocumentPath();
+        
+        if (!file_exists($filePath)) {
+            $this->addFlash('error', 'File not found.');
+            return $this->redirectToRoute('app_espace_etudiant_documents');
+        }
+        
+        return $this->file($filePath, $documentRequest->getDocumentPath());
     }
 }

@@ -16,18 +16,23 @@ use App\Repository\StudentClasseRepository;
 use App\Repository\TeacherClasseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/classe')]
+#[IsGranted('ROLE_ADMIN')]
 class ClasseController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ClasseRepository $classeRepository,
         private StudentClasseRepository $studentClasseRepository,
-        private TeacherClasseRepository $teacherClasseRepository
+        private TeacherClasseRepository $teacherClasseRepository,
+        private SluggerInterface $slugger
     ) {}
 
     #[Route('', name: 'app_classe')]
@@ -56,6 +61,23 @@ class ClasseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imageFile')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $this->slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('classes_upload_directory'),
+                        $newFilename
+                    );
+                    $classe->setImageFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Failed to upload image.');
+                }
+            }
+
             $this->entityManager->persist($classe);
             $this->entityManager->flush();
 
@@ -75,16 +97,11 @@ class ClasseController extends AbstractController
         // Get enrolled students
         $enrolledStudents = $this->studentClasseRepository->findByClasse($classe);
         
-        // Get available students (not enrolled in this class) - only STUDENT role
-        $enrolledStudentIds = array_map(
-            fn(StudentClasse $sc) => $sc->getStudent()->getId(),
-            $enrolledStudents
-        );
-        
+        // Get available students (not enrolled in ANY class) - only STUDENT role
         $allStudents = $this->entityManager->getRepository(User::class)->findBy(['role' => 'STUDENT']);
         $availableStudents = array_filter(
             $allStudents,
-            fn(User $user) => !in_array($user->getId(), $enrolledStudentIds)
+            fn(User $user) => !$this->studentClasseRepository->isStudentEnrolledInAnyClass($user)
         );
 
         // Get assigned teachers
@@ -122,6 +139,31 @@ class ClasseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imageFile')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $this->slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('classes_upload_directory'),
+                        $newFilename
+                    );
+                    // Delete old image if exists
+                    $oldFilename = $classe->getImageFilename();
+                    if ($oldFilename) {
+                        $oldFilePath = $this->getParameter('classes_upload_directory').'/'.$oldFilename;
+                        if (file_exists($oldFilePath)) {
+                            unlink($oldFilePath);
+                        }
+                    }
+                    $classe->setImageFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Failed to upload image.');
+                }
+            }
+
             // Auto-update status based on capacity
             if ($classe->isFull() && $classe->getStatus() !== ClasseStatus::FULL) {
                 $classe->setStatus(ClasseStatus::FULL);
@@ -179,9 +221,17 @@ class ClasseController extends AbstractController
             return $this->redirectToRoute('app_classe_show', ['id' => $classe->getId()]);
         }
 
-        // Check if already enrolled
+        // Check if already enrolled in THIS class
         if ($this->studentClasseRepository->isStudentEnrolled($student, $classe)) {
             $this->addFlash('warning', 'Student is already enrolled in this class.');
+            return $this->redirectToRoute('app_classe_show', ['id' => $classe->getId()]);
+        }
+
+        // Check if already enrolled in ANY other class
+        $existingEnrollment = $this->studentClasseRepository->findStudentCurrentEnrollment($student);
+        if ($existingEnrollment) {
+            $existingClassName = $existingEnrollment->getClasse()->getName();
+            $this->addFlash('error', sprintf('Student is already enrolled in class "%s". A student can only be enrolled in one class at a time.', $existingClassName));
             return $this->redirectToRoute('app_classe_show', ['id' => $classe->getId()]);
         }
 

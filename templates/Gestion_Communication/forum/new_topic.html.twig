@@ -16,7 +16,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="card">
-                    <div class="card-header bg-white">
+                    <div class="card-header">
                         <h4 class="card-title mb-0">
                             <i class="bi bi-plus-circle text-primary"></i> Create New Topic
                         </h4>
@@ -52,6 +52,68 @@
                                 {{ form_errors(form.content) }}
                                 <div class="form-text">Provide detailed information. The more context you give, the better answers you'll get.</div>
                             </div>
+
+                            {# AI Suggestions Section #}
+                            {% if aiEnabled %}
+                            <style>
+                                #ai-suggestions-container .card { background: var(--surface-card) !important; }
+                                #ai-suggestions-container .card-header { background: #0d6efd !important; }
+                                #ai-suggestions-container .card-header h6 { color: #fff !important; }
+                                #ai-suggestions-container .card-body { background: var(--surface-card) !important; }
+                                #ai-suggestions-container .card-body div,
+                                #ai-suggestions-container .card-body p,
+                                #ai-suggestions-container .card-body h6,
+                                #ai-suggestions-container .card-body small,
+                                #ai-suggestions-container .card-body a { color: var(--text-primary) !important; }
+                                #ai-suggestions-container #ai-advice { background: rgba(13, 110, 253, 0.15) !important; color: var(--text-primary) !important; border: 1px solid rgba(13, 110, 253, 0.3) !important; padding: 1rem !important; border-radius: 0.375rem !important; }
+                                #ai-suggestions-container #ai-direct-answer { background: rgba(25, 135, 84, 0.12) !important; color: var(--text-primary) !important; border: 1px solid rgba(25, 135, 84, 0.35) !important; padding: 1rem !important; border-radius: 0.375rem !important; }
+                                #ai-suggestions-container .list-group-item { background: var(--surface-elevated, #252b33) !important; border: none !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; border-radius: 0 !important; transition: background 0.15s ease; }
+                                #ai-suggestions-container .list-group-item:last-child { border-bottom: none !important; }
+                                #ai-suggestions-container .list-group-item:hover { background: var(--surface-bg, #0a0e13) !important; }
+                                #ai-suggestions-container .list-group-item span, #ai-suggestions-container .list-group-item .fw-semibold { color: var(--text-primary) !important; }
+                                #ai-suggestions-container .list-group-item small { color: var(--text-muted) !important; }
+                                #ai-topics-col .list-group { max-height: 300px; overflow-y: auto; }
+                                #ai-topics-col .list-group::-webkit-scrollbar { width: 4px; }
+                                #ai-topics-col .list-group::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+                            </style>
+                            <div id="ai-suggestions-container" class="mb-4" style="display: none; position: relative; z-index: 9999;">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-stars"></i> AI Assistant
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="ai-loading" class="text-center py-3" style="display: none;">
+                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <p class="mt-2 mb-0 small">AI is analyzing your question...</p>
+                                        </div>
+                                        
+                                        <div id="ai-results" style="display: none;">
+                                            <div class="row">
+                                                {# AI Answer - Left/Main column #}
+                                                <div id="ai-answer-col" class="col-12">
+                                                    <div id="ai-direct-answer" style="display: none;"></div>
+                                                    <div id="ai-advice" style="display: none;"></div>
+                                                </div>
+                                                {# Similar Topics - Right column #}
+                                                <div id="ai-topics-col" class="col-12" style="display: none;">
+                                                    <div id="ai-topics-list"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center mt-3">
+                                            <small class="text-muted">
+                                                <i class="bi bi-info-circle"></i> AI-generated — may not always be accurate
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                             
                             <div class="d-flex justify-content-between">
                                 <a href="{{ path('app_forum') }}" class="btn btn-outline-secondary">
@@ -68,4 +130,258 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+{% if aiEnabled is defined and aiEnabled %}
+<script>
+console.log('🤖 AI Assistant loaded');
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    let aiSuggestionsTimer = null;
+    
+    // Find form fields - Symfony uses form name 'forum_topic' (from ForumTopicType)
+    const titleInput = document.getElementById('forum_topic_title') || 
+                      document.querySelector('input[name="forum_topic[title]"]');
+    
+    const contentInput = document.getElementById('forum_topic_content') || 
+                        document.querySelector('textarea[name="forum_topic[content]"]');
+    
+    const categorySelect = document.getElementById('forum_topic_category') || 
+                          document.querySelector('select[name="forum_topic[category]"]');
+    
+    const suggestionsContainer = document.getElementById('ai-suggestions-container');
+    const loadingIndicator = document.getElementById('ai-loading');
+    const aiResults = document.getElementById('ai-results');
+    const adviceBox = document.getElementById('ai-advice');
+    const directAnswerBox = document.getElementById('ai-direct-answer');
+    const topicsList = document.getElementById('ai-topics-list');
+    const answerCol = document.getElementById('ai-answer-col');
+    const topicsCol = document.getElementById('ai-topics-col');
+    
+    console.log('Form elements:', {
+        titleInput: !!titleInput,
+        contentInput: !!contentInput,
+        categorySelect: !!categorySelect,
+        suggestionsContainer: !!suggestionsContainer
+    });
+    
+    // Debug: Log all input and textarea IDs on the page
+    const allInputs = document.querySelectorAll('input, textarea, select');
+    console.log('All form fields on page:', Array.from(allInputs).map(el => ({ 
+        tag: el.tagName, 
+        id: el.id, 
+        name: el.name 
+    })));
+    
+    if (!titleInput || !contentInput) {
+        console.error('❌ Required form fields not found! Check the IDs above.');
+        return;
+    }
+
+    // Debounced search function
+    function triggerAiSearch() {
+        clearTimeout(aiSuggestionsTimer);
+        
+        const title = titleInput ? titleInput.value.trim() : '';
+        const content = contentInput ? contentInput.value.trim() : '';
+        const question = title + ' ' + content;
+        
+        console.log('Question length:', question.length);
+        
+        // Only search if we have enough text
+        if (question.length < 3) {
+            if (suggestionsContainer) {
+                suggestionsContainer.style.display = 'none';
+            }
+            return;
+        }
+        
+        console.log('Scheduling AI search for:', question.substring(0, 50) + '...');
+        
+        aiSuggestionsTimer = setTimeout(() => {
+            searchSimilarTopics(question);
+        }, 1500); // Wait 1.5 seconds after user stops typing
+    }
+
+    // Search for similar topics
+    async function searchSimilarTopics(question) {
+        console.log('🔍 Searching for similar topics...');
+        
+        if (!suggestionsContainer) {
+            console.error('❌ Suggestions container not found');
+            return;
+        }
+        
+        suggestionsContainer.style.display = 'block';
+        loadingIndicator.style.display = 'block';
+        aiResults.style.display = 'none';
+        topicsList.innerHTML = '';
+        adviceBox.style.display = 'none';
+        directAnswerBox.style.display = 'none';
+        topicsCol.style.display = 'none';
+        
+        const categoryId = categorySelect ? categorySelect.value : null;
+        
+        console.log('Sending request with:', { question: question.substring(0, 50), categoryId });
+        
+        try {
+            const response = await fetch('{{ path('app_forum_ai_suggestions') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    question: question,
+                    categoryId: categoryId
+                })
+            });
+            
+            console.log('Response status:', response.status);
+            
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            loadingIndicator.style.display = 'none';
+            
+            if (data.success && (data.directAnswer || (data.topics && data.topics.length > 0))) {
+                console.log('✅ Got AI response');
+                displaySuggestions(data.topics || [], data.advice, data.fromCache, data.directAnswer);
+            } else {
+                console.log('ℹ️ No results from AI');
+                suggestionsContainer.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('❌ Error fetching AI suggestions:', error);
+            loadingIndicator.style.display = 'none';
+            suggestionsContainer.style.display = 'none';
+        }
+    }
+
+    // Display the suggestions and AI answer
+    function displaySuggestions(topics, advice, fromCache, directAnswer) {
+        console.log('📝 Displaying results...');
+        
+        // Ensure container is visible
+        suggestionsContainer.style.display = 'block';
+        loadingIndicator.style.display = 'none';
+        aiResults.style.display = 'block';
+        
+        const hasTopics = topics && topics.length > 0;
+        const hasAnswer = !!directAnswer;
+        
+        // Adjust column layout: side by side when both exist
+        if (hasAnswer && hasTopics) {
+            answerCol.className = 'col-lg-7 col-12 mb-3 mb-lg-0';
+            topicsCol.className = 'col-lg-5 col-12';
+            topicsCol.style.display = 'block';
+        } else if (hasTopics) {
+            answerCol.className = 'col-12';
+            topicsCol.className = 'col-12 mt-3';
+            topicsCol.style.display = 'block';
+        } else {
+            answerCol.className = 'col-12';
+            topicsCol.style.display = 'none';
+        }
+        
+        // Show direct AI answer
+        if (hasAnswer) {
+            directAnswerBox.innerHTML = `
+                <div class="mb-2"><strong><i class="bi bi-robot text-success"></i> AI Answer:</strong></div>
+                <div style="white-space: pre-line; font-size: 0.92rem; line-height: 1.6;">${directAnswer}</div>
+            `;
+            directAnswerBox.style.display = 'block';
+        } else {
+            directAnswerBox.style.display = 'none';
+        }
+        
+        // Show advice if available (and no direct answer already shown)
+        if (advice && !hasAnswer) {
+            adviceBox.innerHTML = `<i class="bi bi-lightbulb-fill"></i> <strong>AI Advice:</strong> ${advice}`;
+            adviceBox.style.display = 'block';
+        } else {
+            adviceBox.style.display = 'none';
+        }
+        
+        // Build topics list
+        let html = '';
+        
+        if (hasTopics) {
+            html += `<div class="d-flex align-items-center mb-2">
+                <i class="bi bi-link-45deg text-primary me-1"></i>
+                <small class="fw-bold text-uppercase">Similar Topics (${topics.length})</small>
+            </div>`;
+            html += '<div class="list-group list-group-flush">';
+        
+            topics.forEach((topic, index) => {
+            console.log(`Topic ${index}:`, topic);
+            
+            const statusBadge = topic.hasAcceptedAnswers 
+                ? '<span class="badge bg-success ms-1" style="font-size: 0.65rem;"><i class="bi bi-check-circle"></i> Solved</span>'
+                : '';
+            
+            html += `
+                <a href="${topic.url}" target="_blank" class="list-group-item list-group-item-action py-2 px-2">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-chat-left-text text-primary me-2 mt-1" style="font-size: 0.8rem;"></i>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="d-flex align-items-center">
+                                <span class="fw-semibold text-truncate" style="font-size: 0.85rem;">${topic.title}</span>
+                                ${statusBadge}
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                <i class="bi bi-tag"></i> ${topic.categoryName || 'General'}
+                                &nbsp;·&nbsp;
+                                <i class="bi bi-chat"></i> ${topic.commentsCount} ${topic.commentsCount === 1 ? 'answer' : 'answers'}
+                            </small>
+                        </div>
+                        <i class="bi bi-box-arrow-up-right text-muted ms-2" style="font-size: 0.7rem;"></i>
+                    </div>
+                </a>
+            `;
+            });
+        
+            html += '</div>';
+        }
+        
+        if (fromCache) {
+            html += '<div class="text-end mt-2"><small class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-lightning-fill"></i> From cache</small></div>';
+        }
+        
+        topicsList.innerHTML = html;
+        console.log('✅ Topics list HTML set, container visible:', suggestionsContainer.style.display);
+    }
+
+    // Attach event listeners
+    if (titleInput) {
+        console.log('✅ Title input listener attached');
+        titleInput.addEventListener('input', triggerAiSearch);
+    } else {
+        console.error('❌ Title input not found');
+    }
+
+    if (contentInput) {
+        console.log('✅ Content input listener attached');
+        contentInput.addEventListener('input', triggerAiSearch);
+    } else {
+        console.error('❌ Content input not found');
+    }
+
+    if (categorySelect) {
+        console.log('✅ Category select listener attached');
+        categorySelect.addEventListener('change', triggerAiSearch);
+    } else {
+        console.warn('⚠️ Category select not found (might be OK)');
+    }
+
+    console.log('🎯 AI Assistant ready! Type at least 3 characters to see suggestions.');
+}); // End of DOMContentLoaded
+</script>
+{% else %}
+<script>
+console.log('ℹ️ AI Assistant is disabled or not configured');
+</script>
+{% endif %}
 {% endblock %}

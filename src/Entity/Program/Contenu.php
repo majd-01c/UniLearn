@@ -25,6 +25,8 @@ class Contenu
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Content title is required')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Title must be at least {{ limit }} characters')]
     private ?string $title = null;
 
     #[Vich\UploadableField(mapping: 'content_files', fileNameProperty: 'fileName', size: 'fileSize')]
@@ -64,6 +66,7 @@ class Contenu
     private ?FileType $fileType = null;
 
     #[ORM\Column(type: 'string', enumType: ContenuType::class)]
+    #[Assert\NotNull(message: 'Content type is required')]
     private ?ContenuType $type = null;
 
     #[ORM\Column]
@@ -80,6 +83,9 @@ class Contenu
      */
     #[ORM\OneToMany(targetEntity: CourseContenu::class, mappedBy: 'contenu', orphanRemoval: true)]
     private Collection $courses;
+
+    #[ORM\OneToOne(targetEntity: Quiz::class, mappedBy: 'contenu')]
+    private ?Quiz $quiz = null;
 
     public function __construct()
     {
@@ -219,6 +225,28 @@ class Contenu
                 $course->setContenu(null);
             }
         }
+        return $this;
+    }
+
+    public function getQuiz(): ?Quiz
+    {
+        return $this->quiz;
+    }
+
+    public function setQuiz(?Quiz $quiz): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($quiz === null && $this->quiz !== null) {
+            $this->quiz->setContenu(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($quiz !== null && $quiz->getContenu() !== $this) {
+            $quiz->setContenu($this);
+        }
+
+        $this->quiz = $quiz;
+
         return $this;
     }
 }

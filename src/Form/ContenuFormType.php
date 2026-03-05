@@ -35,6 +35,9 @@ class ContenuFormType extends AbstractType
                 'class' => ContenuType::class,
                 'attr' => ['class' => 'form-select'],
                 'choice_label' => fn($choice) => ucfirst($choice->value),
+                'constraints' => [
+                    new Assert\NotNull(['message' => 'You must select a content type.']),
+                ],
             ])
             ->add('contentFile', VichFileType::class, [
                 'label' => 'Upload File',

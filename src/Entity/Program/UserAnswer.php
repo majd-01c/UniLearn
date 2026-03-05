@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserAnswerRepository::class)]
 #[ORM\UniqueConstraint(name: 'user_quiz_unique', columns: ['user_id', 'quiz_id'])]
@@ -21,16 +22,20 @@ class UserAnswer
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'User is required')]
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Quiz::class, inversedBy: 'userAnswers')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Quiz is required')]
     private ?Quiz $quiz = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Score must be zero or positive')]
     private ?int $score = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Total points must be zero or positive')]
     private ?int $totalPoints = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -41,6 +46,12 @@ class UserAnswer
 
     #[ORM\Column(options: ['default' => false])]
     private bool $isPassed = false;
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isCheated = false;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $tabSwitchCount = 0;
 
     /**
      * @var Collection<int, Answer>
@@ -185,5 +196,33 @@ class UserAnswer
     public function isCompleted(): bool
     {
         return $this->completedAt !== null;
+    }
+
+    public function isCheated(): bool
+    {
+        return $this->isCheated;
+    }
+
+    public function setIsCheated(bool $isCheated): static
+    {
+        $this->isCheated = $isCheated;
+        return $this;
+    }
+
+    public function getTabSwitchCount(): int
+    {
+        return $this->tabSwitchCount;
+    }
+
+    public function setTabSwitchCount(int $tabSwitchCount): static
+    {
+        $this->tabSwitchCount = $tabSwitchCount;
+        return $this;
+    }
+
+    public function incrementTabSwitchCount(): static
+    {
+        $this->tabSwitchCount++;
+        return $this;
     }
 }

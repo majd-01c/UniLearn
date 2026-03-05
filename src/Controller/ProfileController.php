@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Profile;
 use App\Form\ChangePasswordType;
 use App\Form\ProfileType;
+use App\Service\AvatarGeneratorClient;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Vich\UploaderBundle\Storage\StorageInterface;
 
 #[Route('/profile')]
 #[IsGranted('ROLE_USER')]
@@ -32,9 +35,15 @@ class ProfileController extends AbstractController
         $user = $this->getUser();
         $profile = $user->getProfile();
 
+        // Auto-create a profile if one doesn't exist (e.g. admin created via CLI)
         if (!$profile) {
-            $this->addFlash('error', 'Profile not found.');
-            return $this->redirectToRoute('app_home');
+            // Auto-create profile if missing (e.g. admin created via script)
+            $profile = new \App\Entity\Profile();
+            $profile->setFirstName($user->getName() ?? 'User');
+            $profile->setLastName('');
+            $profile->setUser($user);
+            $this->entityManager->persist($profile);
+            $this->entityManager->flush();
         }
 
         $form = $this->createForm(ProfileType::class, $profile);
@@ -102,5 +111,65 @@ class ProfileController extends AbstractController
             'user' => $user,
             'mustChange' => $user->isMustChangePassword(),
         ]);
+    }
+
+    /**
+     * Generate cartoon avatar from profile photo using HuggingFace cartoonizer
+     */
+    #[Route('/avatar/generate', name: 'profile_avatar_generate', methods: ['POST'])]
+    public function generateAvatar(
+        Request $request,
+        AvatarGeneratorClient $avatarClient,
+        StorageInterface $storage
+    ): Response {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $profile = $user->getProfile();
+
+        // CSRF protection
+        if (!$this->isCsrfTokenValid('avatar_generate', $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+            return $this->redirectToRoute('profile_edit');
+        }
+
+        if (!$profile || !$profile->getPhoto()) {
+            $this->addFlash('error', 'Please upload a profile photo first before generating an avatar.');
+            return $this->redirectToRoute('profile_edit');
+        }
+
+        // Resolve the absolute path of the uploaded photo via VichUploader storage
+        $photoPath = $storage->resolvePath($profile, 'photoFile');
+
+        if (!$photoPath || !file_exists($photoPath)) {
+            $this->addFlash('error', 'Profile photo file not found. Please re-upload your photo.');
+            return $this->redirectToRoute('profile_edit');
+        }
+
+        // Call the Python avatar microservice
+        $avatarPngBytes = $avatarClient->generateAvatar($photoPath);
+
+        if ($avatarPngBytes === null) {
+            $this->addFlash('error', 'Avatar generation failed. The avatar service may be unavailable. Please try again later.');
+            return $this->redirectToRoute('profile_edit');
+        }
+
+        // Save avatar to public/uploads/avatars/{userId}/avatar.png
+        $avatarDir = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars/' . $user->getId();
+        if (!is_dir($avatarDir)) {
+            mkdir($avatarDir, 0775, true);
+        }
+
+        $avatarPath = $avatarDir . '/avatar.png';
+        file_put_contents($avatarPath, $avatarPngBytes);
+
+        // Update profile entity
+        $avatarRelativeUrl = '/uploads/avatars/' . $user->getId() . '/avatar.png';
+        $profile->setAvatarFilename($avatarRelativeUrl);
+        $profile->setAvatarUpdatedAt(new \DateTime());
+
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'Avatar generated successfully!');
+        return $this->redirectToRoute('profile_edit');
     }
 }

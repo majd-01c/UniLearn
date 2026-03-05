@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\AnswerRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AnswerRepository::class)]
 #[ORM\Index(columns: ['user_answer_id'])]
@@ -17,10 +18,12 @@ class Answer
 
     #[ORM\ManyToOne(targetEntity: UserAnswer::class, inversedBy: 'answers')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'User answer is required')]
     private ?UserAnswer $userAnswer = null;
 
     #[ORM\ManyToOne(targetEntity: Question::class, inversedBy: 'answers')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull(message: 'Question is required')]
     private ?Question $question = null;
 
     #[ORM\ManyToOne(targetEntity: Choice::class)]
@@ -34,7 +37,14 @@ class Answer
     private bool $isCorrect = false;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Points earned must be zero or positive')]
     private ?int $pointsEarned = null;
+
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $aiDetectionScore = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $aiDetectionResult = null;
 
     public function getId(): ?int
     {
@@ -113,5 +123,39 @@ class Answer
             $this->isCorrect = $this->selectedChoice->isCorrect();
             $this->pointsEarned = $this->isCorrect ? $this->question->getPoints() : 0;
         }
+    }
+
+    public function getAiDetectionScore(): ?float
+    {
+        return $this->aiDetectionScore;
+    }
+
+    public function setAiDetectionScore(?float $aiDetectionScore): static
+    {
+        $this->aiDetectionScore = $aiDetectionScore;
+        return $this;
+    }
+
+    public function getAiDetectionResult(): ?string
+    {
+        return $this->aiDetectionResult;
+    }
+
+    public function setAiDetectionResult(?string $aiDetectionResult): static
+    {
+        $this->aiDetectionResult = $aiDetectionResult;
+        return $this;
+    }
+
+    /**
+     * Get the AI detection result as a decoded associative array
+     */
+    public function getAiDetectionResultDecoded(): ?array
+    {
+        if ($this->aiDetectionResult === null) {
+            return null;
+        }
+        $decoded = json_decode($this->aiDetectionResult, true);
+        return is_array($decoded) ? $decoded : null;
     }
 }

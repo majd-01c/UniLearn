@@ -1,21 +1,26 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
-{% block title %}Mes Réclamations{% endblock %}
+{% block title %}My Complaints{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-exclamation-circle"></i> Mes Réclamations</h1>
-        <a href="{{ path('app_espace_etudiant_reclamation_new') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Nouvelle Réclamation
-        </a>
+<div class="container-fluid mt-4 px-4 animate-in">
+    <div class="uni-page-header">
+        <div class="uni-page-header-info">
+            <h1 class="uni-page-header-title"><i class="bi bi-exclamation-triangle-fill"></i> My Complaints</h1>
+            <p class="uni-page-header-subtitle">Manage your complaints and track their status</p>
+        </div>
+        <div class="uni-page-header-actions">
+            <a href="{{ path('app_espace_etudiant_reclamation_new') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> New Complaint
+            </a>
+        </div>
     </div>
     
     {% if reclamations|length > 0 %}
-    <div class="row">
+    <div class="row g-4 stagger-in">
         {% for reclamation in reclamations %}
-        <div class="col-md-12 mb-3">
-            <div class="card">
+        <div class="col-12">
+            <div class="card card-static">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ reclamation.subject }}</h5>
                     <span class="badge 
@@ -23,40 +28,43 @@
                         {% elseif reclamation.status == 'in_progress' %}bg-info
                         {% elseif reclamation.status == 'resolved' %}bg-success
                         {% else %}bg-danger{% endif %}">
-                        {% if reclamation.status == 'pending' %}En Attente
-                        {% elseif reclamation.status == 'in_progress' %}En Cours
-                        {% elseif reclamation.status == 'resolved' %}Résolue
-                        {% else %}Rejetée{% endif %}
+                        {% if reclamation.status == 'pending' %}Pending
+                        {% elseif reclamation.status == 'in_progress' %}In Progress
+                        {% elseif reclamation.status == 'resolved' %}Resolved
+                        {% else %}Rejected{% endif %}
                     </span>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-8">
-                            <h6>Description:</h6>
+                            <h6 class="fw-bold mb-2">Description</h6>
                             <p>{{ reclamation.description }}</p>
                             
                             {% if reclamation.relatedCourse %}
-                            <p class="mb-1"><strong>Cours concerné:</strong> {{ reclamation.relatedCourse.title }}</p>
+                            <p class="mb-1"><strong>Related Course:</strong> {{ reclamation.relatedCourse.title }}</p>
                             {% endif %}
                             
                             {% if reclamation.adminResponse %}
                             <div class="alert alert-info mt-3">
-                                <h6>Réponse de l'administration:</h6>
-                                <p class="mb-0">{{ reclamation.adminResponse }}</p>
+                                <i class="bi bi-chat-left-text-fill"></i>
+                                <div>
+                                    <h6 class="mb-1">Administration Response</h6>
+                                    <p class="mb-0">{{ reclamation.adminResponse }}</p>
+                                </div>
                             </div>
                             {% endif %}
                         </div>
                         <div class="col-md-4">
-                            <h6>Informations:</h6>
+                            <h6 class="fw-bold mb-2">Information</h6>
                             <p class="mb-1">
                                 <small class="text-muted">
-                                    <i class="fas fa-calendar"></i> Créée le: {{ reclamation.createdAt|date('d/m/Y H:i') }}
+                                    <i class="bi bi-calendar-event me-1"></i> Created: {{ reclamation.createdAt|date('d/m/Y H:i') }}
                                 </small>
                             </p>
                             {% if reclamation.resolvedAt %}
                             <p class="mb-1">
                                 <small class="text-muted">
-                                    <i class="fas fa-check"></i> Résolue le: {{ reclamation.resolvedAt|date('d/m/Y H:i') }}
+                                    <i class="bi bi-check-circle-fill me-1"></i> Resolved: {{ reclamation.resolvedAt|date('d/m/Y H:i') }}
                                 </small>
                             </p>
                             {% endif %}
@@ -68,14 +76,20 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i> Vous n'avez aucune réclamation pour le moment.
+    <div class="card card-static">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size:2.5rem"></i>
+            <p class="text-muted mt-2">You have no complaints yet.</p>
+            <a href="{{ path('app_espace_etudiant_reclamation_new') }}" class="btn btn-primary btn-sm mt-2">
+                <i class="bi bi-plus-circle"></i> Create a complaint
+            </a>
+        </div>
     </div>
     {% endif %}
     
     <div class="mt-4">
-        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+        <a href="{{ path('app_espace_etudiant_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
         </a>
     </div>
 </div>

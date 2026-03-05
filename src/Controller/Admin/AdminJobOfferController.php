@@ -98,17 +98,17 @@ class AdminJobOfferController extends AbstractController
     }
 
     /**
-     * Close job offer
+     * Unreject job offer (set back to PENDING for re-review)
      */
-    #[Route('/{id}/close', name: 'admin_job_offer_close', methods: ['POST'])]
-    public function close(Request $request, JobOffer $offer): Response
+    #[Route('/{id}/unreject', name: 'admin_job_offer_unreject', methods: ['POST'])]
+    public function unreject(Request $request, JobOffer $offer): Response
     {
-        if ($this->isCsrfTokenValid('close-' . $offer->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('unreject-' . $offer->getId(), $request->request->get('_token'))) {
             try {
-                $this->jobOfferService->changeStatus($offer, JobOfferStatus::CLOSED);
-                $this->addFlash('success', 'Job offer closed successfully.');
+                $this->jobOfferService->changeStatus($offer, JobOfferStatus::PENDING);
+                $this->addFlash('success', 'Job offer moved back to pending for re-review.');
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Error closing job offer: ' . $e->getMessage());
+                $this->addFlash('error', 'Error unrejecting job offer: ' . $e->getMessage());
             }
         } else {
             $this->addFlash('error', 'Invalid CSRF token.');
@@ -135,5 +135,16 @@ class AdminJobOfferController extends AbstractController
         }
 
         return $this->redirectToRoute('admin_job_offer_list');
+    }
+
+    /**
+     * Show job offer details
+     */
+    #[Route('/{id}', name: 'admin_job_offer_show', methods: ['GET'])]
+    public function show(JobOffer $offer): Response
+    {
+        return $this->render('Gestion_Job_Offre/admin/job_offer/show.html.twig', [
+            'offer' => $offer,
+        ]);
     }
 }

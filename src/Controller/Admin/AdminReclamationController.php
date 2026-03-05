@@ -2,7 +2,7 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Reclamation;
+use App\Entity\Evaluation\Reclamation;
 use App\Repository\ReclamationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,7 +60,7 @@ class AdminReclamationController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', 'Réclamation mise à jour avec succès.');
+        $this->addFlash('success', 'Complaint updated successfully.');
 
         return $this->redirectToRoute('app_admin_reclamation_show', ['id' => $reclamation->getId()]);
     }
@@ -73,7 +73,7 @@ class AdminReclamationController extends AbstractController
         $entityManager->remove($reclamation);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Réclamation supprimée avec succès.');
+        $this->addFlash('success', 'Complaint deleted successfully.');
 
         return $this->redirectToRoute('app_admin_reclamations');
     }

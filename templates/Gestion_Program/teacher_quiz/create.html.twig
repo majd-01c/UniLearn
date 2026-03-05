@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Quiz - {{ classeCourse.course.title }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ path('app_teacher_classe_show', {id: teacherClasse.id}) }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-patch-question-fill text-primary"></i> Create Quiz
+                </h1>
+                <p class="text-muted mb-0">
+                    For course: <strong>{{ classeCourse.course.title }}</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-elevated">
+                <div class="card-body p-4">
+                    <form method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('create_quiz' ~ teacherClasse.id) }}">
+
+                        <div class="mb-4">
+                            <label for="quiz_title" class="form-label">Quiz Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="quiz_title" name="quiz_title" required
+                                   placeholder="Enter quiz title">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="quiz_description" class="form-label">Description</label>
+                            <textarea class="form-control" id="quiz_description" name="quiz_description" rows="3"
+                                      placeholder="Optional description or instructions for students"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="passing_score" class="form-label">Passing Score (%)</label>
+                                <input type="number" class="form-control" id="passing_score" name="passing_score"
+                                       value="50" min="0" max="100">
+                                <small class="text-muted">Minimum percentage to pass the quiz</small>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="time_limit" class="form-label">Time Limit (minutes)</label>
+                                <input type="number" class="form-control" id="time_limit" name="time_limit"
+                                       placeholder="Leave empty for no limit" min="1">
+                                <small class="text-muted">Optional time limit</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Quiz Options</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="shuffle_questions" name="shuffle_questions" checked>
+                                <label class="form-check-label" for="shuffle_questions">
+                                    Shuffle questions order for each student
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="shuffle_choices" name="shuffle_choices" checked>
+                                <label class="form-check-label" for="shuffle_choices">
+                                    Shuffle answer choices order
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="show_correct_answers" name="show_correct_answers">
+                                <label class="form-check-label" for="show_correct_answers">
+                                    Show correct answers after submission
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Create Quiz
+                            </button>
+                            <a href="{{ path('app_teacher_classe_show', {id: teacherClasse.id}) }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

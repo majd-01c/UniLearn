@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Upload Document - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {# Header #}
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ path('app_teacher_documents') }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-upload text-success"></i> Upload Document
+                    </h1>
+                    <p class="text-muted mb-0">Share a document with students in your class</p>
+                </div>
+            </div>
+
+            {% if teacherClasses is empty %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    You are not assigned to any classes yet. Please contact an administrator to be assigned to a class.
+                </div>
+            {% else %}
+                {# Form #}
+                <div class="card card-elevated">
+                    <div class="card-body">
+                        <form method="post" action="{{ path('app_teacher_document_upload') }}" enctype="multipart/form-data">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="title" class="form-label">Document Title <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="title" name="title" required
+                                           placeholder="e.g., Chapter 1 - Introduction Notes">
+                                </div>
+
+                                <div class="col-12">
+                                    <label for="classe_id" class="form-label">Class <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="classe_id" name="classe_id" required>
+                                        <option value="">Select a class</option>
+                                        {% for tc in teacherClasses %}
+                                            <option value="{{ tc.classe.id }}">
+                                                {{ tc.classe.name }} 
+                                                ({{ tc.classe.level.label }} - {{ tc.classe.specialty.label }})
+                                                {% if tc.module %} - {{ tc.module.name }}{% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">Only students enrolled in this class will be able to download the document</div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"
+                                              placeholder="Optional description or instructions for students"></textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <label for="document_file" class="form-label">File <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" id="document_file" name="document_file" required>
+                                    <div class="form-text">
+                                        Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ZIP, Images (Max 10MB)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ path('app_teacher_documents') }}" class="btn btn-secondary">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-upload me-1"></i> Upload Document
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

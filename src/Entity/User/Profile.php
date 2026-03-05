@@ -46,6 +46,12 @@ class Profile
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatarFilename = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $avatarUpdatedAt = null;
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
@@ -152,6 +158,28 @@ class Profile
     public function setUser(?User $user): static
     {
         $this->user = $user;
+        return $this;
+    }
+
+    public function getAvatarFilename(): ?string
+    {
+        return $this->avatarFilename;
+    }
+
+    public function setAvatarFilename(?string $avatarFilename): static
+    {
+        $this->avatarFilename = $avatarFilename;
+        return $this;
+    }
+
+    public function getAvatarUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->avatarUpdatedAt;
+    }
+
+    public function setAvatarUpdatedAt(?\DateTimeInterface $avatarUpdatedAt): static
+    {
+        $this->avatarUpdatedAt = $avatarUpdatedAt;
         return $this;
     }
 }

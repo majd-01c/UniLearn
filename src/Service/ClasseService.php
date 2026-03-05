@@ -26,7 +26,7 @@ class ClasseService
         string $name,
         \DateTimeInterface $startDate,
         \DateTimeInterface $endDate,
-        ?string $imageUrl = null,
+        ?string $imageFilename = null,
         ClasseStatus $status = ClasseStatus::INACTIVE
     ): Classe {
         $classe = new Classe();
@@ -34,7 +34,9 @@ class ClasseService
         $classe->setProgram($program);
         $classe->setStartDate($startDate);
         $classe->setEndDate($endDate);
-        $classe->setImageUrl($imageUrl ?? $program->getImageUrl());
+        if ($imageFilename) {
+            $classe->setImageFilename($imageFilename);
+        }
         $classe->setStatus($status);
 
         $this->entityManager->persist($classe);
@@ -50,7 +52,7 @@ class ClasseService
     public function createFromBuildProgram(
         BuildProgram $buildProgram,
         string $name,
-        ?string $imageUrl = null,
+        ?string $imageFilename = null,
         ClasseStatus $status = ClasseStatus::INACTIVE
     ): Classe {
         $classe = $this->createFromProgram(
@@ -58,7 +60,7 @@ class ClasseService
             $name,
             $buildProgram->getStartDate(),
             $buildProgram->getEndDate(),
-            $imageUrl ?? $buildProgram->getImageUrl(),
+            $imageFilename,
             $status
         );
 

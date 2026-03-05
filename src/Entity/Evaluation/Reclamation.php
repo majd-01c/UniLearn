@@ -1,10 +1,13 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Evaluation;
 
+use App\Entity\User;
+use App\Entity\Course;
 use App\Repository\ReclamationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ReclamationRepository::class)]
 class Reclamation
@@ -19,12 +22,18 @@ class Reclamation
     private ?User $student = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Subject is required')]
+    #[Assert\Length(min: 5, max: 255, minMessage: 'Subject must be at least {{ limit }} characters')]
     private ?string $subject = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'Description is required')]
+    #[Assert\Length(min: 10, max: 5000, minMessage: 'Description must be at least {{ limit }} characters')]
     private ?string $description = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank]
+    #[Assert\Choice(choices: ['pending', 'in_progress', 'resolved', 'rejected'], message: 'Invalid status')]
     private ?string $status = 'pending'; // pending, in_progress, resolved, rejected
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

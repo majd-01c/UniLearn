@@ -1,21 +1,29 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Nouvelle Réclamation{% endblock %}
+{% block title %}New Complaint{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
-    <h1 class="mb-4"><i class="fas fa-exclamation-circle"></i> Soumettre une Réclamation</h1>
+    <h1 class="mb-4"><i class="fas fa-exclamation-circle"></i> Submit a Complaint</h1>
     
     <div class="card">
         <div class="card-body">
-            {{ form_start(form) }}
-                <div class="mb-3">
-                    {{ form_row(form.subject) }}
-                </div>
-                
-                <div class="mb-3">
-                    {{ form_row(form.description) }}
-                </div>
+            {{ form_start(form, {'method': 'POST', 'attr': {'data-turbo': 'false', 'novalidate': 'novalidate', 'id': 'reclamation-form', 'class': 'needs-validation'}}) }}
+                <div class="mb-3" id="subject-group">
+                            {{ form_row(form.subject) }}
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-danger d-none" id="subject-error">Subject must be at least 5 characters.</small>
+                                <small class="text-muted ms-auto" id="subject-count">0/255</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3" id="description-group">
+                            {{ form_row(form.description) }}
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-danger d-none" id="desc-error">Description must be at least 20 characters.</small>
+                                <small class="text-muted ms-auto" id="desc-count">0/3000</small>
+                            </div>
+                        </div>
                 
                 <div class="mb-3">
                     {{ form_row(form.relatedCourse) }}
@@ -23,10 +31,10 @@
                 
                 <div class="d-flex justify-content-between">
                     <a href="{{ path('app_espace_etudiant_reclamations') }}" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Annuler
+                        <i class="fas fa-times"></i> Cancel
                     </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> Soumettre
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        <i class="fas fa-paper-plane"></i> Submit
                     </button>
                 </div>
             {{ form_end(form) }}
@@ -34,13 +42,70 @@
     </div>
     
     <div class="alert alert-info mt-3">
-        <h6><i class="fas fa-info-circle"></i> Conseils pour une réclamation efficace:</h6>
+        <h6><i class="fas fa-info-circle"></i> Tips for an effective complaint:</h6>
         <ul class="mb-0">
-            <li>Soyez précis et détaillé dans votre description</li>
-            <li>Incluez toutes les informations pertinentes (dates, noms, etc.)</li>
-            <li>Restez courtois et professionnel</li>
-            <li>Si possible, sélectionnez le cours concerné</li>
+            <li>Be specific and detailed in your description</li>
+            <li>Include all relevant information (dates, names, etc.)</li>
+            <li>Stay polite and professional</li>
+            <li>If possible, select the related course</li>
         </ul>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+    const form = document.getElementById('reclamation-form');
+    if (!form) return;
+    const subjectInput = form.querySelector('[id$="_subject"]');
+    const descInput    = form.querySelector('[id$="_description"]');
+    const subjectCount = document.getElementById('subject-count');
+    const descCount    = document.getElementById('desc-count');
+    const subjectErr   = document.getElementById('subject-error');
+    const descErr      = document.getElementById('desc-error');
+
+    function updateCount(input, countEl, max) {
+        if (input && countEl) countEl.textContent = input.value.length + '/' + max;
+    }
+
+    function validateField(input, errEl, min) {
+        if (!input || !errEl) return true;
+        const ok = input.value.trim().length >= min;
+        input.classList.toggle('is-invalid', !ok);
+        input.classList.toggle('is-valid', ok);
+        errEl.classList.toggle('d-none', ok);
+        return ok;
+    }
+
+    if (subjectInput) {
+        subjectInput.addEventListener('input', function () {
+            updateCount(subjectInput, subjectCount, 255);
+            validateField(subjectInput, subjectErr, 5);
+        });
+        updateCount(subjectInput, subjectCount, 255);
+    }
+
+    if (descInput) {
+        descInput.addEventListener('input', function () {
+            updateCount(descInput, descCount, 3000);
+            validateField(descInput, descErr, 20);
+        });
+        updateCount(descInput, descCount, 3000);
+    }
+
+    form.addEventListener('submit', function (e) {
+        const okSubject = validateField(subjectInput, subjectErr, 5);
+        const okDesc    = validateField(descInput, descErr, 20);
+        if (!okSubject || !okDesc) {
+            e.preventDefault();
+            e.stopPropagation();
+            const first = form.querySelector('.is-invalid');
+            if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        form.classList.add('was-validated');
+    });
+})();
+</script>
 {% endblock %}

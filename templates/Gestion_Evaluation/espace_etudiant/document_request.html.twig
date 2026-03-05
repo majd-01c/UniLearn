@@ -1,16 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Demande de Document{% endblock %}
+{% block title %}Document Request{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
-    <h1 class="mb-4"><i class="fas fa-file-alt"></i> Demander un Document</h1>
+    <h1 class="mb-4"><i class="fas fa-file-alt"></i> Request a Document</h1>
     
     <div class="row">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    {{ form_start(form) }}
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'doc-request-form', 'class': 'needs-validation'}}) }}
                         <div class="mb-3">
                             {{ form_row(form.documentType) }}
                         </div>
@@ -21,10 +21,10 @@
                         
                         <div class="d-flex justify-content-between">
                             <a href="{{ path('app_espace_etudiant_documents') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Annuler
+                                <i class="fas fa-times"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane"></i> Soumettre la Demande
+                                <i class="fas fa-paper-plane"></i> Submit Request
                             </button>
                         </div>
                     {{ form_end(form) }}
@@ -35,25 +35,25 @@
         <div class="col-md-4">
             <div class="card bg-light">
                 <div class="card-header">
-                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Types de Documents</h6>
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Document Types</h6>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled mb-0">
                         <li class="mb-2">
-                            <strong>Attestation de Stage:</strong>
-                            <small class="d-block text-muted">Pour les démarches de stage</small>
+                            <strong>Internship Certificate:</strong>
+                            <small class="d-block text-muted">Required for internship procedures</small>
                         </li>
                         <li class="mb-2">
-                            <strong>Attestation d'Inscription:</strong>
-                            <small class="d-block text-muted">Preuve d'inscription pour l'année en cours</small>
+                            <strong>Enrollment Certificate:</strong>
+                            <small class="d-block text-muted">Proof of enrollment for the current year</small>
                         </li>
                         <li class="mb-2">
-                            <strong>Relevé de Notes:</strong>
-                            <small class="d-block text-muted">Document officiel des notes</small>
+                            <strong>Transcript:</strong>
+                            <small class="d-block text-muted">Official grade document</small>
                         </li>
                         <li class="mb-2">
-                            <strong>Certificat de Scolarité:</strong>
-                            <small class="d-block text-muted">Preuve de statut étudiant</small>
+                            <strong>Student Status Certificate:</strong>
+                            <small class="d-block text-muted">Proof of student status</small>
                         </li>
                     </ul>
                 </div>
@@ -62,10 +62,46 @@
             <div class="alert alert-warning mt-3">
                 <small>
                     <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Important:</strong> Certains documents peuvent nécessiter des frais administratifs.
+                    <strong>Important:</strong> Some documents may require administrative fees.
                 </small>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+    const form = document.getElementById('doc-request-form');
+    if (!form) return;
+    const selectEl = form.querySelector('[id$="_documentType"]');
+
+    form.addEventListener('submit', function (e) {
+        let valid = true;
+        if (selectEl && !selectEl.value) {
+            selectEl.classList.add('is-invalid');
+            valid = false;
+        } else if (selectEl) {
+            selectEl.classList.remove('is-invalid');
+            selectEl.classList.add('is-valid');
+        }
+        if (!valid) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    if (selectEl) {
+        selectEl.addEventListener('change', function () {
+            if (selectEl.value) {
+                selectEl.classList.remove('is-invalid');
+                selectEl.classList.add('is-valid');
+            }
+        });
+    }
+})();
+</script>
 {% endblock %}

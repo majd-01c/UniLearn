@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\GeneralChatMessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: GeneralChatMessageRepository::class)]
 class GeneralChatMessage
@@ -15,9 +16,12 @@ class GeneralChatMessage
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Message type is required')]
+    #[Assert\Choice(choices: ['text', 'image', 'video', 'file'], message: 'Invalid message type')]
     private ?string $type = null; // "text" | "image" | "video" | "file"
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'Message content is required')]
     private ?string $content = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

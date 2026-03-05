@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ assessment.title }} - Grades - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Header #}
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{{ path('app_teacher_grades_classe', {id: teacherClasse.id}) }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="bi bi-pencil-square text-primary"></i> {{ assessment.title }}
+                </h1>
+                <div>
+                    <span class="badge {{ assessment.type.value == 'CC' ? 'bg-info' : 'bg-danger' }} me-1">
+                        {{ assessment.type.value }}
+                    </span>
+                    <span class="text-muted">{{ classe.name }}</span>
+                    <span class="text-muted ms-2">|</span>
+                    <span class="text-muted ms-2">Max: {{ assessment.maxScore }} pts</span>
+                    {% if assessment.date %}
+                        <span class="text-muted ms-2">|</span>
+                        <span class="text-muted ms-2">{{ assessment.date|date('M d, Y') }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if assessment.description %}
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle me-2"></i>{{ assessment.description }}
+        </div>
+    {% endif %}
+
+    {# Grades Form #}
+    <div class="card card-elevated">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people text-success"></i> Student Grades</h5>
+            <span class="badge bg-secondary">{{ studentClasses|length }} students</span>
+        </div>
+        <div class="card-body">
+            {% if studentClasses is empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-emoji-frown" style="font-size: 4rem;"></i>
+                    <p class="mt-3">No students enrolled in this class.</p>
+                </div>
+            {% else %}
+                <form method="post" action="{{ path('app_teacher_save_grades', {id: assessment.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('save_grades_' ~ assessment.id) }}">
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>Student</th>
+                                    <th style="width: 150px;">Score (/ {{ assessment.maxScore }})</th>
+                                    <th>Comment (optional)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sc in studentClasses %}
+                                    {% set existingGrade = gradesMap[sc.student.id] ?? null %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if sc.student.profilePic %}
+                                                    <img src="{{ asset('uploads/profiles/' ~ sc.student.profilePic) }}" 
+                                                         alt="{{ sc.student.name }}" 
+                                                         class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                                         style="width: 40px; height: 40px;">
+                                                        <i class="bi bi-person text-white"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <div class="fw-semibold">{{ sc.student.name ?: 'No Name' }}</div>
+                                                    <div class="text-muted small">{{ sc.student.email }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="input-group input-group-sm">
+                                                <input type="number" 
+                                                       class="form-control score-input" 
+                                                       name="scores[{{ sc.student.id }}]" 
+                                                       value="{{ existingGrade ? existingGrade.score : '' }}"
+                                                       min="0" 
+                                                       max="{{ assessment.maxScore }}" 
+                                                       step="0.25"
+                                                       placeholder="--">
+                                                <span class="input-group-text">/ {{ assessment.maxScore }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="text" 
+                                                   class="form-control form-control-sm" 
+                                                   name="comments[{{ sc.student.id }}]" 
+                                                   value="{{ existingGrade ? existingGrade.comment : '' }}"
+                                                   placeholder="Optional comment">
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="bi bi-info-circle"></i> Leave score empty if the student didn't take the assessment.
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg me-1"></i> Save All Grades
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Stats Card #}
+    {% if gradesMap|length > 0 %}
+        {% set totalScore = 0 %}
+        {% set count = 0 %}
+        {% set maxGrade = 0 %}
+        {% set minGrade = assessment.maxScore %}
+        {% for g in gradesMap %}
+            {% set totalScore = totalScore + g.score %}
+            {% set count = count + 1 %}
+            {% if g.score > maxGrade %}{% set maxGrade = g.score %}{% endif %}
+            {% if g.score < minGrade %}{% set minGrade = g.score %}{% endif %}
+        {% endfor %}
+        {% set average = count > 0 ? (totalScore / count) : 0 %}
+
+        <div class="card card-elevated mt-3">
+            <div class="card-body">
+                <h6><i class="bi bi-bar-chart text-info"></i> Grade Statistics</h6>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h4 mb-0 text-primary">{{ count }}/{{ studentClasses|length }}</div>
+                            <small class="text-muted">Graded</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h4 mb-0 text-success">{{ average|number_format(2) }}</div>
+                            <small class="text-muted">Average</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h4 mb-0 text-info">{{ maxGrade }}</div>
+                            <small class="text-muted">Highest</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h4 mb-0 text-warning">{{ minGrade }}</div>
+                            <small class="text-muted">Lowest</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    // Highlight invalid scores
+    document.querySelectorAll('.score-input').forEach(function(input) {
+        input.addEventListener('change', function() {
+            const max = parseFloat(this.max);
+            const value = parseFloat(this.value);
+            if (value > max || value < 0) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

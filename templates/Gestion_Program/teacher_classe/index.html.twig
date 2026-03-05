@@ -25,8 +25,8 @@
                 {% set classe = teacherClasse.classe %}
                 <div class="col-md-6 col-lg-4">
                     <div class="card card-elevated h-100">
-                        {% if classe.imageUrl %}
-                            <img src="{{ classe.imageUrl }}" class="card-img-top" alt="{{ classe.name }}" style="height: 150px; object-fit: cover;">
+                        {% if classe.imageFilename %}
+                            <img src="{{ asset('uploads/classes/' ~ classe.imageFilename) }}" class="card-img-top" alt="{{ classe.name }}" style="height: 150px; object-fit: cover;">
                         {% else %}
                             <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" 
                                  style="height: 150px; background: linear-gradient(135deg, #17a2b8, #138496);">

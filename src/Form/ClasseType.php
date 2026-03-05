@@ -11,9 +11,9 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -93,13 +93,22 @@ class ClasseType extends AbstractType
                     new Assert\NotBlank()
                 ]
             ])
-            ->add('imageUrl', UrlType::class, [
-                'label' => 'Image URL (optional)',
+            ->add('imageFile', FileType::class, [
+                'label' => 'Class Image (optional)',
+                'mapped' => false,
                 'required' => false,
                 'attr' => [
-                    'placeholder' => 'https://example.com/image.jpg',
-                    'class' => 'form-control'
-                ]
+                    'accept' => 'image/*',
+                    'class' => 'form-control d-none',
+                    'id' => 'classe_imageFile',
+                ],
+                'constraints' => [
+                    new Assert\File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+                        'mimeTypesMessage' => 'Please upload a valid image (JPEG, PNG, GIF, or WebP)',
+                    ])
+                ],
             ])
             ->add('status', EnumType::class, [
                 'label' => 'Status',

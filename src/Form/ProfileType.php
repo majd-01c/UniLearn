@@ -47,7 +47,11 @@ class ProfileType extends AbstractType
                 'label' => 'Phone Number',
                 'required' => false,
                 'constraints' => [
-                    new Assert\Length(['max' => 20]),
+                    new Assert\Length(['max' => 20, 'maxMessage' => 'Phone number cannot exceed {{ limit }} characters.']),
+                    new Assert\Regex([
+                        'pattern' => '/^[\d\s\+\-\(\)\.]*$/',
+                        'message' => 'Please enter a valid phone number (digits, spaces, +, -, () allowed).',
+                    ]),
                 ],
                 'attr' => [
                     'class' => 'form-control',
@@ -58,8 +62,8 @@ class ProfileType extends AbstractType
                 'label' => 'Profile Photo',
                 'required' => false,
                 'allow_delete' => true,
-                'download_uri' => true,
-                'image_uri' => true,
+                'download_uri' => false,
+                'image_uri' => false,
                 'attr' => [
                     'class' => 'form-control',
                     'accept' => 'image/*',

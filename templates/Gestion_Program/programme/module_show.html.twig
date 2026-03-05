@@ -1,0 +1,141 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ module.name }} - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_programme_modules') }}">Modules</a></li>
+            <li class="breadcrumb-item active">{{ module.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="bi bi-grid-3x3-gap text-primary"></i> {{ module.name }}
+            </h1>
+            <p class="text-muted mb-0">
+                <i class="bi bi-clock"></i> Duration: {{ module.duration }} {{ module.periodUnit.value }}
+                | Created: {{ module.createdAt|date('Y-m-d H:i') }}
+            </p>
+        </div>
+        <div class="btn-group">
+            <a href="{{ path('app_programme_modules_edit', {id: module.id}) }}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit Module
+            </a>
+            <a href="{{ path('app_programme_modules') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            {# Assigned Courses #}
+            <div class="card card-elevated mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-journal-text text-warning"></i> Assigned Courses</h5>
+                    <span class="badge bg-warning text-dark">{{ module.courses|length }} course(s)</span>
+                </div>
+                {% if module.courses is empty %}
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="mt-2 mb-0 text-muted">No courses assigned to this module yet</p>
+                    </div>
+                {% else %}
+                    <ul class="list-group list-group-flush">
+                        {% for moduleCourse in module.courses %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{{ path('app_programme_courses_show', {id: moduleCourse.course.id}) }}" class="text-decoration-none">
+                                    <strong>{{ moduleCourse.course.title }}</strong>
+                                </a>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="bi bi-file-earmark-text"></i> {{ moduleCourse.course.contenus|length }} content(s)
+                                    | Created: {{ moduleCourse.course.createdAt|date('Y-m-d') }}
+                                </small>
+                            </div>
+                            <form method="post" action="{{ path('app_programme_modules_remove_course', {id: module.id, courseId: moduleCourse.course.id}) }}" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('remove_course' ~ moduleCourse.course.id) }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                        onclick="return confirm('Remove this course from the module?')">
+                                    <i class="bi bi-x-circle"></i> Remove
+                                </button>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            {# Programs using this Module #}
+            <div class="card card-elevated">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-collection text-success"></i> Used in Programs</h5>
+                </div>
+                {% if module.programs is empty %}
+                    <div class="card-body text-center py-4">
+                        <p class="mb-0 text-muted">This module is not assigned to any program</p>
+                    </div>
+                {% else %}
+                    <ul class="list-group list-group-flush">
+                        {% for programModule in module.programs %}
+                        <li class="list-group-item">
+                            <a href="{{ path('app_programme_programs_show', {id: programModule.program.id}) }}" class="text-decoration-none">
+                                <i class="bi bi-collection text-success"></i> {{ programModule.program.name }}
+                            </a>
+                            {% if programModule.program.published %}
+                                <span class="badge bg-success ms-2">Published</span>
+                            {% else %}
+                                <span class="badge bg-warning ms-2">Draft</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            {# Add Course Form #}
+            <div class="card card-elevated">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="bi bi-plus-circle"></i> Add Course</h6>
+                </div>
+                <div class="card-body">
+                    {% if availableCourses is empty %}
+                        <p class="text-muted mb-0 text-center">
+                            <i class="bi bi-check-circle text-success"></i> All courses have been assigned
+                        </p>
+                        <div class="text-center mt-2">
+                            <a href="{{ path('app_programme_courses_new') }}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-plus"></i> Create New Course
+                            </a>
+                        </div>
+                    {% else %}
+                        <form method="post" action="{{ path('app_programme_modules_add_course', {id: module.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('add_course') }}">
+                            <div class="mb-3">
+                                <label for="course_id" class="form-label">Select Course</label>
+                                <select name="course_id" id="course_id" class="form-select" required>
+                                    <option value="">-- Select a course --</option>
+                                    {% for course in availableCourses %}
+                                        <option value="{{ course.id }}">{{ course.title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100 text-dark">
+                                <i class="bi bi-plus-circle"></i> Add Course
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

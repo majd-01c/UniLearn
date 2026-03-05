@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Demandes de Documents{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-file-earmark-text"></i> Gestion des Demandes de Documents</h1>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Étudiant</th>
+                            <th>Type de Document</th>
+                            <th>Statut</th>
+                            <th>Date de Demande</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in documentRequests %}
+                        <tr>
+                            <td>{{ request.id }}</td>
+                            <td>{{ request.student.name ?? request.student.email }}</td>
+                            <td>
+                                {% if request.documentType == 'attestation_stage' %}
+                                    Attestation de Stage
+                                {% elseif request.documentType == 'attestation_inscription' %}
+                                    Attestation d'Inscription
+                                {% elseif request.documentType == 'releve_notes' %}
+                                    Relevé de Notes
+                                {% elseif request.documentType == 'attestation_reussite' %}
+                                    Attestation de Réussite
+                                {% elseif request.documentType == 'certificat_scolarite' %}
+                                    Certificat de Scolarité
+                                {% else %}
+                                    {{ request.documentType }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if request.status == 'pending' %}bg-warning
+                                    {% elseif request.status == 'approved' %}bg-info
+                                    {% elseif request.status == 'ready' %}bg-success
+                                    {% elseif request.status == 'delivered' %}bg-primary
+                                    {% else %}bg-danger{% endif %}">
+                                    {% if request.status == 'pending' %}En Attente
+                                    {% elseif request.status == 'approved' %}Approuvée
+                                    {% elseif request.status == 'ready' %}Prête
+                                    {% elseif request.status == 'delivered' %}Livrée
+                                    {% else %}Rejetée{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ request.requestedAt|date('d/m/Y H:i') }}</td>
+                            <td>
+                                <a href="{{ path('app_admin_document_request_show', {id: request.id}) }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> Voir
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Aucune demande trouvée</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -11,47 +11,6 @@ A comprehensive LMS application built with Symfony 6.4, featuring user managemen
 - CSRF protection
 - Role-based access control (ADMIN, TEACHER, STUDENT, PARTNER)
 
-### ✅ User Management (Full CRUD)
-- Add new users with comprehensive form
-- List all users with profile pictures
-- Role assignment and status management
-- File upload for profile pictures
-- Skills management (stored as JSON array)
-- Email verification fields
-- User activation/deactivation
-
-### ✅ Dashboard & Navigation
-- Bootstrap 5 responsive design
-- Navigation bar with all modules
-- Quick access cards to all features
-- Flash messages for user feedback
-
-### ✅ Placeholder Modules (Coming Soon)
-- Programme Management (Programme → Module → Course → Contenu)
-- Classe Management
-- Event Management
-- Job Offer Management
-
-## 📋 Database Schema
-
-### User Entity Fields
-- `id`: Auto-increment primary key
-- `role`: ENUM (ADMIN, TEACHER, STUDENT, PARTNER) - Default: STUDENT
-- `email`: Unique, required
-- `password`: Hashed, required (min 6 chars)
-- `isActive`: Boolean, default true
-- `name`: String, nullable
-- `phone`: String, nullable
-- `profilePic`: String (filename), nullable
-- `location`: String, nullable
-- `skills`: JSON array, nullable
-- `about`: Text, nullable
-- `isVerified`: Boolean, default false
-- `needsVerification`: Boolean, default true
-- `emailVerifiedAt`: DateTime, nullable
-- `emailVerificationCode`: String, nullable
-- `codeExpiryDate`: DateTime, nullable
-
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -62,89 +21,68 @@ A comprehensive LMS application built with Symfony 6.4, featuring user managemen
 
 ### Installation Steps
 
-1. **Database is already running** (unilearn-database-1)
+```bash
+# 1. Install dependencies
+composer install
 
-2. **Migrations are already applied**
-   ```bash
-   php bin/console doctrine:migrations:migrate
-   ```
+# 2. Start the database container
+docker compose up -d
 
-3. **Start Symfony Server**
-   ```bash
-   symfony server:start
-   # or
-   php -S localhost:8000 -t public/
-   ```
+# 3. Configure database (if needed)
+# Edit .env file with database connection:
+# DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app"
 
-4. **Access the Application**
-   - URL: http://localhost:8000/login
-   - Email: admin@unilearn.com
-   - Password: admin123
+# 4. Run database migrations
+php bin/console doctrine:migrations:migrate
 
-## 📁 Project Structure
+# 5. Create admin user
+php bin/console app:create-admin
 
-```
-src/
-├── Controller/
-│   ├── SecurityController.php      # Login/Logout
-│   ├── HomeController.php          # Dashboard
-│   ├── UserController.php          # User CRUD
-│   ├── ProgrammeController.php     # Programme module
-│   ├── ClasseController.php        # Classe module
-│   ├── EventController.php         # Event module
-│   └── JobOfferController.php      # Job Offer module
-├── Entity/
-│   └── User.php                    # User entity with security interfaces
-├── Form/
-│   └── UserType.php                # User creation form
-└── Repository/
-    └── UserRepository.php          # User repository
+# 6. Clear cache
+php bin/console cache:clear
 
-templates/
-├── base.html.twig                  # Base layout with Bootstrap 5
-├── auth/
-│   └── login.html.twig            # Login page
-├── home/
-│   └── index.html.twig            # Dashboard
-├── user/
-│   ├── index.html.twig            # User list
-│   └── new.html.twig              # Add user form
-├── programme/
-│   ├── index.html.twig            # Placeholder
-│   ├── modules.html.twig          # Placeholder
-│   ├── courses.html.twig          # Placeholder
-│   └── contenus.html.twig         # Placeholder
-├── classe/
-│   └── index.html.twig            # Placeholder
-├── event/
-│   └── index.html.twig            # Placeholder
-└── job_offer/
-    └── index.html.twig            # Placeholder
-
-config/packages/
-└── security.yaml                   # Security configuration
+# 7. Start the server
+symfony serve
 ```
 
-## 🔐 Routes
+### Database Configuration
 
-### Public Routes
-- `GET /login` - Login page
+| Setting       | Value        |
+|---------------|--------------|
+| Database Name | app          |
+| Username      | app          |
+| Password      | !ChangeMe!   |
 
-### Protected Routes (ROLE_USER)
-- `GET /` - Dashboard (app_home)
-- `GET /programme` - Programme index
-- `GET /programme/modules` - Modules
-- `GET /programme/courses` - Courses
-- `GET /programme/contenus` - Contenus
-- `GET /classe` - Classe
-- `GET /event` - Event
-- `GET /job-offer` - Job Offer
-- `GET /logout` - Logout
+### Access the Application
+- **URL:** http://localhost:8000/login
+- **Email:** admin@unilearn.com
+- **Password:** admin123
 
-### Admin Routes (ROLE_ADMIN)
-- `GET /users` - List users
-- `GET /users/new` - Add user form
-- `POST /users/new` - Create user
+## 🔑 Default Admin Account
+
+```
+Email: admin@unilearn.com
+Password: admin123
+Role: ADMIN
+```
+
+## 👥 Create Access Users (Admin + 2 Students + Teacher + Business Partner)
+
+Run this command to create/update a ready-to-test access set:
+
+```bash
+php bin/console app:create-access-users
+```
+
+It creates these accounts:
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@unilearn.com | admin123 | ADMIN |
+| student1@unilearn.com | student123 | STUDENT |
+| student2@unilearn.com | student123 | STUDENT |
+| teacher@unilearn.com | teacher123 | TEACHER |
+| partner@unilearn.com | partner123 | BUSINESS_PARTNER |
 
 ## 🎨 User Interface
 
@@ -166,43 +104,14 @@ public/uploads/profiles/
 
 Accepted formats: JPG, JPEG, PNG, GIF (max 2MB)
 
-## 🔑 Default Admin Account
-
-```
-Email: admin@unilearn.com
-Password: admin123
-Role: ADMIN
-```
-
-## ⚙️ Configuration
-
-### Security (config/packages/security.yaml)
-- Form login authentication
-- User provider: Entity-based (User::email)
-- Password hasher: Auto (bcrypt)
-- Remember me: 1 week
-- Access control:
-  - `/login` - Public
-  - `/users/*` - ROLE_ADMIN
-  - `/*` - ROLE_USER
-
-## 📝 Creating New Users
-
-1. Login as admin
-2. Navigate to Users → Add User
-3. Fill in the form:
-   - **Required**: Role, Email, Password
-   - **Optional**: Name, Phone, Location, About, Skills, Profile Picture
-   - **Status**: isActive, isVerified, needsVerification
-   - **Verification**: Email verification fields
-4. Submit the form
-5. User is created with hashed password
-
 ## 🛠️ Development Commands
 
 ```bash
 # Clear cache
 php bin/console cache:clear
+
+# Reload autoload & clear cache
+composer dump-autoload && php bin/console cache:clear
 
 # Create migration
 php bin/console make:migration
@@ -231,23 +140,6 @@ php bin/console doctrine:schema:drop --force
 php bin/console doctrine:migrations:migrate
 ```
 
-## 🎯 Next Steps
-
-To expand the application:
-
-1. **Programme Module**: Create entities for Programme, Module, Course, Contenu
-2. **Classe Module**: Create entity for Classe with relationships
-3. **Event Module**: Create event management with calendar
-4. **Job Offer Module**: Create job posting system
-5. **User Roles**: Implement role-based UI filtering
-6. **Email Verification**: Implement email sending
-7. **API**: Add REST API endpoints
-8. **Advanced Features**: 
-   - User profile editing
-   - Password reset
-   - Two-factor authentication
-   - Activity logs
-
 ## 🐛 Troubleshooting
 
 ### Login Issues
@@ -260,9 +152,52 @@ To expand the application:
 - Check file size and type restrictions
 
 ### Migration Issues
-- Check database connection in `.env`
-- Verify migrations table exists
-- Run: `php bin/console doctrine:migrations:status`
+
+**Check migration status:**
+```bash
+php bin/console doctrine:migrations:status
+php bin/console doctrine:migrations:list
+```
+
+**Validate schema before migrating:**
+```bash
+php bin/console doctrine:schema:validate
+```
+
+**If you get DUPLICATE COLUMN / TABLE ERROR:**
+
+Sometimes migration is marked as NOT executed but the DB already contains the changes. In that case, mark it as executed instead:
+```bash
+php bin/console doctrine:migrations:version <migration_number> --add
+```
+
+**Execute a specific migration:**
+```bash
+php bin/console doctrine:migrations:execute <migration_number> --up
+```
+
+### Docker Issues
+
+**Reset Docker volume (if database is corrupted):**
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+### Complete Database Reset
+
+If the database is in a bad state, you can reset everything:
+```bash
+php bin/console doctrine:database:drop --force
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
+```
+
+**Alternative: Force schema update and sync migrations:**
+```bash
+php bin/console doctrine:schema:update --force
+php bin/console doctrine:migrations:version --add --all
+```
 
 ## 📄 License
 
@@ -270,4 +205,28 @@ This project is built for educational purposes.
 
 ---
 
+## 📰 Recent Updates
+
+### ✅ Forum/Community Improvements (Feb 16, 2026)
+
+**Fixed Bugs:**
+- ✓ Scroll position now preserved on page refresh
+- ✓ Redirects to newly posted reply with smooth scroll
+- ✓ Fixed pagination anchor navigation
+- ✓ Added Previous/Next buttons to pagination
+
+**New Features:**
+- ✓ Smooth scrolling with highlight animation
+- ✓ Loading states on form submission
+- ✓ Improved hover effects and transitions
+- ✓ Better mobile responsiveness
+
+See [FORUM_IMPROVEMENTS.md](FORUM_IMPROVEMENTS.md) for detailed documentation.
+
+---
+
 **Built with Symfony 6.4 | Bootstrap 5 | MySQL 8**
+
+### Check if Database is Synced with Entities 
+php bin/console doctrine:schema:validate
+

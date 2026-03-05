@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Documents - UniLearn{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-file-earmark-arrow-up text-primary"></i> My Documents
+            </h1>
+            <p class="text-muted mb-0">Upload documents for your students to download</p>
+        </div>
+        <a href="{{ path('app_teacher_document_upload') }}" class="btn btn-success">
+            <i class="bi bi-upload me-1"></i> Upload Document
+        </a>
+    </div>
+
+    {% if teacherClasses is empty %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            You are not assigned to any classes yet. You need to be assigned to a class before uploading documents.
+        </div>
+    {% else %}
+        <div class="card card-elevated">
+            <div class="card-body">
+                {% if documents is empty %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-file-earmark-x" style="font-size: 4rem;"></i>
+                        <p class="mt-3">You haven't uploaded any documents yet.</p>
+                        <a href="{{ path('app_teacher_document_upload') }}" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Upload Your First Document
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Document</th>
+                                    <th>Class</th>
+                                    <th>Size</th>
+                                    <th>Uploaded</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for document in documents %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    {% set ext = document.fileExtension %}
+                                                    {% if ext in ['PDF'] %}
+                                                        <i class="bi bi-file-earmark-pdf text-danger" style="font-size: 1.5rem;"></i>
+                                                    {% elseif ext in ['DOC', 'DOCX'] %}
+                                                        <i class="bi bi-file-earmark-word text-primary" style="font-size: 1.5rem;"></i>
+                                                    {% elseif ext in ['XLS', 'XLSX'] %}
+                                                        <i class="bi bi-file-earmark-excel text-success" style="font-size: 1.5rem;"></i>
+                                                    {% elseif ext in ['PPT', 'PPTX'] %}
+                                                        <i class="bi bi-file-earmark-ppt text-warning" style="font-size: 1.5rem;"></i>
+                                                    {% elseif ext in ['JPG', 'JPEG', 'PNG', 'GIF'] %}
+                                                        <i class="bi bi-file-earmark-image text-info" style="font-size: 1.5rem;"></i>
+                                                    {% elseif ext in ['ZIP', 'RAR', '7Z'] %}
+                                                        <i class="bi bi-file-earmark-zip text-secondary" style="font-size: 1.5rem;"></i>
+                                                    {% else %}
+                                                        <i class="bi bi-file-earmark text-muted" style="font-size: 1.5rem;"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold">{{ document.title }}</div>
+                                                    <small class="text-muted">{{ document.originalFileName }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ document.classe.name }}</span>
+                                        </td>
+                                        <td>{{ document.fileSizeFormatted }}</td>
+                                        <td>{{ document.createdAt|date('M d, Y H:i') }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ path('app_teacher_document_download', {id: document.id}) }}" 
+                                                   class="btn btn-outline-success" title="Download">
+                                                    <i class="bi bi-download"></i>
+                                                </a>
+                                                <a href="{{ path('app_teacher_document_edit', {id: document.id}) }}" 
+                                                   class="btn btn-outline-primary" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <form action="{{ path('app_teacher_document_delete', {id: document.id}) }}" 
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('Delete this document? Students will no longer be able to download it.');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_document_' ~ document.id) }}">
+                                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    {# Info Card #}
+    <div class="card card-elevated mt-4">
+        <div class="card-body">
+            <h6><i class="bi bi-info-circle text-info"></i> How it works</h6>
+            <ul class="mb-0 small text-muted">
+                <li>Upload documents (PDF, Word, Excel, PowerPoint, images, etc.) for your classes</li>
+                <li>Students enrolled in the class can download the documents from their "Course Documents" section</li>
+                <li>You can edit or delete documents at any time</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

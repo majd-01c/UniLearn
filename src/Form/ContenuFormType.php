@@ -12,6 +12,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Form\Type\VichFileType;
 
 class ContenuFormType extends AbstractType
 {
@@ -34,12 +35,16 @@ class ContenuFormType extends AbstractType
                 'class' => ContenuType::class,
                 'attr' => ['class' => 'form-select'],
                 'choice_label' => fn($choice) => ucfirst($choice->value),
+                'constraints' => [
+                    new Assert\NotNull(['message' => 'You must select a content type.']),
+                ],
             ])
-            ->add('fileUrl', TextType::class, [
-                'label' => 'File URL',
+            ->add('contentFile', VichFileType::class, [
+                'label' => 'Upload File',
                 'required' => false,
+                'allow_delete' => true,
+                'download_uri' => true,
                 'attr' => [
-                    'placeholder' => 'Enter file URL (optional)',
                     'class' => 'form-control'
                 ]
             ])

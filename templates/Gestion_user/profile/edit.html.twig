@@ -1,0 +1,194 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'profile.profile_settings'|trans }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            {# Must Change Password Alert #}
+            {% if user.mustChangePassword %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Password Change Required</h5>
+                    <p>You are using a temporary password. For security reasons, please 
+                        <a href="{{ path('profile_change_password') }}" class="alert-link">change your password</a> now.
+                    </p>
+                </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ 'profile.profile_settings'|trans }}</h2>
+                    <a href="{{ path('profile_change_password') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-key"></i> {{ 'profile.change_password'|trans }}
+                    </a>
+                </div>
+                <div class="card-body">
+                    {# Flash Messages #}
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {# Current Photo & Avatar Section #}
+                    <div class="row mb-4">
+                        {# Profile Photo #}
+                        <div class="col-md-6 text-center">
+                            <h6 class="text-muted mb-2">Profile Photo</h6>
+                            {% if profile.photo %}
+                                <img src="{{ vich_uploader_asset(profile, 'photoFile') }}" 
+                                     alt="Profile Photo" 
+                                     class="rounded-circle shadow-sm" 
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" 
+                                     style="width: 150px; height: 150px;">
+                                    <i class="bi bi-person-fill text-muted" style="font-size: 3rem;"></i>
+                                </div>
+                                <small class="text-muted d-block mt-2">No photo uploaded</small>
+                            {% endif %}
+                        </div>
+
+                        {# Generated Avatar #}
+                        <div class="col-md-6 text-center">
+                            <h6 class="text-muted mb-2">Generated Avatar</h6>
+                            {% if profile.avatarFilename %}
+                                <img src="{{ asset(profile.avatarFilename) }}" 
+                                     alt="Generated Avatar" 
+                                     class="rounded-circle shadow-sm" 
+                                     style="width: 150px; height: 150px; object-fit: cover;"
+                                     id="avatar-preview">
+                                {% if profile.avatarUpdatedAt %}
+                                    <small class="text-muted d-block mt-1">
+                                        Generated {{ profile.avatarUpdatedAt|date('M d, Y H:i') }}
+                                    </small>
+                                {% endif %}
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" 
+                                     style="width: 150px; height: 150px;" id="avatar-preview">
+                                    <i class="bi bi-stars text-muted" style="font-size: 3rem;"></i>
+                                </div>
+                                <small class="text-muted d-block mt-2">No avatar generated yet</small>
+                            {% endif %}
+                            
+                            {# Generate Avatar Button #}
+                            <form action="{{ path('profile_avatar_generate') }}" method="post" class="mt-2" id="avatar-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('avatar_generate') }}">
+                                <button type="submit" 
+                                        class="btn btn-sm {{ profile.photo ? 'btn-outline-success' : 'btn-outline-secondary' }}"
+                                        id="generate-avatar-btn"
+                                        {{ profile.photo ? '' : 'disabled' }}
+                                        title="{{ profile.photo ? 'Generate a cartoon avatar from your photo' : 'Upload a profile photo first' }}">
+                                    <i class="bi bi-stars"></i> 
+                                    {{ profile.avatarFilename ? 'Regenerate Avatar' : 'Generate Avatar' }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.firstName) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form_row(form.lastName) }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.phone) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.photoFile) }}
+                            <small class="text-muted">Maximum file size: 2MB. Allowed formats: JPEG, PNG, GIF</small>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_row(form.description) }}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="text" class="form-control" value="{{ user.email }}" disabled>
+                            <small class="text-muted">Email cannot be changed. Contact an administrator if needed.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <input type="text" class="form-control" value="{{ user.role|replace({'_': ' '})|title }}" disabled>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Update Profile
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            {# ─── Face ID Security Section ─── #}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="bi bi-shield-lock"></i> Face ID Login</h4>
+                </div>
+                <div class="card-body">
+                    {% if user.faceEnabled %}
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="badge bg-success me-2"><i class="bi bi-check-circle"></i> Active</span>
+                            <span class="text-muted">
+                                Enrolled on {{ user.faceEnrolledAt ? user.faceEnrolledAt|date('M d, Y H:i') : 'N/A' }}
+                            </span>
+                        </div>
+                        <p class="text-muted mb-3">
+                            After entering your password at login, you will be asked to verify your face using your camera.
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('face_enroll_page') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-repeat"></i> Re-enroll Face
+                            </a>
+                            <form action="{{ path('face_disable') }}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to disable Face ID?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('face_disable') }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-x-circle"></i> Disable Face ID
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-3">
+                            Face ID adds an extra layer of security to your account. After enabling it, you will verify 
+                            your identity with your camera each time you log in.
+                        </p>
+                        <a href="{{ path('face_enroll_page') }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-person-bounding-box"></i> Enable Face ID
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const avatarForm = document.getElementById('avatar-form');
+        const generateBtn = document.getElementById('generate-avatar-btn');
+
+        if (avatarForm && generateBtn) {
+            avatarForm.addEventListener('submit', function() {
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Generating… this may take a minute';
+            });
+        }
+    });
+</script>
+{% endblock %}

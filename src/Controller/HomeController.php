@@ -2,17 +2,38 @@
 
 namespace App\Controller;
 
+use App\Repository\ClasseRepository;
+use App\Repository\ProgramRepository;
+use App\Repository\ReclamationRepository;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    #[IsGranted('ROLE_USER')]
-    public function index(): Response
-    {
-        return $this->render('home/index.html.twig');
+    public function index(
+        UserRepository $userRepository,
+        ProgramRepository $programRepository,
+        ClasseRepository $classeRepository,
+        ReclamationRepository $reclamationRepository
+    ): Response {
+        // If user is logged in, render their dashboard
+        if ($this->getUser()) {
+            $vars = [];
+            if ($this->isGranted('ROLE_ADMIN')) {
+                $vars = [
+                    'userCount'        => $userRepository->count([]),
+                    'programCount'     => $programRepository->count([]),
+                    'classeCount'      => $classeRepository->count([]),
+                    'reclamationCount' => $reclamationRepository->count([]),
+                ];
+            }
+            return $this->render('home/index.html.twig', $vars);
+        }
+
+        // Show vitrine landing page for guests
+        return $this->render('vitrine/index.html.twig');
     }
 }

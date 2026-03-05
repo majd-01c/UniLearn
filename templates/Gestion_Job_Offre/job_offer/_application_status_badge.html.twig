@@ -1,0 +1,10 @@
+{# Usage: {% include 'job_offer/_application_status_badge.html.twig' with {status: application.status} %} #}
+{% if status.value == 'SUBMITTED' %}
+    <span class="badge bg-info">Submitted</span>
+{% elseif status.value == 'REVIEWED' %}
+    <span class="badge bg-warning text-dark">Reviewed</span>
+{% elseif status.value == 'ACCEPTED' %}
+    <span class="badge bg-success">Accepted</span>
+{% elseif status.value == 'REJECTED' %}
+    <span class="badge bg-danger">Rejected</span>
+{% endif %}

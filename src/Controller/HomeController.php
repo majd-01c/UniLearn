@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(): Response
+    public function index(UserRepository $userRepository, ProgramRepository $programRepository, ClasseRepository $classeRepository, ReclamationRepository $reclamationRepository): Response
     {
         // If user is logged in, redirect to their dashboard
         if ($this->getUser()) {

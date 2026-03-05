@@ -18,7 +18,7 @@
 
             <div class="card card-elevated">
                 <div class="card-body p-4">
-                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate', 'enctype': 'multipart/form-data'}}) }}
                     
                     <div class="row g-3">
                         <div class="col-12">
@@ -72,10 +72,17 @@
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-semibold">Image URL (optional)</label>
-                            {{ form_widget(form.imageUrl) }}
-                            {{ form_errors(form.imageUrl) }}
-                            <div class="form-text">URL to an image representing this class</div>
+                            <label class="form-label fw-semibold">Class Image (optional)</label>
+                            {{ form_widget(form.imageFile) }}
+                            {{ form_errors(form.imageFile) }}
+                            <div class="drop-zone" id="dropZone" onclick="document.getElementById('classe_imageFile').click()">
+                                <div class="drop-zone-content" id="dropZoneContent">
+                                    <i class="bi bi-cloud-arrow-up" style="font-size: 2.5rem; color: #6c757d;"></i>
+                                    <p class="mb-1 fw-semibold">Drag & drop an image here</p>
+                                    <p class="text-muted small mb-0">or click to browse (JPEG, PNG, GIF, WebP — max 5MB)</p>
+                                </div>
+                                <img id="imagePreview" src="" alt="Preview" style="display:none; max-height: 200px; max-width: 100%; border-radius: 8px;">
+                            </div>
                         </div>
                     </div>
 
@@ -96,4 +103,69 @@
         </div>
     </div>
 </div>
+
+<style>
+.drop-zone {
+    border: 2px dashed #adb5bd;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+    border-color: #0dcaf0;
+    background: #e8f7fa;
+    box-shadow: 0 0 0 4px rgba(13,202,240,0.15);
+}
+.drop-zone.drag-over {
+    transform: scale(1.01);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('classe_imageFile');
+    const preview = document.getElementById('imagePreview');
+    const content = document.getElementById('dropZoneContent');
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type.startsWith('image/')) {
+            fileInput.files = files;
+            showPreview(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            showPreview(this.files[0]);
+        }
+    });
+
+    function showPreview(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            content.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
 {% endblock %}

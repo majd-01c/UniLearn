@@ -54,8 +54,7 @@ class Classe
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Assert\Length(max: 255)]
-    private ?string $imageUrl = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400';
+    private ?string $imageFilename = null;
 
     #[ORM\Column(type: 'string', length: 20, enumType: ClasseStatus::class, options: ['default' => 'inactive'])]
     private ClasseStatus $status = ClasseStatus::INACTIVE;
@@ -168,14 +167,14 @@ class Classe
         return $this;
     }
 
-    public function getImageUrl(): ?string
+    public function getImageFilename(): ?string
     {
-        return $this->imageUrl;
+        return $this->imageFilename;
     }
 
-    public function setImageUrl(?string $imageUrl): static
+    public function setImageFilename(?string $imageFilename): static
     {
-        $this->imageUrl = $imageUrl;
+        $this->imageFilename = $imageFilename;
         return $this;
     }
 

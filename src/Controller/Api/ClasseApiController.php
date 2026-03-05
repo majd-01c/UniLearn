@@ -42,7 +42,7 @@ class ClasseApiController extends AbstractController
                 'endDate' => $classe->getEndDate()->format('Y-m-d'),
                 'status' => $classe->getStatus()->value,
                 'isActive' => $classe->isActive(),
-                'imageUrl' => $classe->getImageUrl(),
+                'imageFilename' => $classe->getImageFilename(),
             ];
         }, $classes);
 
@@ -69,7 +69,7 @@ class ClasseApiController extends AbstractController
             'endDate' => $classe->getEndDate()->format('Y-m-d'),
             'status' => $classe->getStatus()->value,
             'isActive' => $classe->isActive(),
-            'imageUrl' => $classe->getImageUrl(),
+            'imageFilename' => $classe->getImageFilename(),
         ]);
     }
 
@@ -95,7 +95,7 @@ class ClasseApiController extends AbstractController
             $classe = $this->classeService->createFromBuildProgram(
                 $buildProgram,
                 $data['name'],
-                $data['imageUrl'] ?? null,
+                $data['imageFilename'] ?? null,
                 $status
             );
         }
@@ -112,7 +112,7 @@ class ClasseApiController extends AbstractController
                 $data['name'],
                 new \DateTime($data['startDate']),
                 new \DateTime($data['endDate']),
-                $data['imageUrl'] ?? null,
+                $data['imageFilename'] ?? null,
                 $status
             );
         } else {
@@ -130,7 +130,7 @@ class ClasseApiController extends AbstractController
             'endDate' => $classe->getEndDate()->format('Y-m-d'),
             'status' => $classe->getStatus()->value,
             'isActive' => $classe->isActive(),
-            'imageUrl' => $classe->getImageUrl(),
+            'imageFilename' => $classe->getImageFilename(),
         ], Response::HTTP_CREATED);
     }
 

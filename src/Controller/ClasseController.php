@@ -16,10 +16,12 @@ use App\Repository\StudentClasseRepository;
 use App\Repository\TeacherClasseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/classe')]
 #[IsGranted('ROLE_ADMIN')]
@@ -29,7 +31,8 @@ class ClasseController extends AbstractController
         private EntityManagerInterface $entityManager,
         private ClasseRepository $classeRepository,
         private StudentClasseRepository $studentClasseRepository,
-        private TeacherClasseRepository $teacherClasseRepository
+        private TeacherClasseRepository $teacherClasseRepository,
+        private SluggerInterface $slugger
     ) {}
 
     #[Route('', name: 'app_classe')]
@@ -58,6 +61,23 @@ class ClasseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imageFile')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $this->slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('classes_upload_directory'),
+                        $newFilename
+                    );
+                    $classe->setImageFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Failed to upload image.');
+                }
+            }
+
             $this->entityManager->persist($classe);
             $this->entityManager->flush();
 
@@ -119,6 +139,31 @@ class ClasseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imageFile')->getData();
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $this->slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('classes_upload_directory'),
+                        $newFilename
+                    );
+                    // Delete old image if exists
+                    $oldFilename = $classe->getImageFilename();
+                    if ($oldFilename) {
+                        $oldFilePath = $this->getParameter('classes_upload_directory').'/'.$oldFilename;
+                        if (file_exists($oldFilePath)) {
+                            unlink($oldFilePath);
+                        }
+                    }
+                    $classe->setImageFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Failed to upload image.');
+                }
+            }
+
             // Auto-update status based on capacity
             if ($classe->isFull() && $classe->getStatus() !== ClasseStatus::FULL) {
                 $classe->setStatus(ClasseStatus::FULL);

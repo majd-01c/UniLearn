@@ -57,7 +57,7 @@ class AdminDocumentRequestController extends AbstractController
 
         $entityManager->flush();
 
-        $this->addFlash('success', 'Statut mis à jour avec succès.');
+        $this->addFlash('success', 'Status updated successfully.');
 
         return $this->redirectToRoute('app_admin_document_request_show', ['id' => $documentRequest->getId()]);
     }
@@ -72,7 +72,7 @@ class AdminDocumentRequestController extends AbstractController
         $uploadedFile = $request->files->get('document_file');
 
         if (!$uploadedFile) {
-            $this->addFlash('error', 'Veuillez sélectionner un fichier.');
+            $this->addFlash('error', 'Please select a file.');
             return $this->redirectToRoute('app_admin_document_request_show', ['id' => $documentRequest->getId()]);
         }
 
@@ -86,7 +86,7 @@ class AdminDocumentRequestController extends AbstractController
         ];
 
         if (!in_array($uploadedFile->getMimeType(), $allowedMimeTypes)) {
-            $this->addFlash('error', 'Type de fichier non autorisé. Formats acceptés: PDF, DOC, DOCX, JPG, PNG');
+            $this->addFlash('error', 'File type not allowed. Accepted formats: PDF, DOC, DOCX, JPG, PNG');
             return $this->redirectToRoute('app_admin_document_request_show', ['id' => $documentRequest->getId()]);
         }
 
@@ -104,7 +104,7 @@ class AdminDocumentRequestController extends AbstractController
         try {
             $uploadedFile->move($uploadDir, $newFilename);
         } catch (FileException $e) {
-            $this->addFlash('error', 'Erreur lors du téléchargement du fichier.');
+            $this->addFlash('error', 'Error uploading file.');
             return $this->redirectToRoute('app_admin_document_request_show', ['id' => $documentRequest->getId()]);
         }
 
@@ -113,7 +113,7 @@ class AdminDocumentRequestController extends AbstractController
         $documentRequest->setStatus('ready');
         $entityManager->flush();
 
-        $this->addFlash('success', 'Document téléchargé avec succès. Le statut a été mis à jour vers "Prête".');
+        $this->addFlash('success', 'Document uploaded successfully. Status has been updated to "Ready".');
 
         return $this->redirectToRoute('app_admin_document_request_show', ['id' => $documentRequest->getId()]);
     }
@@ -134,7 +134,7 @@ class AdminDocumentRequestController extends AbstractController
         $entityManager->remove($documentRequest);
         $entityManager->flush();
 
-        $this->addFlash('success', 'Demande supprimée avec succès.');
+        $this->addFlash('success', 'Request deleted successfully.');
 
         return $this->redirectToRoute('app_admin_document_requests');
     }

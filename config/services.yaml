@@ -48,6 +48,10 @@ services:
         arguments:
             $avatarServiceUrl: '%avatar_service_url%'
 
+    App\Service\AIRecommendationService:
+        arguments:
+            $groqApiKey: '%groq_api_key%'
+
     # Forum AI Assistant (Groq API)
     App\Service\GeminiApiService:
         arguments:

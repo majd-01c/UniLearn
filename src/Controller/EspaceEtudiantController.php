@@ -29,24 +29,24 @@ class EspaceEtudiantController extends AbstractController
         AIRecommendationService $aiService
     ): Response {
         $user = $this->getUser();
-        
-        // Get recent grades
+
+        // Get recent grades (with assessment + course eager loaded)
         $recentGrades = $gradeRepository->createQueryBuilder('g')
+            ->join('g.assessment', 'a')
+            ->leftJoin('a.course', 'c')
             ->where('g.student = :student')
             ->setParameter('student', $user)
             ->orderBy('g.id', 'DESC')
             ->setMaxResults(5)
             ->getQuery()
             ->getResult();
-        
-        // Get AI-powered semester results and recommendations
+
+        // Semester summary only — no Groq calls on dashboard load
         $semesterResults = $aiService->calculateSemesterResults($user);
-        $recommendations = $aiService->generateRecommendations($user);
-        
+
         return $this->render('Gestion_Evaluation/espace_etudiant/dashboard.html.twig', [
-            'recentGrades' => $recentGrades,
+            'recentGrades'    => $recentGrades,
             'semesterResults' => $semesterResults,
-            'recommendations' => $recommendations,
         ]);
     }
 
@@ -109,7 +109,7 @@ class EspaceEtudiantController extends AbstractController
         ]);
         
         if (empty($studentClasses)) {
-            $this->addFlash('warning', 'Vous n\'êtes pas inscrit à une classe actuellement.');
+            $this->addFlash('warning', 'You are not currently enrolled in a class. Please contact the administration.');
             return $this->redirectToRoute('app_espace_etudiant_dashboard');
         }
         
@@ -175,7 +175,7 @@ class EspaceEtudiantController extends AbstractController
             $entityManager->persist($reclamation);
             $entityManager->flush();
             
-            $this->addFlash('success', 'Votre réclamation a été soumise avec succès.');
+            $this->addFlash('success', 'Your complaint has been submitted successfully.');
             
             return $this->redirectToRoute('app_espace_etudiant_reclamations');
         }
@@ -210,7 +210,7 @@ class EspaceEtudiantController extends AbstractController
             $entityManager->persist($documentRequest);
             $entityManager->flush();
             
-            $this->addFlash('success', 'Votre demande de document a été enregistrée.');
+            $this->addFlash('success', 'Your document request has been registered.');
             
             return $this->redirectToRoute('app_espace_etudiant_documents');
         }
@@ -227,18 +227,18 @@ class EspaceEtudiantController extends AbstractController
         
         // Security check - only the requesting student can download
         if ($documentRequest->getStudent() !== $user) {
-            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à télécharger ce document.');
+            throw $this->createAccessDeniedException('You are not authorized to download this document.');
         }
         
         if (!$documentRequest->getDocumentPath()) {
-            $this->addFlash('error', 'Le document n\'est pas encore disponible.');
+            $this->addFlash('error', 'The document is not yet available.');
             return $this->redirectToRoute('app_espace_etudiant_documents');
         }
         
         $filePath = $this->getParameter('kernel.project_dir') . '/public/uploads/student_documents/' . $documentRequest->getDocumentPath();
         
         if (!file_exists($filePath)) {
-            $this->addFlash('error', 'Le fichier n\'existe pas.');
+            $this->addFlash('error', 'File not found.');
             return $this->redirectToRoute('app_espace_etudiant_documents');
         }
         

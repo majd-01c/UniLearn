@@ -14,6 +14,7 @@ use App\Repository\JobOfferRepository;
 use App\Service\JobOffer\JobApplicationService;
 use App\Service\JobOffer\JobOfferService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,8 +23,8 @@ use PHPUnit\Framework\TestCase;
  */
 class JobOfferFullProcedureTest extends TestCase
 {
-    private EntityManagerInterface $entityManager;
-    private JobOfferRepository $repository;
+    private EntityManagerInterface&MockObject $entityManager;
+    private JobOfferRepository&MockObject $repository;
     private JobOfferService $jobOfferService;
     private JobApplicationService $jobApplicationService;
 

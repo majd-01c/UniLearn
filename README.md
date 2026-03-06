@@ -4,14 +4,14 @@
 
 This project was developed as part of the **PIDEV – 3rd Year Engineering Program** at **Esprit School of Engineering** (Academic Year 2025–2026).
 
-UniLearn is a full-stack web application designed as a comprehensive **Learning Management System (LMS)** for universities. It enables administrators, teachers, students, and business partners to manage academic programs, courses, evaluations, job offers, events, and real-time communication — all within a single unified platform.
+UniLearn is a full-stack web application designed  for universities. It enables administrators, teachers, students, and business partners to manage academic programs, courses, evaluations, job offers, events, and real-time communication — all within a single unified platform.
 
 ## Features
 
 - **User Management** – Role-based access control (Admin, Teacher, Student, Business Partner) with profile management and Face ID authentication
 - **Academic Programs** – Hierarchical program builder (Program → Module → Course → Content) with class management
 - **Evaluation System** – Quizzes with multiple question types, AI-powered answer evaluation, grade tracking, and semester results
-- **Communication** – Forum with AI-assisted topic suggestions (Gemini API), real-time chat (general & per-program), comment reactions
+- **Communication** – Forum with AI-assisted topic suggestions (Gemini API),  chat 
 - **Job Offers** – ATS scoring system, CV parsing with AI, motivation letter management, skill matching
 - **Events** – Event creation, participation management, calendar integration
 - **AI Integration** – Gemini API for forum assistance, Groq API for academic recommendations, AI content detection
@@ -86,12 +86,12 @@ unilearn/
 
 | Name | Module | Role |
 |------|--------|------|
-| *Team Member 1* | Gestion User | Full-Stack Developer |
-| *Team Member 2* | Gestion Communication | Full-Stack Developer |
-| *Team Member 3* | Gestion Evaluation | Full-Stack Developer |
-| *Team Member 4* | Gestion Program | Full-Stack Developer |
-| *Team Member 5* | Gestion Job Offre | Full-Stack Developer |
-| *Team Member 6* | Gestion Evenement | Full-Stack Developer |
+| *Alaa salem* | Gestion User | Full-Stack Developer |
+| *Majd Labidi* | Gestion Communication | Full-Stack Developer |
+| *khalil fekih* | Gestion Evaluation | Full-Stack Developer |
+| *Haroun chaabane* | Gestion Program | Full-Stack Developer |
+| *Dhia Amri* | Gestion Job Offre | Full-Stack Developer |
+
 
 > *Replace with actual team member names.*
 
@@ -104,7 +104,7 @@ PIDEV – 3A | 2025–2026
 - **Course:** PIDEV (Projet Intégré de Développement)
 - **Year:** 3rd Year (3A)
 - **Academic Year:** 2025–2026
-- **Instructor:** *[Add instructor name]*
+
 
 ## Getting Started
 

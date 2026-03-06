@@ -1,74 +1,69 @@
-UniLearn – University Learning Management System
-Overview
-This project was developed as part of the PIDEV – 3rd Year Engineering Program at Esprit School of Engineering (Academic Year 2025–2026).
+# UniLearn – University Learning Management System
+
+<div align="center">
+
+[![Last Commit](https://img.shields.io/github/last-commit/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/commits/main)
+[![Commit Activity](https://img.shields.io/github/commit-activity/t/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/commits/main)
+[![Contributors](https://img.shields.io/github/contributors/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/graphs/contributors)
+[![Forks](https://img.shields.io/github/forks/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn?style=social)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/network/members)
+[![Stars](https://img.shields.io/github/stars/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn?style=social)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/stargazers)
+[![Repo Size](https://img.shields.io/github/repo-size/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn)
+[![Issues](https://img.shields.io/github/issues/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/issues)
+
+</div>
+
+## Overview
+
+This project was developed as part of the **PIDEV – 3rd Year Engineering Program** at **Esprit School of Engineering** (Academic Year 2025–2026).
 
 UniLearn is a full-stack web application designed for universities. It enables administrators, teachers, students, and business partners to manage academic programs, courses, evaluations, job offers, events, and real-time communication — all within a single unified platform.
 
-Features
-User Management – Role-based access control (Admin, Teacher, Student, Business Partner) with profile management and Face ID authentication
+## Features
 
-Academic Programs – Hierarchical program builder (Program → Module → Course → Content) with class management
+- **User Management** – Role-based access control (Admin, Teacher, Student, Business Partner) with profile management and Face ID authentication
+- **Academic Programs** – Hierarchical program builder (Program → Module → Course → Content) with class management
+- **Evaluation System** – Quizzes with multiple question types, AI-powered answer evaluation, grade tracking, and semester results
+- **Communication** – Forum with AI-assisted topic suggestions (Gemini API), chat
+- **Job Offers** – ATS scoring system, CV parsing with AI, motivation letter management, skill matching
+- **Events** – Event creation, participation management, calendar integration
+- **AI Integration** – Gemini API for forum assistance, Groq API for academic recommendations, AI content detection
+- **Video Meetings** – Jitsi-based virtual classrooms for live sessions
+- **Face ID** – Biometric face verification for secure login using face-api.js
+- **Avatar Generator** – Python FastAPI microservice for generating user avatars
+- **Email Notifications** – Automated welcome emails, verification codes, password reset via Google SMTP
+- **Multilingual** – Internationalization support (English, French, Arabic)
 
-Evaluation System – Quizzes with multiple question types, AI-powered answer evaluation, grade tracking, and semester results
+## Tech Stack
 
-Communication – Forum with AI-assisted topic suggestions (Gemini API), chat
+### Frontend
 
-Job Offers – ATS scoring system, CV parsing with AI, motivation letter management, skill matching
+- **Twig** – Symfony templating engine
+- **Bootstrap 5** – Responsive UI framework with Bootstrap Icons
+- **Stimulus** (Symfony UX) – JavaScript controller framework
+- **Turbo** (Symfony UX) – SPA-like navigation without full page reloads
+- **face-api.js** – Client-side face detection and recognition
 
-Events – Event creation, participation management, calendar integration
+### Backend
 
-AI Integration – Gemini API for forum assistance, Groq API for academic recommendations, AI content detection
+- **PHP 8.1+** – Server-side language
+- **Symfony 6.4** – PHP framework (MVC architecture)
+- **Doctrine ORM 3** – Database abstraction and entity management
+- **MySQL 8.0** – Relational database
+- **Python FastAPI** – Avatar generation microservice
+- **Gemini API** – AI-powered forum suggestions and content analysis
+- **Groq API** – AI-powered academic recommendations
 
-Video Meetings – Jitsi-based virtual classrooms for live sessions
+### DevOps & Tools
 
-Face ID – Biometric face verification for secure login using face-api.js
+- **Docker** – Containerized database environment
+- **Composer** – PHP dependency manager
+- **PHPStan** (Level 6) – Static analysis for code quality
+- **PHPUnit** – Unit and integration testing
+- **Symfony Mailer** – Email service (Google SMTP)
 
-Avatar Generator – Python FastAPI microservice for generating user avatars
+## Architecture
 
-Email Notifications – Automated welcome emails, verification codes, password reset via Google SMTP
-
-Multilingual – Internationalization support (English, French, Arabic)
-
-Tech Stack
-Frontend
-Twig – Symfony templating engine
-
-Bootstrap 5 – Responsive UI framework with Bootstrap Icons
-
-Stimulus (Symfony UX) – JavaScript controller framework
-
-Turbo (Symfony UX) – SPA-like navigation without full page reloads
-
-face-api.js – Client-side face detection and recognition
-
-Backend
-PHP 8.1+ – Server-side language
-
-Symfony 6.4 – PHP framework (MVC architecture)
-
-Doctrine ORM 3 – Database abstraction and entity management
-
-MySQL 8.0 – Relational database
-
-Python FastAPI – Avatar generation microservice
-
-Gemini API – AI-powered forum suggestions and content analysis
-
-Groq API – AI-powered academic recommendations
-
-DevOps & Tools
-Docker – Containerized database environment
-
-Composer – PHP dependency manager
-
-PHPStan (Level 6) – Static analysis for code quality
-
-PHPUnit – Unit and integration testing
-
-Symfony Mailer – Email service (Google SMTP)
-
-Architecture
-text
+```
 unilearn/
 ├── src/
 │   ├── Controller/          # Route handlers (Admin, Student, Teacher, Partner, Forum, etc.)
@@ -97,41 +92,42 @@ unilearn/
 ├── tests/                   # PHPUnit tests & PHPStan analysis
 ├── assets/                  # Frontend JS/CSS (Stimulus controllers)
 └── public/                  # Web root (index.php, uploads, face-api models)
-Contributors
-Name	GitHub	Module	Role	Commits	Share
-Alaa Salem	@alaasalem-blip	Gestion User	Full-Stack Developer	17	9.4%
-Majd Labidi	@majd-01c	Gestion Communication	Full-Stack Developer	84	46.7%
-Khalil Fekih	@khalil-feki	Gestion Evaluation	Full-Stack Developer	16	8.9%
-Haroun Chaabane	@harounchaabane	Gestion Program	Full-Stack Developer	31	17.2%
-Dhia Amri	@dhia573	Gestion Job Offre	Full-Stack Developer	32	17.8%
-Academic Context
-Developed at Esprit School of Engineering – Tunisia
+```
+
+## Contributors
+
+| Name | GitHub | Module | Role | Commits | Share |
+|------|--------|--------|------|---------|-------|
+| Alaa Salem | [@alaasalem-blip](https://github.com/alaasalem-blip) | Gestion User | Full-Stack Developer | 17 | 9.2% |
+| Majd Labidi | [@majd-01c](https://github.com/majd-01c) | Gestion Communication | Full-Stack Developer | 84 | 45.7% |
+| Khalil Fekih | [@khalil-feki](https://github.com/khalil-feki) | Gestion Evaluation | Full-Stack Developer | 19 | 10.4% |
+| Haroun Chaabane | [@harounchaabane](https://github.com/harounchaabane) | Gestion Program | Full-Stack Developer | 31 | 16.8% |
+| Dhia Amri | [@dhia573](https://github.com/dhia573) | Gestion Job Offre | Full-Stack Developer | 32 | 17.4% |
+
+## Academic Context
+
+Developed at **Esprit School of Engineering – Tunisia**
 PIDEV – 3A | 2025–2026
 
-Degree: Engineering in Computer Science
+- **Degree:** Engineering in Computer Science
+- **Course:** PIDEV (Projet Intégré de Développement)
+- **Year:** 3rd Year (3A)
+- **Academic Year:** 2025–2026
 
-Course: PIDEV (Projet Intégré de Développement)
+## Getting Started
 
-Year: 3rd Year (3A)
+### Prerequisites
 
-Academic Year: 2025–2026
+- PHP 8.1+
+- MySQL 8.0+
+- Composer
+- Docker
+- Node.js (for asset building)
+- Python 3.10+ (for avatar service)
 
-Getting Started
-Prerequisites
-PHP 8.1+
+### Installation
 
-MySQL 8.0+
-
-Composer
-
-Docker
-
-Node.js (for asset building)
-
-Python 3.10+ (for avatar service)
-
-Installation
-bash
+```bash
 # 1. Clone the repository
 git clone https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn.git
 cd Esprit-PIDEV-3A57--2026-UniLearn
@@ -150,55 +146,68 @@ php bin/console app:create-access-users
 
 # 6. Start the Symfony server
 symfony serve
-Default Accounts
-Email	Password	Role
-admin@unilearn.com	admin123	ADMIN
-student1@unilearn.com	student123	STUDENT
-student2@unilearn.com	student123	STUDENT
-teacher@unilearn.com	teacher123	TEACHER
-partner@unilearn.com	partner123	BUSINESS_PARTNER
-Access
-Application: http://localhost:8000
+```
 
-Analytics & Project Indicators
-Repository Info
-Indicator	Value
-Repository	majd-01c/Esprit-PIDEV-3A57--2026-UniLearn
-Primary Language	Twig
-Forks	3
-Stars	0
-Created	February 1, 2026
-Last Push	March 6, 2026
-Commit Stats
-Sourced live from the full main branch history (180+ commits across all pages).
+### Default Accounts
 
-Contributor	GitHub	Commits	Share
-Majd Labidi	@majd-01c	84	46.7%
-Dhia Amri	@dhia573	32	17.8%
-Haroun Chaabane	@harounchaabane	31	17.2%
-Alaa Salem	@alaasalem-blip	17	9.4%
-Khalil Fekih	@khalil-feki	16	8.9%
-Total		180+	100%
-Interaction & Quality Indicators
-Indicator	Badge
-Total Commits	
-Last Commit	
-Stars	[
-Forks	[
-Contributors	[
-Repo Size	
-Open Issues	
-Structured README	✅ Yes
-Conforming Topics	✅ Yes
-Acknowledgments
-Esprit School of Engineering for providing the academic framework and guidance
+| Email | Password | Role |
+|-------|----------|------|
+| admin@unilearn.com | admin123 | ADMIN |
+| student1@unilearn.com | student123 | STUDENT |
+| student2@unilearn.com | student123 | STUDENT |
+| teacher@unilearn.com | teacher123 | TEACHER |
+| partner@unilearn.com | partner123 | BUSINESS_PARTNER |
 
-Symfony open-source community
+### Access
 
-Google Gemini API and Groq API for AI capabilities
+- **Application:** http://localhost:8000
 
-Jitsi Meet for open-source video conferencing
+## Analytics & Project Indicators
 
-face-api.js for browser-based face recognition
+### Repository Info
 
-All open-source libraries and tools that made this project possible
+| Indicator | Value |
+|-----------|-------|
+| Repository | [majd-01c/Esprit-PIDEV-3A57--2026-UniLearn](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn) |
+| Primary Language | Twig |
+| Total Forks | 3 |
+| Total Stars | 0 |
+| Pull Requests | 51 (all merged) |
+| Created | February 1, 2026 |
+| Last Push | March 6, 2026 |
+
+### Commit Stats (Full Branch History)
+
+> Sourced from the complete `main` branch history — 183+ commits total.
+
+| Contributor | GitHub | Commits | Share |
+|-------------|--------|---------|-------|
+| Majd Labidi | [@majd-01c](https://github.com/majd-01c) | 84 | 45.7% |
+| Dhia Amri | [@dhia573](https://github.com/dhia573) | 32 | 17.4% |
+| Haroun Chaabane | [@harounchaabane](https://github.com/harounchaabane) | 31 | 16.8% |
+| Khalil Fekih | [@khalil-feki](https://github.com/khalil-feki) | 19 | 10.4% |
+| Alaa Salem | [@alaasalem-blip](https://github.com/alaasalem-blip) | 17 | 9.2% |
+| **Total** | | **183+** | **100%** |
+
+### Interaction & Quality Indicators
+
+| Indicator | Badge |
+|-----------|-------|
+| Total Commits | ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn) |
+| Last Commit | ![GitHub last commit](https://img.shields.io/github/last-commit/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn) |
+| Stars | [![GitHub Stars](https://img.shields.io/github/stars/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn?style=social)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/stargazers) |
+| Forks | [![GitHub Forks](https://img.shields.io/github/forks/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn?style=social)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/network/members) |
+| Contributors | [![Contributors](https://img.shields.io/github/contributors/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn)](https://github.com/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn/graphs/contributors) |
+| Repo Size | ![Repo Size](https://img.shields.io/github/repo-size/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn) |
+| Open Issues | ![Issues](https://img.shields.io/github/issues/majd-01c/Esprit-PIDEV-3A57--2026-UniLearn) |
+| Structured README | ✅ Yes |
+| Conforming Topics | ✅ Yes |
+
+## Acknowledgments
+
+- **Esprit School of Engineering** for providing the academic framework and guidance
+- **Symfony** open-source community
+- **Google Gemini API** and **Groq API** for AI capabilities
+- **Jitsi Meet** for open-source video conferencing
+- **face-api.js** for browser-based face recognition
+- All open-source libraries and tools that made this project possible
